@@ -46,6 +46,7 @@ typedef uint32_t evnt_code_t;
 // TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
 typedef uint32_t evnt_size_t;
+typedef uint8_t evnt_tiny_size_t;
 typedef uint32_t evnt_param_t;
 typedef uint32_t* evnt_buffer_t;// data structure for holding a set of events
 typedef uint32_t evnt_offset_t;
