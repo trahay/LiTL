@@ -228,7 +228,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
          */
 
         // update nb_threads
-        *(evnt_size_t *) (trace->header_cur - sizeof(evnt_offset_t)) = trace->nb_threads;
+        *(evnt_size_t *) (trace->header_cur - 2 * sizeof(evnt_size_t)) = trace->nb_threads;
         // header_size stores the position of nb_threads in the trace file
         trace->header_size = __get_header_size(trace) - 2 * sizeof(evnt_size_t);
 

@@ -48,7 +48,7 @@ typedef uint32_t evnt_code_t;
 typedef uint32_t evnt_size_t;
 typedef uint8_t evnt_tiny_size_t;
 typedef uint32_t evnt_param_t;
-typedef uint32_t* evnt_buffer_t;// data structure for holding a set of events
+typedef uint8_t* evnt_buffer_t;// data structure for holding a set of events
 typedef uint32_t evnt_offset_t;
 #endif
 typedef uint8_t evnt_data_t;
