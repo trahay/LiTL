@@ -36,8 +36,8 @@ litl_timing_method_t litl_get_time = TIMER_DEFAULT;
 /*
  * This function benchmarks function f and returns the number of calls to f that can be done in 100 microseconds
  */
-static uint64_t __litl_time_benchmark_generic(litl_timing_method_t f) {
-  uint64_t i = 0;
+static unsigned __litl_time_benchmark_generic(litl_timing_method_t f) {
+  unsigned i = 0;
   unsigned threshold = 100000; 	/* how many calls to f() in 100 microseconds ? */
   litl_time_t t1, t2;
   t1 = f();
@@ -53,12 +53,12 @@ static uint64_t __litl_time_benchmark_generic(litl_timing_method_t f) {
  * Select the most efficient timing method
  */
 static void __litl_time_benchmark() {
-  uint64_t best_score = 0;
-  uint64_t cur_score;
+  unsigned best_score = 0;
+  unsigned cur_score;
 
 #define RUN_BENCHMARK(_func_) do {			\
     cur_score = __litl_time_benchmark_generic(_func_);	\
-    if(cur_score > best_score) {			\
+    if(cur_score > best_score) { \
       best_score = cur_score;				\
       litl_set_timing_method(_func_);			\
     }							\
@@ -91,9 +91,6 @@ static void __litl_time_benchmark() {
 #if defined(__x86_64__) || defined(__i386)
   RUN_BENCHMARK(litl_get_time_ticks);
 #endif
-
-
-  fprintf(stderr, "Best score: %ul\n", best_score);
 }
 
 /*
@@ -108,42 +105,42 @@ void litl_time_initialize() {
 #else
 	    goto not_available;
 #endif
-      } else if (strcmp(time_str, "monotonic") == 0)
+      } else if (strcmp(time_str, "monotonic") == 0) {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC))
             litl_set_timing_method(litl_get_time_monotonic);
 #else
 	    goto not_available;
 #endif
-        else if (strcmp(time_str, "realtime") == 0)
+      } else if (strcmp(time_str, "realtime") == 0) {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_REALTIME))
             litl_set_timing_method(litl_get_time_realtime);
 #else
 	    goto not_available;
 #endif
-        else if (strcmp(time_str, "process_cputime") == 0)
+      } else if (strcmp(time_str, "process_cputime") == 0) {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_PROCESS_CPUTIME_ID))
             litl_set_timing_method(litl_get_time_process_cputime);
 #else
 	    goto not_available;
 #endif
-        else if (strcmp(time_str, "thread_cputime") == 0)
+      } else if (strcmp(time_str, "thread_cputime") == 0) {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_THREAD_CPUTIME_ID))
             litl_set_timing_method(litl_get_time_thread_cputime);
 #else
 	    goto not_available;
 #endif
-        else if (strcmp(time_str, "ticks") == 0)
+      } else if (strcmp(time_str, "ticks") == 0) {
 #if defined(__x86_64__) || defined(__i386)
             litl_set_timing_method(litl_get_time_ticks);
 #else
 	    goto not_available;
 #endif
-        else if (strcmp(time_str, "best") == 0) {
+      } else if (strcmp(time_str, "best") == 0) {
 	    __litl_time_benchmark();
-	} else {
-            fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
-            abort();
-        }
+      } else {
+       	    fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
+	    abort();
+      }
     }
     return ;
  not_available:
