@@ -92,6 +92,9 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     }
     trace.nb_threads = 0;
 
+    /* Initialize the timing mechanism */
+    litl_time_initialize();
+
     // a jump function is needed 'cause it is not possible to pass args to the calling function through pthread_once
     void __init() {
         __init_var(&trace);
