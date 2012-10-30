@@ -9,14 +9,24 @@
 #define EVNT_READ_H_
 
 /*
- * This functions opens a trace
+ * This function opens a trace
  */
 Trace* open_trace(char* filename);
 
 /*
- * This functions closes the trace
+ * This function closes the trace
  */
 void close_trace(Trace* trace);
+
+/*
+ * This function resets the trace
+ */
+void reset_trace(Trace* trace);
+
+/*
+ * This function reads an event
+ */
+evnt* read_event(Trace* trace);
 
 /*
  * This function searches for the next event

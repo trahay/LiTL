@@ -6,16 +6,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "evnt_types.h"
+//#include "evnt_write.h"
+//#include "evnt_read.h"
+
 int main(int argc, const char * argv[]) {
-    FILE *fp;
-    int num;
 
-    fp = fopen("/sys/devices/system/cpu/cpu0/cache/index2/size", "r");
-
-    fscanf(fp, "%d", &num);
-    printf("L2 cache size is %d KB\n", num);
-
-    fclose(fp);
+    printf("Evnt Project\n");
+    printf("int = %d\n", (int) sizeof(int));
+    printf("long int = %d\n", (int) sizeof(long int));
+    printf("uint64_t = %d\n", (int) sizeof(uint64_t));
+    printf("long long int = %d\n", (int) sizeof(long long int));
 
     return EXIT_SUCCESS;
 }

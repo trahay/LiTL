@@ -7,8 +7,8 @@ OBJ = main.o
 
 main.out: $(OBJ)
 	$(CC) $(OBJ) -o $@
-	
-main.o: main.c
+
+main.o: main.c evnt_types.h evnt_write.h
 
 .PHONY: clean
 clean: 
