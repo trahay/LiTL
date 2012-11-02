@@ -16,7 +16,10 @@ int main(int argc, const char * argv[]) {
     buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
     thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
     uint32_t buffer_size = 128;
+
     init_trace(filename, buffer_flush, thread_safe, buffer_size);
+
+    finalize_trace();
 
     return EXIT_SUCCESS;
 }

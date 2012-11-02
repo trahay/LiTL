@@ -13,12 +13,17 @@
 /*
  * This function initializes the trace
  */
-void init_trace(char* filename, buffer_flags buffer_flush, thread_flags thread_safe, uint32_t buffer_size);
+void init_trace(char*, buffer_flags, thread_flags, uint32_t);
 
 /*
  * This function finalizes the trace
  */
 void finalize_trace();
+
+/*
+ * This function writes the recorded events from the buffer to the file
+ */
+void buffer_flush();
 
 /*
  * This function records an event without any arguments
@@ -75,10 +80,5 @@ void evnt_probe9(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uin
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(uint64_t, uint64_t, void*); // there is a possibility to remove size
-
-/*
- * This function writes the recorded events from the buffer to the file
- */
-void _buffer_flush();
 
 #endif /* EVNT_WRITE_H_ */
