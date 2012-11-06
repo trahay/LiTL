@@ -13,12 +13,12 @@
 /*
  * This function initializes the trace
  */
-void init_trace(char*, buffer_flags, thread_flags, uint32_t);
+void trace_init(char*, buffer_flags, thread_flags, uint32_t);
 
 /*
  * This function finalizes the trace
  */
-void finalize_trace();
+void trace_fin();
 
 /*
  * This function writes the recorded events from the buffer to the file

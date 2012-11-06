@@ -14,7 +14,7 @@
 static uint64_t* buffer_ptr;
 uint64_t* buffer_cur;
 
-static uint32_t buffer_size = 32 * 1024 * 1024; // MB
+static uint32_t buffer_size = 32 * 1024; // 32 KB
 static buffer_flags buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags thread_safe_flag = EVNT_NOTHREAD_SAFE;
 static FILE* ftrace;
@@ -48,13 +48,16 @@ static uint64_t _get_time() {
 /*
  * This function initializes the trace
  */
-void init_trace(char* file_path, buffer_flags flush_flag, thread_flags thread_flag, uint32_t buf_size) {
+void trace_init(char* file_path, buffer_flags flush_flag, thread_flags thread_flag, uint32_t buf_size) {
     int ok;
     void *vp;
 
+    // TODO: add a checker, so if any of the arguments is not given, then the default value will be taken
+
     // allocate memory to be sure that it is aligned
-    // the size of buffer is slightly bigger than it was required
-    ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + 2 * sizeof(evnt));
+    // the size of buffer is slightly bigger than it was required, because two or three additional events are added
+    //      before and after tracing, and also after the buffer was flushed
+    ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + 3 * sizeof(evnt));
     if (ok != 0)
         perror("Could not allocate memory for the buffer!");
 
@@ -66,19 +69,31 @@ void init_trace(char* file_path, buffer_flags flush_flag, thread_flags thread_fl
     thread_safe_flag = thread_flag;
 
     // TODO: perhaps, it is better to touch each block in buffer_ptr in order to load it
+
     // check whether the trace file can be opened
     if (!(ftrace = fopen(file_path, "w+")))
         perror("Could not open the trace file!");
+
+    // evnt_size represents the number of events' properties such as tid, time, code, nb_args, and args
+    int evnt_size = 4;
+
+    // write time and the EVNT_TRACE_START (= 0) code to indicate the start of tracing
+    // TODO: how to set the thread ID?
+    ((evnt *) buffer_cur)->tid = 0;
+    ((evnt *) buffer_cur)->time = _get_time();
+    ((evnt *) buffer_cur)->code = EVNT_TRACE_START;
+    ((evnt *) buffer_cur)->nb_args = 0;
+    buffer_cur += evnt_size;
 }
 
 /*
  * This function finalizes the trace
  */
-void finalize_trace() {
+void trace_fin() {
     // evnt_size represents the number of events' properties such as tid, time, code, nb_args, and args
     int evnt_size = 4;
 
-    // write time and the EVNT_TRACE_END (= 0) code to indicate the end of tracing
+    // write time and the EVNT_TRACE_END (= 2) code to indicate the end of tracing
     // TODO: how to set the thread ID?
     ((evnt *) buffer_cur)->tid = 0;
     ((evnt *) buffer_cur)->time = _get_time();
@@ -97,16 +112,16 @@ void finalize_trace() {
  * This function writes the recorded events from the buffer to the file
  */
 void buffer_flush() {
-    /*// evnt_size represents the number of events' properties such as tid, time, code, nb_args, and args
+    // evnt_size represents the number of events' properties such as tid, time, code, nb_args, and args
     int evnt_size = 4;
 
-    // write time and the EVNT_BUFFER_FLUSH_START (= 1) code to indicate the buffer flush start
+    // write time and the EVNT_BUFFER_FLUSHED (= 1) code to indicate the buffer flush start
     // TODO: how to set the thread ID?
     ((evnt *) buffer_cur)->tid = 0;
     ((evnt *) buffer_cur)->time = _get_time();
-    ((evnt *) buffer_cur)->code = EVNT_BUFFER_FLUSH_START;
+    ((evnt *) buffer_cur)->code = EVNT_BUFFER_FLUSHED;
     ((evnt *) buffer_cur)->nb_args = 0;
-    buffer_cur += evnt_size;*/
+    buffer_cur += evnt_size;
 
     if (fwrite(buffer_ptr, _get_buffer_size(buffer_ptr, buffer_cur), 1, ftrace) != 1)
         perror("Flushing the buffer. Could not write measured data to the trace file!");

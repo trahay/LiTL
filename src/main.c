@@ -12,14 +12,14 @@
 
 int main(int argc, const char * argv[]) {
 
-    char* filename = "trace.trace";
+    /*char* filename = "trace.trace";
     buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
     thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
     uint32_t buffer_size = 128;
 
-    init_trace(filename, buffer_flush, thread_safe, buffer_size);
+    trace_init(filename, buffer_flush, thread_safe, buffer_size);
 
-    finalize_trace();
+    trace_fin();*/
 
     return EXIT_SUCCESS;
 }

@@ -8,7 +8,7 @@
 #include "evnt_read.h"
 
 /*
- * This function opens a trace
+ * This function opens a binary trace file
  */
 Trace* open_trace(char* filename) {
     Trace *trace;
