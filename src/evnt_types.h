@@ -11,16 +11,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define EVNT_TRACE_START 0
-#define EVNT_BUFFER_FLUSHED 1
-#define EVNT_TRACE_END 2
+#define EVNT_BUFFER_FLUSHED 0
+#define EVNT_TRACE_END 1
 
 #define EVNT_MAX_PARAMS 9
 
 typedef struct {
+    uint64_t code; // code of the event
     uint64_t tid; // thread ID
     uint64_t time; // time of the measurement
-    uint64_t code; // code of the event
     uint64_t nb_args; // number of arguments
     uint64_t args[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 6
 } evnt;
@@ -43,7 +42,7 @@ typedef enum {
     EVNT_THREAD_SAFE, EVNT_NOTHREAD_SAFE
 } thread_flags;
 
-typedef uint64_t Trace;
+typedef uint64_t* trace;
 
 typedef struct {
     FILE* fp;

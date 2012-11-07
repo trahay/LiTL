@@ -8,7 +8,7 @@
 
 #include "evnt_types.h"
 #include "evnt_write.h"
-//#include "evnt_read.h"
+#include "evnt_read.h"
 
 int main(int argc, const char * argv[]) {
 
@@ -20,6 +20,8 @@ int main(int argc, const char * argv[]) {
     trace_init(filename, buffer_flush, thread_safe, buffer_size);
 
     trace_fin();*/
+
+    open_trace("test_evnt_write.trace");
 
     return EXIT_SUCCESS;
 }

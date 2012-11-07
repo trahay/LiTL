@@ -13,26 +13,26 @@
 /*
  * This function opens a trace
  */
-Trace* open_trace(char*);
+trace open_trace(const char*);
 
 /*
  * This function closes the trace
  */
-void close_trace(Trace*);
+void close_trace(trace);
 
 /*
  * This function resets the trace
  */
-void reset_trace(Trace*);
+void reset_trace(trace*);
 
 /*
  * This function reads an event
  */
-evnt* read_event(Trace*);
+evnt* read_event(trace*);
 
 /*
  * This function searches for the next event
  */
-evnt* next_event(Trace*);
+evnt* next_event(trace*);
 
 #endif /* EVNT_READ_H_ */

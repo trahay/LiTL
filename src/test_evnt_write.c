@@ -23,7 +23,7 @@ int main(int argc, const char * argv[]) {
     printf("=============================================================\n");
     printf("Recording events with zero arguments\n\n");
 
-    trace_init(filename, buffer_flush, thread_safe, buffer_size);
+    init_trace(filename, buffer_flush, thread_safe, buffer_size);
 
     printf("Enter the number of events to be recorded (nb >= 1): ");
     i = scanf("%d", &nb_iter);
@@ -33,9 +33,9 @@ int main(int argc, const char * argv[]) {
         usleep(100);
     }
 
-    trace_fin();
+    fin_trace();
 
-    printf("\nEvents are recorded into the %s file\n", filename);
+    printf("\nEvents are recorded and written in the %s file\n", filename);
     printf("=============================================================\n");
 
     return EXIT_SUCCESS;
