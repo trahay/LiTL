@@ -30,6 +30,7 @@ int main(int argc, const char * argv[]) {
 
     for (i = 0; i < nb_iter; i++) {
         evnt_probe0((uint64_t) 10 * i + 3);
+//        evnt_probe3((uint64_t) 10 * i + 3, 7, 9, 13);
         usleep(100);
     }
 

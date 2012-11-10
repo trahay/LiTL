@@ -11,14 +11,16 @@
 #include "evnt_macro.h"
 #include "evnt_read.h"
 
+static FILE *ftrace;
 static trace buffer_ptr;
+static trace buffer_cur;
+static uint64_t buffer_size = 4 * 1024; // 32 KB
+static uint64_t offset = 0;
 
 /*
- * This function opens a binary trace file
+ * This function opens a trace and reads the first portion of data to the buffer
  */
 trace open_trace(const char* file_path) {
-    FILE *ftrace;
-    trace buffer_cur;
     struct stat st;
 
     if (!(ftrace = fopen(file_path, "r")))
@@ -27,23 +29,34 @@ trace open_trace(const char* file_path) {
     if (stat(file_path, &st) != 0)
         perror("Could not get the attributes of the trace file!");
 
-    buffer_cur = malloc(st.st_size);
-    // TODO: there is a potential to being not able to read the whole trace at once. Alternative solution is needed
-    if (fread(buffer_cur, st.st_size, 1, ftrace) != 1)
-        perror("Could not copy the content of the trace file to a buffer!");
+    if (buffer_size > st.st_size)
+        buffer_size = st.st_size;
+    buffer_cur = malloc(buffer_size);
+
+    int res = fread(buffer_cur, buffer_size, 1, ftrace);
+    // If the end of file is reached, then all data are read. So, res is 0.
+    // Otherwise, res is either an error or the number of elements, which is 1.
+    if ((res != 0) && (res != 1))
+        perror("Could not copy the top of the trace file to a buffer!");
 
     buffer_ptr = buffer_cur;
-    fclose(ftrace);
-
     return buffer_cur;
 }
 
 /*
- * This function closes the trace
+ * This function reads another portion of data from the trace file to the buffer
  */
-void close_trace(trace buffer_cur) {
-//    free(buffer_cur);
-    free(buffer_ptr);
+static trace _next_trace() {
+    fseek(ftrace, offset, SEEK_SET);
+
+    int res = fread(buffer_cur, buffer_size, 1, ftrace);
+    // If the end of file is reached, then all data are read. So, res is 0.
+    // Otherwise, res is either an error or the number of elements, which is 1.
+    if ((res != 0) && (res != 1))
+        perror("Could not copy the next part of the trace file to a buffer!");
+
+    buffer_ptr = buffer_cur;
+    return buffer_cur;
 }
 
 /*
@@ -56,26 +69,42 @@ void reset_trace(trace* buffer_cur) {
 /*
  * This function reads an event
  */
-evnt* read_event(trace* buffer_cur) {
+evnt* read_event(trace* buffer) {
     evnt* event;
 
-    if (buffer_cur == NULL )
+    if (*buffer == NULL )
         return NULL ;
 
-    event = malloc(sizeof(evnt));
-    event = (evnt *) *buffer_cur;
+    event = (evnt *) *buffer;
+
+    // if buffer ends in the middle of the event, then nb_args is checked whether it is defined or not.
+    // If nb_args is OK, then the check is performed to be sure that the whole event is read.
+    // If any of these cases gives false, the next part of the trace plus the current event is loaded to the buffer.
+    if (((event->nb_args >= 0) && (event->nb_args <= 9))
+            || (abs(buffer_size - offset % buffer_size) < get_event_size(event->nb_args) * sizeof(uint64_t))) {
+        *buffer = _next_trace();
+        event = (evnt *) *buffer;
+    }
+
+    if (event->code == 0)
+        exit(0);
 
     // skip events like EVNT_BUFFER_FLUSHED and EVNT_TRACE_END
     if (event->code == EVNT_BUFFER_FLUSHED) {
-        *buffer_cur += get_event_size(event->nb_args);
-        read_event(buffer_cur);
+        // move pointer to the next event and update offset
+        *buffer += get_event_size(event->nb_args);
+        offset += get_event_size(event->nb_args) * sizeof(uint64_t);
+        read_event(buffer);
     }
 
-    if (event->code == EVNT_TRACE_END)
+    if (event->code == EVNT_TRACE_END) {
+        *buffer = NULL;
         return NULL ;
+    }
 
-    // move pointer to the other event
-    *buffer_cur += get_event_size(event->nb_args);
+    // move pointer to the next event and update offset
+    *buffer += get_event_size(event->nb_args);
+    offset += get_event_size(event->nb_args) * sizeof(uint64_t);
 
     return event;
 }
@@ -88,4 +117,16 @@ evnt* next_event(trace* buffer_cur) {
     event = NULL;
 
     return event;
+}
+
+/*
+ * This function closes the trace and frees the buffer
+ */
+void close_trace(trace* buffer_cur) {
+    fclose(ftrace);
+    free(buffer_ptr);
+
+    // set pointers to NULL
+    buffer_ptr = NULL;
+    *buffer_cur = NULL;
 }

@@ -25,7 +25,7 @@ int main(int argc, const char * argv[]) {
     while (buffer != NULL ) {
         event = read_event(&buffer);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
@@ -37,7 +37,7 @@ int main(int argc, const char * argv[]) {
     }
 
     printf("=============================================================\n");
-    close_trace(buffer);
+    close_trace(&buffer);
 
     return EXIT_SUCCESS;
 }

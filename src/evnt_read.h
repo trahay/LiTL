@@ -11,14 +11,9 @@
 #include "evnt_types.h"
 
 /*
- * This function opens a trace
+ * This function opens a trace and reads the first portion of data to the buffer
  */
 trace open_trace(const char*);
-
-/*
- * This function closes the trace
- */
-void close_trace(trace);
 
 /*
  * This function resets the trace
@@ -34,5 +29,10 @@ evnt* read_event(trace*);
  * This function searches for the next event
  */
 evnt* next_event(trace*);
+
+/*
+ * This function closes the trace and frees the buffer
+ */
+void close_trace(trace*);
 
 #endif /* EVNT_READ_H_ */

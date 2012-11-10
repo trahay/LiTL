@@ -9,7 +9,7 @@ OBJ_MAIN = main.o evnt_write.o evnt_read.o evnt_macro.o
 OBJ_TEST_WRITE = test_evnt_write.o evnt_write.o evnt_macro.o
 OBJ_TEST_READ = test_evnt_read.o evnt_read.o evnt_macro.o
 
-all: main.out
+all: clean main.out test_evnt_write test_evnt_read
 
 main.out: $(OBJ_MAIN)
 	$(CC) $(OBJ_MAIN) $(LIBS) -o $@
