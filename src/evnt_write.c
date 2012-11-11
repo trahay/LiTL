@@ -91,14 +91,14 @@ void fin_trace() {
  * This function writes the recorded events from the buffer to the file
  */
 void flush_buffer() {
-    // write time and the EVNT_BUFFER_FLUSHED (= 1) code to indicate the buffer flush start
+    /*// write time and the EVNT_BUFFER_FLUSHED (= 1) code to indicate the buffer flush start
     // TODO: how to set the thread ID?
     ((evnt *) buffer_cur)->tid = 0;
     ((evnt *) buffer_cur)->time = _get_time();
     ((evnt *) buffer_cur)->code = EVNT_BUFFER_FLUSHED;
     ((evnt *) buffer_cur)->nb_args = 0;
 
-    buffer_cur += get_event_size(0);
+    buffer_cur += get_event_size(0);*/
 
     if (fwrite(buffer_ptr, _get_buffer_size(), 1, ftrace) != 1)
         perror("Flushing the buffer. Could not write measured data to the trace file!");

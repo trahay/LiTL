@@ -14,8 +14,12 @@
 static FILE *ftrace;
 static trace buffer_ptr;
 static trace buffer_cur;
-static uint64_t buffer_size = 4 * 1024; // 32 KB
+static uint64_t buffer_size = 32 * 1024; // 32 KB
+// offset from the beginning of the trace file
 static uint64_t offset = 0;
+static uint64_t tracker = 32 * 1024; // offset + buffer_size
+
+// TODO: implement an _init function where tracker would be set.
 
 /*
  * This function opens a trace and reads the first portion of data to the buffer
@@ -77,26 +81,29 @@ evnt* read_event(trace* buffer) {
 
     event = (evnt *) *buffer;
 
-    // if buffer ends in the middle of the event, then nb_args is checked whether it is defined or not.
-    // If nb_args is OK, then the check is performed to be sure that the whole event is read.
-    // If any of these cases gives false, the next part of the trace plus the current event is loaded to the buffer.
-    if (((event->nb_args >= 0) && (event->nb_args <= 9))
-            || (abs(buffer_size - offset % buffer_size) < get_event_size(event->nb_args) * sizeof(uint64_t))) {
-        *buffer = _next_trace();
-        event = (evnt *) *buffer;
+    // While reading events from the buffer, there can be two situations:
+    // 1. The situation when the buffer contains exact number of events;
+    // 2. The situation when only part of the last event is loaded to the buffer.
+    //    Then, nb_args is checked whether it is defined or not.
+    //    If nb_args is OK, then the event is studied on whether it is loaded completely or not.
+    //    If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.
+    if (tracker - offset <= sizeof(evnt)) {
+        if ((event->nb_args > 9) || (tracker - offset < get_event_size(event->nb_args) * sizeof(uint64_t))) {
+            *buffer = _next_trace();
+            event = (evnt *) *buffer;
+            tracker = offset + buffer_size;
+        }
     }
 
-    if (event->code == 0)
-        exit(0);
+    /*// skip the EVNT_BUFFER_FLUSHED event
+     if (event->code == EVNT_BUFFER_FLUSHED) {
+     // move pointer to the next event and update offset
+     *buffer += get_event_size(event->nb_args);
+     offset += get_event_size(event->nb_args) * sizeof(uint64_t);
+     read_event(buffer);
+     }*/
 
-    // skip events like EVNT_BUFFER_FLUSHED and EVNT_TRACE_END
-    if (event->code == EVNT_BUFFER_FLUSHED) {
-        // move pointer to the next event and update offset
-        *buffer += get_event_size(event->nb_args);
-        offset += get_event_size(event->nb_args) * sizeof(uint64_t);
-        read_event(buffer);
-    }
-
+    // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
         *buffer = NULL;
         return NULL ;

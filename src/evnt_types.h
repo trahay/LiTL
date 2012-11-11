@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define EVNT_BUFFER_FLUSHED 0
-#define EVNT_TRACE_END 1
+//#define EVNT_BUFFER_FLUSHED 0
+#define EVNT_TRACE_END 0
 
 #define EVNT_MAX_PARAMS 9
 
