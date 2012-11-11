@@ -17,9 +17,16 @@ static trace buffer_cur;
 static uint64_t buffer_size = 32 * 1024; // 32 KB
 // offset from the beginning of the trace file
 static uint64_t offset = 0;
-static uint64_t tracker = 32 * 1024; // offset + buffer_size
+static uint64_t tracker;
 
-// TODO: implement an _init function where tracker would be set.
+/*
+ * This function initialize tracker using offset and buffer_size
+ */
+void init_tracker() __attribute__((constructor));
+
+void init_tracker() {
+    tracker = offset + buffer_size;
+}
 
 /*
  * This function opens a trace and reads the first portion of data to the buffer
