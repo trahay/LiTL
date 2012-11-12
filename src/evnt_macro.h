@@ -10,8 +10,6 @@
 
 #include<stdint.h>
 
-void set_filename(char* filename);
-
 /*
  * This function returns the size of event depending on the number of arguments
  */

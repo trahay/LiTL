@@ -13,18 +13,25 @@
 
 static FILE *ftrace;
 static trace buffer_ptr;
-static trace buffer_cur;
-static uint64_t buffer_size = 32 * 1024; // 32 KB
+static uint64_t buffer_size;
 // offset from the beginning of the trace file
-static uint64_t offset = 0;
+static uint64_t offset;
 static uint64_t tracker;
 
 /*
  * This function initialize tracker using offset and buffer_size
  */
-void init_tracker() __attribute__((constructor));
+void _init_tracker() __attribute__((constructor));
 
-void init_tracker() {
+void _init_tracker() {
+    offset = 0;
+    buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
+    tracker = offset + buffer_size;
+}
+
+void set_buffer_size(const uint64_t buf_size) {
+    offset = 0;
+    buffer_size = buf_size;
     tracker = offset + buffer_size;
 }
 
@@ -42,16 +49,15 @@ trace open_trace(const char* file_path) {
 
     if (buffer_size > st.st_size)
         buffer_size = st.st_size;
-    buffer_cur = malloc(buffer_size);
+    buffer_ptr = malloc(buffer_size);
 
-    int res = fread(buffer_cur, buffer_size, 1, ftrace);
+    int res = fread(buffer_ptr, buffer_size, 1, ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1))
         perror("Could not copy the top of the trace file to a buffer!");
 
-    buffer_ptr = buffer_cur;
-    return buffer_cur;
+    return buffer_ptr;
 }
 
 /*
@@ -60,21 +66,20 @@ trace open_trace(const char* file_path) {
 static trace _next_trace() {
     fseek(ftrace, offset, SEEK_SET);
 
-    int res = fread(buffer_cur, buffer_size, 1, ftrace);
+    int res = fread(buffer_ptr, buffer_size, 1, ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1))
         perror("Could not copy the next part of the trace file to a buffer!");
 
-    buffer_ptr = buffer_cur;
-    return buffer_cur;
+    return buffer_ptr;
 }
 
 /*
  * This function resets the trace
  */
-void reset_trace(trace* buffer_cur) {
-    *buffer_cur = buffer_ptr;
+void reset_trace(trace* buffer) {
+    *buffer = buffer_ptr;
 }
 
 /*
@@ -102,14 +107,6 @@ evnt* read_event(trace* buffer) {
         }
     }
 
-    /*// skip the EVNT_BUFFER_FLUSHED event
-     if (event->code == EVNT_BUFFER_FLUSHED) {
-     // move pointer to the next event and update offset
-     *buffer += get_event_size(event->nb_args);
-     offset += get_event_size(event->nb_args) * sizeof(uint64_t);
-     read_event(buffer);
-     }*/
-
     // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
         *buffer = NULL;
@@ -124,23 +121,20 @@ evnt* read_event(trace* buffer) {
 }
 
 /*
- * This function searches for the next event
+ * This function reads the next event from the buffer
  */
-evnt* next_event(trace* buffer_cur) {
-    evnt* event;
-    event = NULL;
-
-    return event;
+evnt* next_event(trace* buffer) {
+    return read_event(buffer);
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void close_trace(trace* buffer_cur) {
+void close_trace(trace* buffer) {
     fclose(ftrace);
     free(buffer_ptr);
 
     // set pointers to NULL
     buffer_ptr = NULL;
-    *buffer_cur = NULL;
+    *buffer = NULL;
 }

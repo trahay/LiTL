@@ -10,6 +10,8 @@
 
 #include "evnt_types.h"
 
+void set_buffer_size(const uint64_t);
+
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */

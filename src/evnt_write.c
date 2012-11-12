@@ -40,16 +40,15 @@ static uint64_t _get_time() {
 /*
  * This function initializes the trace
  */
-void init_trace(char* file_path, buffer_flags flush_flag, thread_flags thread_flag, uint32_t buf_size) {
+void init_trace(const char* file_path, buffer_flags flush_flag, thread_flags thread_flag, uint32_t buf_size) {
     int ok;
     void *vp;
 
     // TODO: add a checker, so if any of the arguments is not given, then the default value will be taken
 
-    // allocate memory to be sure that it is aligned
-    // the size of buffer is slightly bigger than it was required, because two or three additional events are added
-    //      before and after tracing, and also after the buffer was flushed
-    ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + 3 * sizeof(evnt));
+    // allocate memory in such way that it is aligned
+    // the size of buffer is slightly bigger than it was required, because one additional event is added after tracing
+    ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + sizeof(evnt));
     if (ok != 0)
         perror("Could not allocate memory for the buffer!");
 
@@ -71,7 +70,7 @@ void init_trace(char* file_path, buffer_flags flush_flag, thread_flags thread_fl
  * This function finalizes the trace
  */
 void fin_trace() {
-    // write time and the EVNT_TRACE_END (= 2) code to indicate the end of tracing
+    // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     // TODO: how to set the thread ID?
     ((evnt *) buffer_cur)->tid = 0;
     ((evnt *) buffer_cur)->time = _get_time();
@@ -91,15 +90,6 @@ void fin_trace() {
  * This function writes the recorded events from the buffer to the file
  */
 void flush_buffer() {
-    /*// write time and the EVNT_BUFFER_FLUSHED (= 1) code to indicate the buffer flush start
-    // TODO: how to set the thread ID?
-    ((evnt *) buffer_cur)->tid = 0;
-    ((evnt *) buffer_cur)->time = _get_time();
-    ((evnt *) buffer_cur)->code = EVNT_BUFFER_FLUSHED;
-    ((evnt *) buffer_cur)->nb_args = 0;
-
-    buffer_cur += get_event_size(0);*/
-
     if (fwrite(buffer_ptr, _get_buffer_size(), 1, ftrace) != 1)
         perror("Flushing the buffer. Could not write measured data to the trace file!");
 

@@ -7,15 +7,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "evnt_types.h"
 #include "evnt_read.h"
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char **argv) {
     uint64_t i;
-    char* filename = "test_evnt_write.trace";
+    const char* filename = "trace";
     evnt* event;
     trace buffer;
+
+    if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
+        filename = argv[2];
+    else {
+        fprintf(stderr, "Specify the name of the trace file using '-f'\n");
+        exit(-1);
+    }
 
     buffer = open_trace(filename);
     printf("=============================================================\n");
