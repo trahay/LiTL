@@ -11,9 +11,24 @@
 #include "evnt_types.h"
 
 /*
+ * This function sets the buffer size
+ */
+void set_write_buffer_size(const uint32_t);
+
+/*
+ * This function sets the buffer flush flag
+ */
+void set_buffer_flag(const buffer_flags);
+
+/*
+ * This function sets the thread safe flag
+ */
+void set_thread_flag(const thread_flags);
+
+/*
  * This function initializes the trace
  */
-void init_trace(const char*, buffer_flags, thread_flags, uint32_t);
+void init_trace(const char*, const buffer_flags, const thread_flags, const uint32_t);
 
 /*
  * This function finalizes the trace
@@ -21,7 +36,7 @@ void init_trace(const char*, buffer_flags, thread_flags, uint32_t);
 void fin_trace();
 
 /*
- * This function writes the recorded events from the buffer to the file
+ * This function writes the recorded events from the buffer to the trace file
  */
 void flush_buffer();
 
@@ -76,9 +91,9 @@ void evnt_probe8(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uin
 void evnt_probe9(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 /*
- * This function records an event in a raw state.
+ * This function records an event in a raw state, where the size is #args in the void* array
  * That helps to discover places where the application has crashed while using EZTrace
  */
-void evnt_raw_probe(uint64_t, uint64_t, void*); // there is a possibility to remove size
+void evnt_raw_probe(uint64_t, uint64_t, void*);
 
 #endif /* EVNT_WRITE_H_ */

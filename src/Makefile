@@ -9,6 +9,7 @@ OBJ_MAIN = main.o evnt_write.o evnt_read.o evnt_macro.o
 OBJ_TEST_WRITE = test_evnt_write.o evnt_write.o evnt_macro.o
 OBJ_TEST_READ = test_evnt_read.o evnt_read.o evnt_macro.o
 OBJ_TEST_BUFFER = test_evnt_buffer_size.o evnt_read.o evnt_macro.o timer.o
+export USE_GETTID=1
 
 all: clean main.out test_evnt_write test_evnt_read test_evnt_buffer
 

@@ -13,10 +13,10 @@
 
 static FILE *ftrace;
 static trace buffer_ptr;
-static uint64_t buffer_size;
+static uint32_t buffer_size;
 // offset from the beginning of the trace file
-static uint64_t offset;
-static uint64_t tracker;
+static uint32_t offset;
+static uint32_t tracker;
 
 /*
  * This function initialize tracker using offset and buffer_size
@@ -29,7 +29,7 @@ void _init_tracker() {
     tracker = offset + buffer_size;
 }
 
-void set_buffer_size(const uint64_t buf_size) {
+void set_read_buffer_size(const uint32_t buf_size) {
     offset = 0;
     buffer_size = buf_size;
     tracker = offset + buffer_size;

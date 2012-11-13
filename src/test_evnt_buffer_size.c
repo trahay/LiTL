@@ -36,7 +36,7 @@ int main(int argc, const char **argv) {
 
     j = 1024;
     while (j <= MAX_BUFFER_SIZE) {
-        set_buffer_size(j);
+        set_read_buffer_size(j);
         buffer = open_trace(filename);
 
         start = get_ticks();
@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
         j = 2 * j;
     }
     printf("=============================================================\n");
-    printf("NB: time was measured only once on ready all events from the %s trace file.\n\n", filename);
+    printf("NB: time was measured only once on ready all events from the %s file.\n\n", filename);
 
     return EXIT_SUCCESS;
 }

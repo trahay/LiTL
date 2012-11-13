@@ -17,13 +17,20 @@ trace buffer_cur;
 static uint32_t buffer_size = 32 * 1024; // 32 KB
 static buffer_flags buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags thread_safe_flag = EVNT_NOTHREAD_SAFE;
-static FILE* ftrace;
+static FILE* _ftrace;
 
 /*
  * This function computes the size of data in buffer
  */
 static uint32_t _get_buffer_size() {
     return sizeof(uint64_t) * ((trace) buffer_cur - (trace) buffer_ptr);
+}
+
+/*
+ * This function sets the buffer size
+ */
+void set_write_buffer_size(const uint32_t buf_size) {
+    buffer_size = buf_size;
 }
 
 /*
@@ -38,9 +45,24 @@ static uint64_t _get_time() {
 }
 
 /*
+ * This function sets the buffer flush flag
+ */
+void set_buffer_flag(const buffer_flags buffer_flag) {
+    buffer_flush_flag = buffer_flag;
+}
+
+/*
+ * This function sets the thread safe flag
+ */
+void set_thread_flag(const thread_flags thread_flag) {
+    thread_safe_flag = thread_flag;
+}
+
+/*
  * This function initializes the trace
  */
-void init_trace(const char* file_path, buffer_flags flush_flag, thread_flags thread_flag, uint32_t buf_size) {
+void init_trace(const char* file_path, const buffer_flags buffer_flag, const thread_flags thread_flag,
+        const uint32_t buf_size) {
     int ok;
     void *vp;
 
@@ -56,13 +78,17 @@ void init_trace(const char* file_path, buffer_flags flush_flag, thread_flags thr
     buffer_ptr = vp;
     buffer_cur = buffer_ptr;
     buffer_size = buf_size;
-    buffer_flush_flag = flush_flag;
+    buffer_flush_flag = buffer_flag;
     thread_safe_flag = thread_flag;
+
+    set_write_buffer_size(buf_size);
+    set_buffer_flag(buffer_flag);
+    set_thread_flag(thread_flag);
 
     // TODO: perhaps, it is better to touch each block in buffer_ptr in order to load it
 
     // check whether the trace file can be opened
-    if (!(ftrace = fopen(file_path, "w+")))
+    if (!(_ftrace = fopen(file_path, "w+")))
         perror("Could not open the trace file for writing!");
 }
 
@@ -71,26 +97,25 @@ void init_trace(const char* file_path, buffer_flags flush_flag, thread_flags thr
  */
 void fin_trace() {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
-    // TODO: how to set the thread ID?
-    ((evnt *) buffer_cur)->tid = 0;
+    ((evnt *) buffer_cur)->tid = TID_CUR;
     ((evnt *) buffer_cur)->time = _get_time();
     ((evnt *) buffer_cur)->code = EVNT_TRACE_END;
     ((evnt *) buffer_cur)->nb_args = 0;
 
     buffer_cur += get_event_size(0);
 
-    if (fwrite(buffer_ptr, _get_buffer_size(), 1, ftrace) != 1)
+    if (fwrite(buffer_ptr, _get_buffer_size(), 1, _ftrace) != 1)
         perror("Could not write measured data to the trace file!");
 
-    fclose(ftrace);
+    fclose(_ftrace);
     free(buffer_ptr);
 }
 
 /*
- * This function writes the recorded events from the buffer to the file
+ * This function writes the recorded events from the buffer to the trace file
  */
 void flush_buffer() {
-    if (fwrite(buffer_ptr, _get_buffer_size(), 1, ftrace) != 1)
+    if (fwrite(buffer_ptr, _get_buffer_size(), 1, _ftrace) != 1)
         perror("Flushing the buffer. Could not write measured data to the trace file!");
 
     buffer_cur = buffer_ptr;
@@ -101,8 +126,7 @@ void flush_buffer() {
  */
 void evnt_probe0(uint64_t code) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 0;
@@ -119,8 +143,7 @@ void evnt_probe0(uint64_t code) {
  */
 void evnt_probe1(uint64_t code, uint64_t param1) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 1;
@@ -138,8 +161,7 @@ void evnt_probe1(uint64_t code, uint64_t param1) {
  */
 void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 2;
@@ -158,8 +180,7 @@ void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
  */
 void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 3;
@@ -179,8 +200,7 @@ void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 4;
@@ -201,8 +221,7 @@ void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 5;
@@ -225,8 +244,7 @@ void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 6;
@@ -250,8 +268,7 @@ void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 7;
@@ -276,8 +293,7 @@ void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7, uint64_t param8) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 8;
@@ -303,8 +319,7 @@ void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7, uint64_t param8, uint64_t param9) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt *) buffer_cur)->tid = 0;
+        ((evnt *) buffer_cur)->tid = TID_CUR;
         ((evnt *) buffer_cur)->time = _get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 9;
@@ -326,13 +341,12 @@ void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 }
 
 /*
- * This function records an event in a raw state.
+ * This function records an event in a raw state, where the size is #args in the void* array
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(uint64_t code, uint64_t size, void* data) {
     if (_get_buffer_size() < buffer_size) {
-        // TODO: how to set the thread ID?
-        ((evnt_raw *) buffer_cur)->tid = 0;
+        ((evnt_raw *) buffer_cur)->tid = TID_CUR;
         ((evnt_raw *) buffer_cur)->time = _get_time();
         ((evnt_raw *) buffer_cur)->code = code;
         ((evnt_raw *) buffer_cur)->size = size;

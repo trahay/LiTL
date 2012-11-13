@@ -11,7 +11,20 @@
 #include <stdio.h>
 #include <stdint.h>
 
-//#define EVNT_BUFFER_FLUSHED 0
+#ifdef USE_GETTID
+#include <unistd.h>
+#include <sys/syscall.h>  /* For SYS_xxx definitions */
+#else
+#include <pthread.h>
+#endif
+
+/* current thread id */
+#ifdef USE_GETTID
+#define TID_CUR syscall(SYS_gettid)
+#else
+#define TID_CUR pthread_self()
+#endif
+
 #define EVNT_TRACE_END 0
 
 #define EVNT_MAX_PARAMS 9
