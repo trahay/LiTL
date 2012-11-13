@@ -7,19 +7,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 
 #include "evnt_types.h"
+#include "evnt_write.h"
 #include "evnt_read.h"
 #include "timer.h"
 
 #define MAX_BUFFER_SIZE 16 * 1024 * 1024
+#define NB_EVENTS 1000000
 
 int main(int argc, const char **argv) {
+    int i;
     long long int start, fin;
-    uint64_t j;
     const char* filename = "trace";
+    uint64_t buf_size;
+    buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
+    thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
     evnt* event;
     trace buffer;
 
@@ -31,12 +37,44 @@ int main(int argc, const char **argv) {
     }
 
     printf("=============================================================\n");
+    printf("What is the optimal buffer size for recording events?\n\n");
+    printf("Buffer size (KB) \t Time \n");
+
+    buf_size = 1024;
+    while (buf_size <= MAX_BUFFER_SIZE) {
+        init_trace(filename, buffer_flush, thread_safe, buf_size);
+
+        start = get_ticks();
+        for (i = 0; i < (NB_EVENTS + 1) / 10; i++) {
+            evnt_probe0((uint64_t) 10 * i + 1);
+            evnt_probe1((uint64_t) 10 * i + 2, 1);
+            evnt_probe2((uint64_t) 10 * i + 3, 1, 3);
+            evnt_probe3((uint64_t) 10 * i + 4, 1, 3, 5);
+            evnt_probe4((uint64_t) 10 * i + 5, 1, 3, 5, 7);
+            evnt_probe5((uint64_t) 10 * i + 6, 1, 3, 5, 7, 11);
+            evnt_probe6((uint64_t) 10 * i + 7, 1, 3, 5, 7, 11, 13);
+            evnt_probe7((uint64_t) 10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
+            evnt_probe8((uint64_t) 10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
+            evnt_probe9((uint64_t) 10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+        }
+        fin = get_ticks();
+
+        fin_trace();
+        printf("\t%lu\t\t %llu\n", buf_size / 1024, fin - start);
+
+        buf_size = 2 * buf_size;
+    }
+    printf("=============================================================\n");
+    printf("NB: time was measured only once on writing %d events to the %s file.\n\n", NB_EVENTS, filename);
+
+    printf("\n");
+    printf("=============================================================\n");
     printf("What is the optimal buffer size for reading the trace file?\n\n");
     printf("Buffer size (KB) \t Time \n");
 
-    j = 1024;
-    while (j <= MAX_BUFFER_SIZE) {
-        set_read_buffer_size(j);
+    buf_size = 1024;
+    while (buf_size <= MAX_BUFFER_SIZE) {
+        set_read_buffer_size(buf_size);
         buffer = open_trace(filename);
 
         start = get_ticks();
@@ -48,13 +86,13 @@ int main(int argc, const char **argv) {
         }
         fin = get_ticks();
 
-        printf("\t%lu\t\t %llu\n", j / 1024, fin - start);
         close_trace(&buffer);
+        printf("\t%lu\t\t %llu\n", buf_size / 1024, fin - start);
 
-        j = 2 * j;
+        buf_size = 2 * buf_size;
     }
     printf("=============================================================\n");
-    printf("NB: time was measured only once on ready all events from the %s file.\n\n", filename);
+    printf("NB: time was measured only once on reading %d events from the %s file.\n\n", NB_EVENTS, filename);
 
     return EXIT_SUCCESS;
 }

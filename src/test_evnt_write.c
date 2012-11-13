@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
     const char* filename = "trace";
     buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
     thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
-    uint32_t buffer_size = 32 * 1024; // 32 KB
+    uint32_t buffer_size = 256 * 1024; // 256 KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];

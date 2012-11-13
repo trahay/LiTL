@@ -8,7 +8,7 @@ CFLAGS = -Wall -O2
 OBJ_MAIN = main.o evnt_write.o evnt_read.o evnt_macro.o
 OBJ_TEST_WRITE = test_evnt_write.o evnt_write.o evnt_macro.o
 OBJ_TEST_READ = test_evnt_read.o evnt_read.o evnt_macro.o
-OBJ_TEST_BUFFER = test_evnt_buffer_size.o evnt_read.o evnt_macro.o timer.o
+OBJ_TEST_BUFFER = test_evnt_buffer_size.o evnt_read.o evnt_write.o evnt_macro.o timer.o
 export USE_GETTID=1
 
 all: clean main.out test_evnt_write test_evnt_read test_evnt_buffer
@@ -33,7 +33,7 @@ evnt_macro.o: evnt_macro.c evnt_macro.h
 timer.o: timer.c timer.h
 test_evnt_write.o: test_evnt_write.c evnt_types.h evnt_write.h
 test_evnt_read.o: test_evnt_read.c evnt_types.h evnt_read.h
-test_evnt_buffer_size.o: test_evnt_buffer_size.c evnt_types.h evnt_read.h timer.h
+test_evnt_buffer_size.o: test_evnt_buffer_size.c evnt_types.h evnt_write.h evnt_read.h timer.h
 
 .PHONY: clean
 clean: 

@@ -13,9 +13,9 @@
 
 static FILE *ftrace;
 static trace buffer_ptr;
-static uint32_t buffer_size;
+static uint32_t buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
-static uint32_t offset;
+static uint32_t offset = 0;
 static uint32_t tracker;
 
 /*
@@ -24,8 +24,6 @@ static uint32_t tracker;
 void _init_tracker() __attribute__((constructor));
 
 void _init_tracker() {
-    offset = 0;
-    buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
     tracker = offset + buffer_size;
 }
 
