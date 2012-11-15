@@ -133,6 +133,7 @@ void evnt_probe0(uint64_t code) {
 
         buffer_cur += get_event_size(0);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe0(code);
     }
@@ -151,6 +152,7 @@ void evnt_probe1(uint64_t code, uint64_t param1) {
 
         buffer_cur += get_event_size(1);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe1(code, param1);
     }
@@ -170,6 +172,7 @@ void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
 
         buffer_cur += get_event_size(2);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe2(code, param1, param2);
     }
@@ -190,6 +193,7 @@ void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(3);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe3(code, param1, param2, param3);
     }
@@ -211,6 +215,7 @@ void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(4);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe4(code, param1, param2, param3, param4);
     }
@@ -233,6 +238,7 @@ void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(5);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe5(code, param1, param2, param3, param4, param5);
     }
@@ -257,6 +263,7 @@ void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(6);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe6(code, param1, param2, param3, param4, param5, param6);
     }
@@ -282,6 +289,7 @@ void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(7);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
     }
@@ -308,6 +316,7 @@ void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(8);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
@@ -335,6 +344,7 @@ void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 
         buffer_cur += get_event_size(9);
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
@@ -354,6 +364,7 @@ void evnt_raw_probe(uint64_t code, uint64_t size, void* data) {
 
         buffer_cur += get_event_size(size / sizeof(uint64_t));
     } else if (buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
         flush_buffer();
         evnt_raw_probe(code, size, data);
     }
