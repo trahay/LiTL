@@ -19,7 +19,6 @@ libevnt.a: $(OBJ_LIB)
 	
 libevnt.so: $(OBJ_LIB)
 	$(CC) $(OBJ_LIB) $(LIBS) -shared -o $@
-	export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(Home)/src
 
 main.out: $(OBJ_MAIN)
 	$(CC) $(OBJ_MAIN) $(LIBS) -o $@

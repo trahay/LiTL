@@ -1,6 +1,6 @@
 
 Home =  ..
-LIBS = -lrt -levnt
+LIBS = -levnt
 INCLUDE = -I$(Home)/src
 DIRS = -L$(Home)/src
 
