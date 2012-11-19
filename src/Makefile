@@ -10,7 +10,7 @@ OBJ_MAIN = main.o evnt_write.o evnt_read.o evnt_macro.o
 
 export USE_GETTID=1
 
-all: clean main.out static dynamic
+all: clean main.out dynamic
 static: libevnt.a
 dynamic: libevnt.so
 
