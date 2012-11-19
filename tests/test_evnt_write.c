@@ -17,8 +17,6 @@ int main(int argc, const char **argv) {
     int i, nb_iter;
 
     const char* filename = "trace";
-    buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
-    thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
     uint32_t buffer_size = 256 * 1024; // 256 KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
@@ -29,7 +27,7 @@ int main(int argc, const char **argv) {
     printf("=============================================================\n");
     printf("Recording events with zero arguments\n\n");
 
-    init_trace(filename, buffer_flush, thread_safe, buffer_size);
+    init_trace(filename, buffer_size);
 
     printf("Enter the number of events to be recorded (nb >= 1): ");
     i = scanf("%d", &nb_iter);

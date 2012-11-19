@@ -24,8 +24,6 @@ int main(int argc, const char **argv) {
     long long int start, fin;
     const char* filename = "trace";
     uint64_t buf_size;
-    buffer_flags buffer_flush = EVNT_BUFFER_FLUSH;
-    thread_flags thread_safe = EVNT_NOTHREAD_SAFE;
     evnt* event;
     trace buffer;
 
@@ -42,7 +40,7 @@ int main(int argc, const char **argv) {
 
     buf_size = 1024;
     while (buf_size <= MAX_BUFFER_SIZE) {
-        init_trace(filename, buffer_flush, thread_safe, buf_size);
+        init_trace(filename, buf_size);
 
         start = get_ticks();
         for (i = 0; i < (NB_EVENTS + 1) / 10; i++) {

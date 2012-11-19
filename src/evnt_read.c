@@ -21,9 +21,9 @@ static uint32_t tracker;
 /*
  * This function initialize tracker using offset and buffer_size
  */
-void _init_tracker() __attribute__((constructor));
+void __init_tracker() __attribute__((constructor));
 
-void _init_tracker() {
+void __init_tracker() {
     tracker = offset + buffer_size;
 }
 
@@ -61,7 +61,7 @@ trace open_trace(const char* file_path) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static trace _next_trace() {
+static trace __next_trace() {
     fseek(ftrace, offset, SEEK_SET);
 
     int res = fread(buffer_ptr, buffer_size, 1, ftrace);
@@ -99,7 +99,7 @@ evnt* read_event(trace* buffer) {
     //    If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.
     if (tracker - offset <= sizeof(evnt)) {
         if ((event->nb_args > 9) || (tracker - offset < get_event_size(event->nb_args) * sizeof(uint64_t))) {
-            *buffer = _next_trace();
+            *buffer = __next_trace();
             event = (evnt *) *buffer;
             tracker = offset + buffer_size;
         }

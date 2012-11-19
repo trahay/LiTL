@@ -5,6 +5,8 @@
  *      Author: Roman Iakymchuk
  */
 
+#define _GNU_SOURCE
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -13,16 +15,20 @@
 
 static trace buffer_ptr;
 trace buffer_cur;
-
 static uint32_t buffer_size = 32 * 1024; // 32 KB
 static buffer_flags buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags thread_safe_flag = EVNT_NOTHREAD_SAFE;
-static FILE* _ftrace;
+
+static FILE* ftrace;
+static char* evnt_filename;
+static int is_flushed = 0;
+
+int tid_activated = 0;
 
 /*
  * This function computes the size of data in buffer
  */
-static uint32_t _get_buffer_size() {
+static uint32_t __get_buffer_size() {
     return sizeof(uint64_t) * ((trace) buffer_cur - (trace) buffer_ptr);
 }
 
@@ -36,7 +42,7 @@ void set_write_buffer_size(const uint32_t buf_size) {
 /*
  * This function returns the current time in ns
  */
-static uint64_t _get_time() {
+static uint64_t __get_time() {
     // TODO: implement such function using rdtscll, which will return time in clock cycles
     struct timespec tp;
 
@@ -45,24 +51,62 @@ static uint64_t _get_time() {
 }
 
 /*
- * This function sets the buffer flush flag
+ * Activate flushing buffer. By default it is activated
  */
-void set_buffer_flag(const buffer_flags buffer_flag) {
-    buffer_flush_flag = buffer_flag;
+void enable_buffer_flush() {
+    buffer_flush_flag = EVNT_BUFFER_FLUSH;
 }
 
 /*
- * This function sets the thread safe flag
+ * Deactivate flushing buffer
  */
-void set_thread_flag(const thread_flags thread_flag) {
-    thread_safe_flag = thread_flag;
+void disable_buffer_flush() {
+    buffer_flush_flag = EVNT_BUFFER_NOFLUSH;
+}
+
+/*
+ * Activate thread-safety. By default it is deactivated
+ */
+void enable_thread_safe() {
+    thread_safe_flag = EVNT_THREAD_SAFE;
+}
+
+/*
+ * Deactivate thread-safety
+ */
+void disable_thread_safe() {
+    thread_safe_flag = EVNT_NOTHREAD_SAFE;
+}
+
+/*
+ * Activate recording tid. By default it is not activated.
+ */
+void enable_tid_record() {
+    tid_activated = 1;
+}
+
+/*
+ * Deactivate recording tid
+ */
+void disable_tid_record() {
+    tid_activated = 0;
+}
+
+void set_filename(const char* filename) {
+    if (evnt_filename) {
+        if (is_flushed)
+            fprintf(stderr, "Warning: change the trace file name to %s after some events have been saved in file %s\n",
+                    filename, evnt_filename);
+        free(evnt_filename);
+    }
+    if (asprintf(&evnt_filename, "%s", filename) == -1)
+        fprintf(stderr, "Error: Cannot set filename!\n");
 }
 
 /*
  * This function initializes the trace
  */
-void init_trace(const char* file_path, const buffer_flags buffer_flag, const thread_flags thread_flag,
-        const uint32_t buf_size) {
+void init_trace(const char* filename, const uint32_t buf_size) {
     int ok;
     void *vp;
 
@@ -78,18 +122,18 @@ void init_trace(const char* file_path, const buffer_flags buffer_flag, const thr
     buffer_ptr = vp;
     buffer_cur = buffer_ptr;
     buffer_size = buf_size;
-    buffer_flush_flag = buffer_flag;
-    thread_safe_flag = thread_flag;
 
     set_write_buffer_size(buf_size);
-    set_buffer_flag(buffer_flag);
-    set_thread_flag(thread_flag);
 
     // TODO: perhaps, it is better to touch each block in buffer_ptr in order to load it
 
     // check whether the trace file can be opened
-    if (!(_ftrace = fopen(file_path, "w+")))
+    if (filename == NULL )
+        set_filename("eztrace_log_rank_1");
+    if (!(ftrace = fopen(filename, "w+"))) {
         perror("Could not open the trace file for writing!");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*
@@ -97,37 +141,41 @@ void init_trace(const char* file_path, const buffer_flags buffer_flag, const thr
  */
 void fin_trace() {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
-    ((evnt *) buffer_cur)->tid = TID_CUR;
-    ((evnt *) buffer_cur)->time = _get_time();
+    ((evnt *) buffer_cur)->tid = CUR_TID;
+    ((evnt *) buffer_cur)->time = __get_time();
     ((evnt *) buffer_cur)->code = EVNT_TRACE_END;
     ((evnt *) buffer_cur)->nb_args = 0;
 
     buffer_cur += get_event_size(0);
 
-    if (fwrite(buffer_ptr, _get_buffer_size(), 1, _ftrace) != 1)
+    if (fwrite(buffer_ptr, __get_buffer_size(), 1, ftrace) != 1) {
         perror("Could not write measured data to the trace file!");
+        exit(EXIT_FAILURE);
+    }
 
-    fclose(_ftrace);
+    fclose(ftrace);
     free(buffer_ptr);
+    buffer_ptr = NULL;
 }
 
 /*
  * This function writes the recorded events from the buffer to the trace file
  */
 void flush_buffer() {
-    if (fwrite(buffer_ptr, _get_buffer_size(), 1, _ftrace) != 1)
+    if (fwrite(buffer_ptr, __get_buffer_size(), 1, ftrace) != 1)
         perror("Flushing the buffer. Could not write measured data to the trace file!");
 
     buffer_cur = buffer_ptr;
+    is_flushed = 1;
 }
 
 /*
  * This function records an event without any arguments
  */
 void evnt_probe0(uint64_t code) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 0;
 
@@ -143,9 +191,9 @@ void evnt_probe0(uint64_t code) {
  * This function records an event with one argument
  */
 void evnt_probe1(uint64_t code, uint64_t param1) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 1;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -162,9 +210,9 @@ void evnt_probe1(uint64_t code, uint64_t param1) {
  * This function records an event with two arguments
  */
 void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 2;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -182,9 +230,9 @@ void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
  * This function records an event with three arguments
  */
 void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 3;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -203,9 +251,9 @@ void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  * This function records an event with four arguments
  */
 void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 4;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -225,9 +273,9 @@ void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  * This function records an event with five arguments
  */
 void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 5;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -249,9 +297,9 @@ void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 6;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -274,9 +322,9 @@ void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 7;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -300,9 +348,9 @@ void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7, uint64_t param8) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 8;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -327,9 +375,9 @@ void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  */
 void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
         uint64_t param6, uint64_t param7, uint64_t param8, uint64_t param9) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt *) buffer_cur)->tid = TID_CUR;
-        ((evnt *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt *) buffer_cur)->tid = CUR_TID;
+        ((evnt *) buffer_cur)->time = __get_time();
         ((evnt *) buffer_cur)->code = code;
         ((evnt *) buffer_cur)->nb_args = 9;
         ((evnt *) buffer_cur)->args[0] = param1;
@@ -355,11 +403,11 @@ void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(uint64_t code, uint64_t size, void* data) {
-    if (_get_buffer_size() < buffer_size) {
-        ((evnt_raw *) buffer_cur)->tid = TID_CUR;
-        ((evnt_raw *) buffer_cur)->time = _get_time();
+    if (__get_buffer_size() < buffer_size) {
+        ((evnt_raw *) buffer_cur)->tid = CUR_TID;
+        ((evnt_raw *) buffer_cur)->time = __get_time();
         ((evnt_raw *) buffer_cur)->code = code;
-        ((evnt_raw *) buffer_cur)->size = size;
+        ((evnt_raw *) buffer_cur)->size = size; // size is the size of data in bytes
         ((evnt_raw *) buffer_cur)->data = data;
 
         buffer_cur += get_event_size(size / sizeof(uint64_t));

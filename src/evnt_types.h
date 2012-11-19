@@ -20,9 +20,9 @@
 
 /* current thread id */
 #ifdef USE_GETTID
-#define TID_CUR syscall(SYS_gettid)
+#define CUR_TID syscall(SYS_gettid)
 #else
-#define TID_CUR pthread_self()
+#define CUR_TID pthread_self()
 #endif
 
 #define EVNT_TRACE_END 0

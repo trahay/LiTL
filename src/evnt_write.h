@@ -10,25 +10,20 @@
 
 #include "evnt_types.h"
 
-/*
- * This function sets the buffer size
- */
 void set_write_buffer_size(const uint32_t);
 
-/*
- * This function sets the buffer flush flag
- */
-void set_buffer_flag(const buffer_flags);
+void enable_buffer_flush();
 
-/*
- * This function sets the thread safe flag
- */
-void set_thread_flag(const thread_flags);
+void enable_thread_safe();
+
+void enable_tid_record();
+
+void set_filename(const char*);
 
 /*
  * This function initializes the trace
  */
-void init_trace(const char*, const buffer_flags, const thread_flags, const uint32_t);
+void init_trace(const char*, const uint32_t);
 
 /*
  * This function finalizes the trace
