@@ -25,7 +25,7 @@ int main(int argc, const char **argv) {
         filename = "test_evnt_write.trace";
 
     printf("=============================================================\n");
-    printf("Recording events with zero arguments\n\n");
+    printf("Recording events with various number of arguments\n\n");
 
     init_trace(filename, buffer_size);
 
@@ -36,25 +36,25 @@ int main(int argc, const char **argv) {
         nb_iter = 9;
 
     for (i = 0; i < (nb_iter + 1) / 10; i++) {
-        evnt_probe0((uint64_t) 10 * i + 1);
+        evnt_probe0(10 * i + 1);
         usleep(100);
-        evnt_probe1((uint64_t) 10 * i + 2, 1);
+        evnt_probe1(10 * i + 2, 1);
         usleep(100);
-        evnt_probe2((uint64_t) 10 * i + 3, 1, 3);
+        evnt_probe2(10 * i + 3, 1, 3);
         usleep(100);
-        evnt_probe3((uint64_t) 10 * i + 4, 1, 3, 5);
+        evnt_probe3(10 * i + 4, 1, 3, 5);
         usleep(100);
-        evnt_probe4((uint64_t) 10 * i + 5, 1, 3, 5, 7);
+        evnt_probe4(10 * i + 5, 1, 3, 5, 7);
         usleep(100);
-        evnt_probe5((uint64_t) 10 * i + 6, 1, 3, 5, 7, 11);
+        evnt_probe5(10 * i + 6, 1, 3, 5, 7, 11);
         usleep(100);
-        evnt_probe6((uint64_t) 10 * i + 7, 1, 3, 5, 7, 11, 13);
+        evnt_probe6(10 * i + 7, 1, 3, 5, 7, 11, 13);
         usleep(100);
-        evnt_probe7((uint64_t) 10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
+        evnt_probe7(10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
         usleep(100);
-        evnt_probe8((uint64_t) 10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
+        evnt_probe8(10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
         usleep(100);
-        evnt_probe9((uint64_t) 10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+        evnt_probe9(10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
         usleep(100);
     }
 

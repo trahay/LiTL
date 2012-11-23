@@ -40,12 +40,12 @@ static uint32_t __get_buffer_size() {
 /*
  * This function returns the current time in ns
  */
-static uint64_t __get_time() {
+static evnt_time_t __get_time() {
     // TODO: implement such function using rdtscll, which will return time in clock cycles
     struct timespec tp;
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
-    return ((uint64_t) tp.tv_nsec + (uint64_t) (1000000000 * (tp.tv_sec)));
+    return ((evnt_time_t) tp.tv_nsec + (evnt_time_t) (1000000000 * (tp.tv_sec)));
 }
 
 /*
@@ -120,10 +120,10 @@ void init_trace(const char* filename, const uint32_t buf_size) {
     // TODO: add a checker, so if any of the arguments is not given, then the default value will be taken
 
     /*// allocate memory in such way that it is aligned
-    int ok;
-    ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + sizeof(evnt));
-    if (ok != 0)
-    perror("Could not allocate memory for the buffer!");*/
+     int ok;
+     ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + sizeof(evnt));
+     if (ok != 0)
+     perror("Could not allocate memory for the buffer!");*/
     // the size of buffer is slightly bigger than it was required, because one additional event is added after tracing
     vp = malloc(buf_size + sizeof(evnt));
     if (!vp)
@@ -165,7 +165,7 @@ void fin_trace() {
     ((evnt *) __buffer_cur)->code = EVNT_TRACE_END;
     ((evnt *) __buffer_cur)->nb_args = 0;
 
-    __buffer_cur += get_event_size(0);
+    __buffer_cur += get_event_components(0);
 
     if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1) {
         perror("Could not write measured data to the trace file!");
@@ -194,7 +194,7 @@ void flush_buffer() {
 /*
  * This function records an event without any arguments
  */
-void evnt_probe0(uint64_t code) {
+void evnt_probe0(evnt_code_t code) {
     if (!__evnt_initialized)
         return;
 
@@ -204,7 +204,7 @@ void evnt_probe0(uint64_t code) {
         ((evnt *) __buffer_cur)->code = code;
         ((evnt *) __buffer_cur)->nb_args = 0;
 
-        __buffer_cur += get_event_size(0);
+        __buffer_cur += get_event_components(0);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -215,7 +215,7 @@ void evnt_probe0(uint64_t code) {
 /*
  * This function records an event with one argument
  */
-void evnt_probe1(uint64_t code, uint64_t param1) {
+void evnt_probe1(evnt_code_t code, evnt_args_t param1) {
     if (!__evnt_initialized)
         return;
 
@@ -226,7 +226,7 @@ void evnt_probe1(uint64_t code, uint64_t param1) {
         ((evnt *) __buffer_cur)->nb_args = 1;
         ((evnt *) __buffer_cur)->args[0] = param1;
 
-        __buffer_cur += get_event_size(1);
+        __buffer_cur += get_event_components(1);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -237,7 +237,7 @@ void evnt_probe1(uint64_t code, uint64_t param1) {
 /*
  * This function records an event with two arguments
  */
-void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
+void evnt_probe2(evnt_code_t code, evnt_args_t param1, evnt_args_t param2) {
     if (!__evnt_initialized)
         return;
 
@@ -249,7 +249,7 @@ void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
         ((evnt *) __buffer_cur)->args[0] = param1;
         ((evnt *) __buffer_cur)->args[1] = param2;
 
-        __buffer_cur += get_event_size(2);
+        __buffer_cur += get_event_components(2);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -260,7 +260,7 @@ void evnt_probe2(uint64_t code, uint64_t param1, uint64_t param2) {
 /*
  * This function records an event with three arguments
  */
-void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3) {
+void evnt_probe3(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3) {
     if (!__evnt_initialized)
         return;
 
@@ -273,7 +273,7 @@ void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[1] = param2;
         ((evnt *) __buffer_cur)->args[2] = param3;
 
-        __buffer_cur += get_event_size(3);
+        __buffer_cur += get_event_components(3);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -284,7 +284,7 @@ void evnt_probe3(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with four arguments
  */
-void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4) {
+void evnt_probe4(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4) {
     if (!__evnt_initialized)
         return;
 
@@ -298,7 +298,7 @@ void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[2] = param3;
         ((evnt *) __buffer_cur)->args[3] = param4;
 
-        __buffer_cur += get_event_size(4);
+        __buffer_cur += get_event_components(4);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -309,7 +309,8 @@ void evnt_probe4(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with five arguments
  */
-void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5) {
+void evnt_probe5(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
+        evnt_args_t param5) {
     if (!__evnt_initialized)
         return;
 
@@ -324,7 +325,7 @@ void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[3] = param4;
         ((evnt *) __buffer_cur)->args[4] = param5;
 
-        __buffer_cur += get_event_size(5);
+        __buffer_cur += get_event_components(5);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -335,8 +336,8 @@ void evnt_probe5(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with six arguments
  */
-void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
-        uint64_t param6) {
+void evnt_probe6(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
+        evnt_args_t param5, evnt_args_t param6) {
     if (!__evnt_initialized)
         return;
 
@@ -352,7 +353,7 @@ void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[4] = param5;
         ((evnt *) __buffer_cur)->args[5] = param6;
 
-        __buffer_cur += get_event_size(6);
+        __buffer_cur += get_event_components(6);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -363,8 +364,8 @@ void evnt_probe6(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with seven arguments
  */
-void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
-        uint64_t param6, uint64_t param7) {
+void evnt_probe7(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
+        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7) {
     if (!__evnt_initialized)
         return;
 
@@ -381,7 +382,7 @@ void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[5] = param6;
         ((evnt *) __buffer_cur)->args[6] = param7;
 
-        __buffer_cur += get_event_size(7);
+        __buffer_cur += get_event_components(7);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -392,8 +393,8 @@ void evnt_probe7(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with eight arguments
  */
-void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
-        uint64_t param6, uint64_t param7, uint64_t param8) {
+void evnt_probe8(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
+        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7, evnt_args_t param8) {
     if (!__evnt_initialized)
         return;
 
@@ -411,7 +412,7 @@ void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[6] = param7;
         ((evnt *) __buffer_cur)->args[7] = param8;
 
-        __buffer_cur += get_event_size(8);
+        __buffer_cur += get_event_components(8);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -422,8 +423,8 @@ void evnt_probe8(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
 /*
  * This function records an event with nine arguments
  */
-void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4, uint64_t param5,
-        uint64_t param6, uint64_t param7, uint64_t param8, uint64_t param9) {
+void evnt_probe9(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
+        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7, evnt_args_t param8, evnt_args_t param9) {
     if (!__evnt_initialized)
         return;
 
@@ -442,7 +443,7 @@ void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
         ((evnt *) __buffer_cur)->args[7] = param8;
         ((evnt *) __buffer_cur)->args[8] = param9;
 
-        __buffer_cur += get_event_size(9);
+        __buffer_cur += get_event_components(9);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();
@@ -454,17 +455,19 @@ void evnt_probe9(uint64_t code, uint64_t param1, uint64_t param2, uint64_t param
  * This function records an event in a raw state, where the size is #args in the void* array
  * That helps to discover places where the application has crashed while using EZTrace
  */
-void evnt_raw_probe(uint64_t code, uint64_t size, void* data) {
+void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
     if (!__evnt_initialized)
         return;
 
+    int i;
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw *) __buffer_cur)->tid = CUR_TID;
         ((evnt_raw *) __buffer_cur)->time = __get_time();
         ((evnt_raw *) __buffer_cur)->code = code;
-        ((evnt_raw *) __buffer_cur)->size = size;
+        ((evnt_raw *) __buffer_cur)->size = size; // / sizeof(uint64_t);
         if (size > 0)
-            ((evnt_raw *) __buffer_cur)->data = data;
+            for (i = 0; i < size; i++)
+                ((evnt_raw *) __buffer_cur)->raw[i] = data[i];
 
         __buffer_cur += size + 4 * sizeof(uint64_t);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {

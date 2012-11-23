@@ -13,7 +13,7 @@
 #include "evnt_read.h"
 
 int main(int argc, const char **argv) {
-    uint64_t i;
+    evnt_size_t i;
     const char* filename = "trace";
     evnt* event;
     trace buffer;

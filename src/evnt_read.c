@@ -98,7 +98,7 @@ evnt* read_event(trace* buffer) {
     //    If nb_args is OK, then the event is studied on whether it is loaded completely or not.
     //    If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.
     if (__tracker - __offset <= sizeof(evnt)) {
-        if ((event->nb_args > 9) || (__tracker - __offset < get_event_size(event->nb_args) * sizeof(uint64_t))) {
+        if ((event->nb_args > 9) || (__tracker - __offset < get_event_size(event->nb_args))) {
             *buffer = __next_trace();
             event = (evnt *) *buffer;
             __tracker = __offset + __buffer_size;
@@ -112,8 +112,8 @@ evnt* read_event(trace* buffer) {
     }
 
     // move pointer to the next event and update __offset
-    *buffer += get_event_size(event->nb_args);
-    __offset += get_event_size(event->nb_args) * sizeof(uint64_t);
+    *buffer += get_event_components(event->nb_args);
+    __offset += get_event_size(event->nb_args);
 
     return event;
 }
