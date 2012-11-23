@@ -30,10 +30,10 @@
 #define EVNT_MAX_PARAMS 9
 
 typedef struct {
-    uint64_t code; // code of the event
     uint64_t tid; // thread ID
     uint64_t time; // time of the measurement
-    uint64_t nb_args; // number of arguments
+    uint64_t code; // code of the event
+    uint64_t nb_args; // uint8_t number of arguments
     uint64_t args[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 6
 } evnt;
 
@@ -41,7 +41,7 @@ typedef struct {
     uint64_t tid; // thread ID
     uint64_t time; // time of the measurement
     uint64_t code; // code of the event
-    uint64_t size; // size of data
+    uint64_t size; // size of data in bytes
     void* data; // data contains an array of arguments
 } evnt_raw;
 

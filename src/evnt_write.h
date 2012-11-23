@@ -10,8 +10,6 @@
 
 #include "evnt_types.h"
 
-void set_write_buffer_size(const uint32_t);
-
 void enable_buffer_flush();
 
 void enable_thread_safe();
@@ -19,6 +17,8 @@ void enable_thread_safe();
 void enable_tid_record();
 
 void set_filename(const char*);
+
+void set_write_buffer_size(const uint32_t);
 
 /*
  * This function initializes the trace
