@@ -33,37 +33,28 @@ typedef uint64_t evnt_time_t;
 typedef uint64_t evnt_code_t;
 typedef uint64_t evnt_size_t;
 typedef uint64_t evnt_args_t;
-typedef uint64_t evnt_data_t;
+typedef uint8_t evnt_data_t;
 
 #define EVNT_TRACE_END 0
 
 #define EVNT_MAX_PARAMS 9
-#define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(uint64_t))
 
 typedef struct {
     evnt_tid_t tid; // thread ID
     evnt_time_t time; // time of the measurement
-    // TODO: code should contain in the highest bit info about raw (1) or plain (0) event
-    evnt_code_t code; // code of the event
-    evnt_size_t nb_args; // uint16_t number of arguments or size of raw data
-    evnt_args_t args[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to EVNT_MAX_PARAMS
-    evnt_data_t raw[EVNT_MAX_DATA]; // raw data
-} evnt_gen;
-
-typedef struct {
-    evnt_tid_t tid; // thread ID
-    evnt_time_t time; // time of the measurement
+    // Code contains, in the highest bit, info about raw (1) or regular (0) event
     evnt_code_t code; // code of the event
     evnt_size_t nb_args; // uint8_t number of arguments
-    evnt_args_t args[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 6
+    evnt_args_t args[]; // array of arguments; the array is of lengths from 0 to 6
 } evnt;
 
 typedef struct {
     evnt_tid_t tid; // thread ID
     evnt_time_t time; // time of the measurement
+    // Code contains, in the highest bit, info about raw (1) or regular (0) event
     evnt_code_t code; // code of the event
     evnt_size_t size; // size of data in bytes
-    evnt_args_t raw[EVNT_MAX_DATA]; // raw data
+    evnt_data_t raw[]; // raw data
 } evnt_raw;
 
 // Flags that corresponds to flushing the buffer

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #include "evnt_macro.h"
 #include "evnt_write.h"
@@ -463,13 +464,14 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw *) __buffer_cur)->tid = CUR_TID;
         ((evnt_raw *) __buffer_cur)->time = __get_time();
+        code = set_bit(code);
         ((evnt_raw *) __buffer_cur)->code = code;
         ((evnt_raw *) __buffer_cur)->size = size; // / sizeof(uint64_t);
         if (size > 0)
             for (i = 0; i < size; i++)
                 ((evnt_raw *) __buffer_cur)->raw[i] = data[i];
 
-        __buffer_cur += size + 4 * sizeof(uint64_t);
+        __buffer_cur += 4 + (uint64_t) ceil((double) size / sizeof(uint64_t));
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
         // TODO: thread-safety
         flush_buffer();

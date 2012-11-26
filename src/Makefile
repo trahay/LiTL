@@ -1,6 +1,6 @@
 
 Home = ..
-LIBS = -lrt
+LIBS = -lrt -lm
 
 CC = gcc
 CFLAGS = -Wall -O2 -fPIC

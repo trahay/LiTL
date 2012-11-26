@@ -21,4 +21,20 @@ evnt_size_t get_event_components(evnt_size_t);
  */
 evnt_size_t get_event_size(evnt_size_t);
 
+/*
+ * This functions sets the bit of the higher order to one
+ */
+evnt_code_t set_bit(evnt_code_t);
+
+/*
+ * This functions sets the bit of the higher order to zero
+ */
+evnt_code_t clear_bit(evnt_code_t);
+
+/*
+ * This function returns the bit of the higher order
+ */
+uint8_t get_bit(evnt_code_t);
+
+
 #endif /* EVNT_MACRO_H_ */

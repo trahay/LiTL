@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <math.h>
 
 #include "evnt_macro.h"
 #include "evnt_read.h"
@@ -84,6 +85,8 @@ void reset_trace(trace* buffer) {
  * This function reads an event
  */
 evnt* read_event(trace* buffer) {
+    uint8_t to_load = 0;
+    evnt_size_t size;
     evnt* event;
 
     if (*buffer == NULL )
@@ -91,18 +94,28 @@ evnt* read_event(trace* buffer) {
 
     event = (evnt *) *buffer;
 
-    // While reading events from the buffer, there can be two situations:
-    // 1. The situation when the buffer contains exact number of events;
-    // 2. The situation when only a part of the last event is loaded to the buffer.
-    //    Then, nb_args is checked whether it is defined or not.
-    //    If nb_args is OK, then the event is studied on whether it is loaded completely or not.
-    //    If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.
-    if (__tracker - __offset <= sizeof(evnt)) {
-        if ((event->nb_args > 9) || (__tracker - __offset < get_event_size(event->nb_args))) {
-            *buffer = __next_trace();
-            event = (evnt *) *buffer;
-            __tracker = __offset + __buffer_size;
-        }
+    /* While reading events from the buffer, there can be two situations:
+     1. The situation when the buffer contains exact number of events;
+     2. The situation when only a part of the last event is loaded to the buffer.
+     Check whether the main four components (tid, time, code, nb_args) are loaded.
+     Check whether all arguments are loaded.
+     If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
+    // raw event
+    if ((__tracker - __offset <= sizeof(evnt))
+            || ((get_bit(event->code) == 1)
+                    && (__tracker - __offset
+                            < get_event_size((evnt_size_t) ceil((double) event->nb_args / sizeof(evnt_args_t))))))
+        to_load = 1;
+    // regular event
+    else if ((event->nb_args > 9) || (__tracker - __offset < get_event_size(event->nb_args)))
+        to_load = 1;
+
+    // fetch the next block of data from the trace
+    if (to_load == 1) {
+        *buffer = __next_trace();
+        event = (evnt *) *buffer;
+        __tracker = __offset + __buffer_size;
+        to_load = 0;
     }
 
     // skip the EVNT_TRACE_END event
@@ -112,8 +125,15 @@ evnt* read_event(trace* buffer) {
     }
 
     // move pointer to the next event and update __offset
-    *buffer += get_event_components(event->nb_args);
-    __offset += get_event_size(event->nb_args);
+    if (get_bit(event->code) == 1)
+        // raw event
+        size = ceil((double) event->nb_args / sizeof(evnt_args_t));
+    else
+        // regular event
+        size = event->nb_args;
+
+    *buffer += get_event_components(size);
+    __offset += get_event_size(size);
 
     return event;
 }

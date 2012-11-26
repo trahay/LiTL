@@ -11,6 +11,7 @@
 
 #include "evnt_types.h"
 #include "evnt_read.h"
+#include "evnt_macro.h"
 
 int main(int argc, const char **argv) {
     evnt_size_t i;
@@ -36,10 +37,18 @@ int main(int argc, const char **argv) {
         if (event == NULL )
             break;
 
-        printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
+        if (get_bit(event->code) == 1) {
+            // raw event
+            event->code = clear_bit(event->code);
+            printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
+            printf("\t %s", (evnt_data_t *) event->args);
+        } else {
+            // regular event
+            printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
 
-        for (i = 0; i < event->nb_args; i++)
-            printf("\t %lu", event->args[i]);
+            for (i = 0; i < event->nb_args; i++)
+                printf("\t %lu", event->args[i]);
+        }
 
         printf("\n");
     }
