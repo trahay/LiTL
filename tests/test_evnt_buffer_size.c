@@ -24,8 +24,8 @@ int main(int argc, const char **argv) {
     long long int start, fin;
     const char* filename = "trace";
     uint32_t buf_size;
-    evnt* event;
-    trace buffer;
+    evnt_t* event;
+    trace_t buffer;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];

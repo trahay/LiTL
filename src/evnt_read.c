@@ -14,7 +14,7 @@
 #include "evnt_read.h"
 
 static FILE* __ftrace;
-static trace __buffer_ptr;
+static trace_t __buffer_ptr;
 static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
 static uint32_t __offset = 0;
@@ -38,7 +38,7 @@ void set_read_buffer_size(const uint32_t buf_size) {
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-trace open_trace(const char* file_path) {
+trace_t open_trace(const char* file_path) {
     struct stat st;
 
     if (!(__ftrace = fopen(file_path, "r")))
@@ -63,7 +63,7 @@ trace open_trace(const char* file_path) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static trace __next_trace() {
+static trace_t __next_trace() {
     fseek(__ftrace, __offset, SEEK_SET);
 
     int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
@@ -78,22 +78,22 @@ static trace __next_trace() {
 /*
  * This function resets the trace
  */
-void reset_trace(trace* buffer) {
+void reset_trace(trace_t* buffer) {
     *buffer = __buffer_ptr;
 }
 
 /*
  * This function reads an event
  */
-evnt* read_event(trace* buffer) {
+evnt_t* read_event(trace_t* buffer) {
     uint8_t to_be_loaded = 0;
     evnt_size_t size;
-    evnt* event;
+    evnt_t* event;
 
     if (*buffer == NULL )
         return NULL;
 
-    event = (evnt *) *buffer;
+    event = (evnt_t *) *buffer;
 
     /* While reading events from the buffer, there can be two situations:
      1. The situation when the buffer contains exact number of events;
@@ -102,7 +102,7 @@ evnt* read_event(trace* buffer) {
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
     // regular event
-    if ((__tracker - __offset <= sizeof(evnt))
+    if ((__tracker - __offset <= sizeof(evnt_t))
             || ((get_bit(event->code) == 0) && (__tracker - __offset < get_event_size(event->nb_args))))
         to_be_loaded = 1;
     // raw event
@@ -113,7 +113,7 @@ evnt* read_event(trace* buffer) {
     // fetch the next block of data from the trace
     if (to_be_loaded == 1) {
         *buffer = __next_trace();
-        event = (evnt *) *buffer;
+        event = (evnt_t *) *buffer;
         __tracker = __offset + __buffer_size;
         to_be_loaded = 0;
     }
@@ -141,14 +141,14 @@ evnt* read_event(trace* buffer) {
 /*
  * This function reads the next event from the buffer
  */
-evnt* next_event(trace* buffer) {
+evnt_t* next_event(trace_t* buffer) {
     return read_event(buffer);
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void close_trace(trace* buffer) {
+void close_trace(trace_t* buffer) {
     fclose(__ftrace);
     free(__buffer_ptr);
 
