@@ -37,17 +37,18 @@ int main(int argc, const char **argv) {
         if (event == NULL )
             break;
 
-        if (get_bit(event->code) == 1) {
-            // raw event
-            event->code = clear_bit(event->code);
-            printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
-            printf("\t %s", (evnt_data_t *) event->args);
-        } else {
+        if (get_bit(event->code) == 0) {
             // regular event
             printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
 
             for (i = 0; i < event->nb_args; i++)
                 printf("\t %lu", event->args[i]);
+        } else {
+            // raw event
+            event->code = clear_bit(event->code);
+
+            printf("%lu \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_args);
+            printf("\t %s", (evnt_data_t *) event->args);
         }
 
         printf("\n");

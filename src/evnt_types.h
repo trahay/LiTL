@@ -30,6 +30,7 @@
  */
 typedef uint64_t evnt_tid_t;
 typedef uint64_t evnt_time_t;
+// TODO: check whether it is possible to use uint32_t for evnt_code_t
 typedef uint64_t evnt_code_t;
 typedef uint64_t evnt_size_t;
 typedef uint64_t evnt_args_t;
