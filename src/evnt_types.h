@@ -71,13 +71,13 @@ typedef enum {
 } thread_flags_t;
 
 // data structure for holding set of events
-typedef uint64_t* trace_t;
+typedef uint64_t* evnt_trace_t;
 
 // data structure for reading events from trace file
 typedef struct {
     FILE* fp;
-    trace_t* trace;
+    evnt_trace_t* trace;
     uint32_t offset;
-} evnt_trace_t;
+} evnt_block_t;
 
 #endif /* EVNT_TYPES_H_ */

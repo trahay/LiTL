@@ -18,26 +18,26 @@ void set_read_buffer_size(const uint32_t);
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-trace_t open_trace(const char*);
+evnt_trace_t open_trace(const char*);
 
 /*
  * This function resets the trace
  */
-void reset_trace(trace_t*);
+void reset_trace(evnt_trace_t*);
 
 /*
  * This function reads an event
  */
-evnt_t* read_event(trace_t*);
+evnt_t* read_event(evnt_trace_t*);
 
 /*
  * This function searches for the next event
  */
-evnt_t* next_event(trace_t*);
+evnt_t* next_event(evnt_trace_t*);
 
 /*
  * This function closes the trace and frees the buffer
  */
-void close_trace(trace_t*);
+void close_trace(evnt_trace_t*);
 
 #endif /* EVNT_READ_H_ */

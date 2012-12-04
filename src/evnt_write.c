@@ -14,8 +14,8 @@
 #include "evnt_macro.h"
 #include "evnt_write.h"
 
-static trace_t __buffer_ptr;
-static trace_t __buffer_cur;
+static evnt_trace_t __buffer_ptr;
+static evnt_trace_t __buffer_cur;
 static uint32_t __buffer_size = 256 * 1024; // 256 KB
 static buffer_flags_t __buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags_t __thread_safe_flag = EVNT_NOTHREAD_SAFE;
@@ -35,7 +35,7 @@ static int __evnt_initialized = 0;
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size() {
-    return sizeof(uint64_t) * ((trace_t) __buffer_cur - (trace_t) __buffer_ptr);
+    return sizeof(uint64_t) * ((evnt_trace_t) __buffer_cur - (evnt_trace_t) __buffer_ptr);
 }
 
 /*

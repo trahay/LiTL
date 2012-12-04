@@ -14,7 +14,7 @@
 #include "evnt_read.h"
 
 static FILE* __ftrace;
-static trace_t __buffer_ptr;
+static evnt_trace_t __buffer_ptr;
 static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
 static uint32_t __offset = 0;
@@ -38,7 +38,7 @@ void set_read_buffer_size(const uint32_t buf_size) {
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-trace_t open_trace(const char* file_path) {
+evnt_trace_t open_trace(const char* file_path) {
     struct stat st;
 
     if (!(__ftrace = fopen(file_path, "r")))
@@ -63,7 +63,7 @@ trace_t open_trace(const char* file_path) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static trace_t __next_trace() {
+static evnt_trace_t __next_trace() {
     fseek(__ftrace, __offset, SEEK_SET);
 
     int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
@@ -78,14 +78,14 @@ static trace_t __next_trace() {
 /*
  * This function resets the trace
  */
-void reset_trace(trace_t* buffer) {
+void reset_trace(evnt_trace_t* buffer) {
     *buffer = __buffer_ptr;
 }
 
 /*
  * This function reads an event
  */
-evnt_t* read_event(trace_t* buffer) {
+evnt_t* read_event(evnt_trace_t* buffer) {
     uint8_t to_be_loaded = 0;
     evnt_size_t size;
     evnt_t* event;
@@ -141,14 +141,14 @@ evnt_t* read_event(trace_t* buffer) {
 /*
  * This function reads the next event from the buffer
  */
-evnt_t* next_event(trace_t* buffer) {
+evnt_t* next_event(evnt_trace_t* buffer) {
     return read_event(buffer);
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void close_trace(trace_t* buffer) {
+void close_trace(evnt_trace_t* buffer) {
     fclose(__ftrace);
     free(__buffer_ptr);
 
