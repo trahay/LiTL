@@ -43,49 +43,50 @@ void evnt_probe0(evnt_code_t);
 /*
  * This function records an event with one argument
  */
-void evnt_probe1(evnt_code_t, evnt_args_t);
+void evnt_probe1(evnt_code_t, evnt_param_t);
 
 /*
  * This function records an event with two arguments
  */
-void evnt_probe2(evnt_code_t, evnt_args_t, evnt_args_t);
+void evnt_probe2(evnt_code_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with three arguments
  */
-void evnt_probe3(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t);
+void evnt_probe3(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with four arguments
  */
-void evnt_probe4(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t);
+void evnt_probe4(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with five arguments
  */
-void evnt_probe5(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t);
+void evnt_probe5(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with six arguments
  */
-void evnt_probe6(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t);
+void evnt_probe6(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with seven arguments
  */
-void evnt_probe7(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t);
+void evnt_probe7(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t,
+        evnt_param_t);
 
 /*
  * This function records an event with eight arguments
  */
-void evnt_probe8(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t,
-        evnt_args_t);
+void evnt_probe8(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t,
+        evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event with nine arguments
  */
-void evnt_probe9(evnt_code_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t, evnt_args_t,
-        evnt_args_t, evnt_args_t);
+void evnt_probe9(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t,
+        evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
  * This function records an event in a raw state, where the size is #args in the void* array

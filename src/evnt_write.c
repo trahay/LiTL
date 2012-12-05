@@ -216,7 +216,7 @@ void evnt_probe0(evnt_code_t code) {
 /*
  * This function records an event with one argument
  */
-void evnt_probe1(evnt_code_t code, evnt_args_t param1) {
+void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
     if (!__evnt_initialized)
         return;
 
@@ -238,7 +238,7 @@ void evnt_probe1(evnt_code_t code, evnt_args_t param1) {
 /*
  * This function records an event with two arguments
  */
-void evnt_probe2(evnt_code_t code, evnt_args_t param1, evnt_args_t param2) {
+void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
     if (!__evnt_initialized)
         return;
 
@@ -261,7 +261,7 @@ void evnt_probe2(evnt_code_t code, evnt_args_t param1, evnt_args_t param2) {
 /*
  * This function records an event with three arguments
  */
-void evnt_probe3(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3) {
+void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3) {
     if (!__evnt_initialized)
         return;
 
@@ -285,7 +285,7 @@ void evnt_probe3(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with four arguments
  */
-void evnt_probe4(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4) {
+void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4) {
     if (!__evnt_initialized)
         return;
 
@@ -310,8 +310,8 @@ void evnt_probe4(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with five arguments
  */
-void evnt_probe5(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
-        evnt_args_t param5) {
+void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5) {
     if (!__evnt_initialized)
         return;
 
@@ -337,8 +337,8 @@ void evnt_probe5(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with six arguments
  */
-void evnt_probe6(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
-        evnt_args_t param5, evnt_args_t param6) {
+void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5, evnt_param_t param6) {
     if (!__evnt_initialized)
         return;
 
@@ -365,8 +365,8 @@ void evnt_probe6(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with seven arguments
  */
-void evnt_probe7(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
-        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7) {
+void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7) {
     if (!__evnt_initialized)
         return;
 
@@ -394,8 +394,8 @@ void evnt_probe7(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with eight arguments
  */
-void evnt_probe8(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
-        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7, evnt_args_t param8) {
+void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8) {
     if (!__evnt_initialized)
         return;
 
@@ -424,8 +424,8 @@ void evnt_probe8(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
 /*
  * This function records an event with nine arguments
  */
-void evnt_probe9(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_args_t param3, evnt_args_t param4,
-        evnt_args_t param5, evnt_args_t param6, evnt_args_t param7, evnt_args_t param8, evnt_args_t param9) {
+void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9) {
     if (!__evnt_initialized)
         return;
 

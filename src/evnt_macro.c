@@ -5,6 +5,8 @@
  *      Author: Roman Iakymchuk
  */
 
+#include <stdlib.h>
+
 #include "evnt_macro.h"
 
 #define BITS_IN_BITE 8
@@ -22,7 +24,27 @@ evnt_size_t get_event_components(evnt_size_t nb_params) {
  */
 evnt_size_t get_event_size(evnt_size_t nb_params) {
     return sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t)
-            + nb_params * sizeof(evnt_args_t);
+            + nb_params * sizeof(evnt_param_t);
+}
+
+/*
+ * This function converts evnt's parameters to string. As a separator, a space is used
+ */
+char* params_to_string(evnt_t* ev) {
+    evnt_size_t i;
+    int len;
+    char* str;
+    // sizeof(evnt_param_t) * EVNT_MAX_PARAMS is the maximum length of all parameters together
+    str = malloc(sizeof(evnt_param_t) * EVNT_MAX_PARAMS);
+    len = 0;
+
+    for (i = 0; i < ev->nb_params; i++)
+        if (i == 0)
+            len += sprintf(str + len, "%lu", ev->param[i]);
+        else
+            len += sprintf(str + len, " %lu", ev->param[i]);
+
+    return str;
 }
 
 /*
@@ -42,6 +64,6 @@ evnt_code_t clear_bit(evnt_code_t val) {
 /*
  * This function returns the bit of the higher order
  */
-uint8_t get_bit(evnt_code_t val){
+uint8_t get_bit(evnt_code_t val) {
     return (uint8_t) (val >> (BITS_IN_BITE * sizeof(evnt_code_t) - 1));
 }

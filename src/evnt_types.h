@@ -34,7 +34,7 @@ typedef uint64_t evnt_time_t;
 typedef uint64_t evnt_code_t;
 //TODO: change to uint8_t
 typedef uint64_t evnt_size_t;
-typedef uint64_t evnt_args_t;
+typedef uint64_t evnt_param_t;
 typedef uint8_t evnt_data_t;
 
 #define EVNT_TRACE_END 0
@@ -48,7 +48,7 @@ typedef struct {
     // Code contains, in the highest bit, info about raw (1) or regular (0) event
     evnt_code_t code; // code of the event
     evnt_size_t nb_params; // number of arguments
-    evnt_args_t param[]; // array of arguments; the array is of lengths from 0 to 6
+    evnt_param_t param[]; // array of arguments; the array is of lengths from 0 to 6
 } evnt_t;
 
 // raw event

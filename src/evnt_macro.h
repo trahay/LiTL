@@ -22,6 +22,11 @@ evnt_size_t get_event_components(evnt_size_t);
 evnt_size_t get_event_size(evnt_size_t);
 
 /*
+ * This function converts evnt's parameters to string. As a separator, a space is used
+ */
+char* params_to_string(evnt_t *);
+
+/*
  * This functions sets the bit of the higher order to one
  */
 evnt_code_t set_bit(evnt_code_t);

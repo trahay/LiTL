@@ -108,7 +108,7 @@ evnt_t* read_event(evnt_trace_t* buffer) {
     // raw event
     else if (((get_bit(event->code) == 1)
             && (__tracker - __offset
-                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_args_t))))))
+                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t))))))
         to_be_loaded = 1;
 
     // fetch the next block of data from the trace
@@ -128,7 +128,7 @@ evnt_t* read_event(evnt_trace_t* buffer) {
     // move pointer to the next event and update __offset
     if (get_bit(event->code) == 1)
         // raw event
-        size = ceil((double) event->nb_params / sizeof(evnt_args_t));
+        size = ceil((double) event->nb_params / sizeof(evnt_param_t));
     else
         // regular event
         size = event->nb_params;
