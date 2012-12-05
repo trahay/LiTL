@@ -91,23 +91,24 @@ evnt_t* read_event(evnt_trace_t* buffer) {
     evnt_t* event;
 
     if (*buffer == NULL )
-        return NULL;
+        return NULL ;
 
     event = (evnt_t *) *buffer;
 
     /* While reading events from the buffer, there can be two situations:
      1. The situation when the buffer contains exact number of events;
      2. The situation when only a part of the last event is loaded to the buffer.
-     Check whether the main four components (tid, time, code, nb_args) are loaded.
+     Check whether the main four components (tid, time, code, nb_params) are loaded.
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
     // regular event
     if ((__tracker - __offset <= sizeof(evnt_t))
-            || ((get_bit(event->code) == 0) && (__tracker - __offset < get_event_size(event->nb_args))))
+            || ((get_bit(event->code) == 0) && (__tracker - __offset < get_event_size(event->nb_params))))
         to_be_loaded = 1;
     // raw event
     else if (((get_bit(event->code) == 1)
-            && (__tracker - __offset < get_event_size((evnt_size_t) ceil((double) event->nb_args / sizeof(evnt_args_t))))))
+            && (__tracker - __offset
+                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_args_t))))))
         to_be_loaded = 1;
 
     // fetch the next block of data from the trace
@@ -121,16 +122,16 @@ evnt_t* read_event(evnt_trace_t* buffer) {
     // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
         *buffer = NULL;
-        return NULL;
+        return NULL ;
     }
 
     // move pointer to the next event and update __offset
     if (get_bit(event->code) == 1)
         // raw event
-        size = ceil((double) event->nb_args / sizeof(evnt_args_t));
+        size = ceil((double) event->nb_params / sizeof(evnt_args_t));
     else
         // regular event
-        size = event->nb_args;
+        size = event->nb_params;
 
     *buffer += get_event_components(size);
     __offset += get_event_size(size);

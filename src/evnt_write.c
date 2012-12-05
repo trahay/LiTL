@@ -164,7 +164,7 @@ void fin_trace() {
     ((evnt_t *) __buffer_cur)->tid = CUR_TID;
     ((evnt_t *) __buffer_cur)->time = __get_time();
     ((evnt_t *) __buffer_cur)->code = EVNT_TRACE_END;
-    ((evnt_t *) __buffer_cur)->nb_args = 0;
+    ((evnt_t *) __buffer_cur)->nb_params = 0;
 
     __buffer_cur += get_event_components(0);
 
@@ -203,7 +203,7 @@ void evnt_probe0(evnt_code_t code) {
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 0;
+        ((evnt_t *) __buffer_cur)->nb_params = 0;
 
         __buffer_cur += get_event_components(0);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -224,8 +224,8 @@ void evnt_probe1(evnt_code_t code, evnt_args_t param1) {
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 1;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
+        ((evnt_t *) __buffer_cur)->nb_params = 1;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
 
         __buffer_cur += get_event_components(1);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -246,9 +246,9 @@ void evnt_probe2(evnt_code_t code, evnt_args_t param1, evnt_args_t param2) {
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 2;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
+        ((evnt_t *) __buffer_cur)->nb_params = 2;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
 
         __buffer_cur += get_event_components(2);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -269,10 +269,10 @@ void evnt_probe3(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 3;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
+        ((evnt_t *) __buffer_cur)->nb_params = 3;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
 
         __buffer_cur += get_event_components(3);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -293,11 +293,11 @@ void evnt_probe4(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 4;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
+        ((evnt_t *) __buffer_cur)->nb_params = 4;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
 
         __buffer_cur += get_event_components(4);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -319,12 +319,12 @@ void evnt_probe5(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 5;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
-        ((evnt_t *) __buffer_cur)->args[4] = param5;
+        ((evnt_t *) __buffer_cur)->nb_params = 5;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
 
         __buffer_cur += get_event_components(5);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -346,13 +346,13 @@ void evnt_probe6(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 6;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
-        ((evnt_t *) __buffer_cur)->args[4] = param5;
-        ((evnt_t *) __buffer_cur)->args[5] = param6;
+        ((evnt_t *) __buffer_cur)->nb_params = 6;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
+        ((evnt_t *) __buffer_cur)->param[5] = param6;
 
         __buffer_cur += get_event_components(6);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -374,14 +374,14 @@ void evnt_probe7(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 7;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
-        ((evnt_t *) __buffer_cur)->args[4] = param5;
-        ((evnt_t *) __buffer_cur)->args[5] = param6;
-        ((evnt_t *) __buffer_cur)->args[6] = param7;
+        ((evnt_t *) __buffer_cur)->nb_params = 7;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
+        ((evnt_t *) __buffer_cur)->param[5] = param6;
+        ((evnt_t *) __buffer_cur)->param[6] = param7;
 
         __buffer_cur += get_event_components(7);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -403,15 +403,15 @@ void evnt_probe8(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 8;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
-        ((evnt_t *) __buffer_cur)->args[4] = param5;
-        ((evnt_t *) __buffer_cur)->args[5] = param6;
-        ((evnt_t *) __buffer_cur)->args[6] = param7;
-        ((evnt_t *) __buffer_cur)->args[7] = param8;
+        ((evnt_t *) __buffer_cur)->nb_params = 8;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
+        ((evnt_t *) __buffer_cur)->param[5] = param6;
+        ((evnt_t *) __buffer_cur)->param[6] = param7;
+        ((evnt_t *) __buffer_cur)->param[7] = param8;
 
         __buffer_cur += get_event_components(8);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
@@ -433,16 +433,16 @@ void evnt_probe9(evnt_code_t code, evnt_args_t param1, evnt_args_t param2, evnt_
         ((evnt_t *) __buffer_cur)->tid = CUR_TID;
         ((evnt_t *) __buffer_cur)->time = __get_time();
         ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_args = 9;
-        ((evnt_t *) __buffer_cur)->args[0] = param1;
-        ((evnt_t *) __buffer_cur)->args[1] = param2;
-        ((evnt_t *) __buffer_cur)->args[2] = param3;
-        ((evnt_t *) __buffer_cur)->args[3] = param4;
-        ((evnt_t *) __buffer_cur)->args[4] = param5;
-        ((evnt_t *) __buffer_cur)->args[5] = param6;
-        ((evnt_t *) __buffer_cur)->args[6] = param7;
-        ((evnt_t *) __buffer_cur)->args[7] = param8;
-        ((evnt_t *) __buffer_cur)->args[8] = param9;
+        ((evnt_t *) __buffer_cur)->nb_params = 9;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
+        ((evnt_t *) __buffer_cur)->param[5] = param6;
+        ((evnt_t *) __buffer_cur)->param[6] = param7;
+        ((evnt_t *) __buffer_cur)->param[7] = param8;
+        ((evnt_t *) __buffer_cur)->param[8] = param9;
 
         __buffer_cur += get_event_components(9);
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
