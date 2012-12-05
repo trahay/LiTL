@@ -29,10 +29,26 @@ void __init_tracker() {
     __tracker = __offset + __buffer_size;
 }
 
+/*
+ * This function sets the buffer size
+ */
 void set_read_buffer_size(const uint32_t buf_size) {
     __offset = 0;
     __buffer_size = buf_size;
     __tracker = __offset + __buffer_size;
+}
+
+/*
+ * This function returns the current trace, FILE pointer, and the current position in the file
+ */
+evnt_block_t get_evnt_block() {
+    evnt_block_t block;
+
+    block.fp = __ftrace;
+    block.offset = __offset;
+    block.trace = __buffer_ptr;
+
+    return block;
 }
 
 /*
