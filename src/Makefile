@@ -3,7 +3,7 @@ Home = ..
 LIBS = -lrt -lm
 
 CC = gcc
-CFLAGS = -Wall -O2 -fPIC
+CFLAGS = -Wall -O3 -fPIC
 
 OBJ_LIB = evnt_write.o evnt_read.o evnt_macro.o
 OBJ_EVNT_READ = evnt_read.o evnt_macro.o

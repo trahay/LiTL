@@ -5,7 +5,7 @@ INCLUDE = -I$(Home)/src
 DIRS = -L$(Home)/src
 
 CC = gcc
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O3
 CFLAGS += $(INCLUDE)
 
 OBJ_TEST_WRITE = test_evnt_write.o
