@@ -13,7 +13,7 @@ libevnt_la_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
 libevnt_la_LDFLAGS = $(AM_LDFLAGS)
 libevnt_la_SOURCES = evnt_types.h evnt_write.h evnt_write.c evnt_read.h evnt_read.c evnt_macro.h evnt_macro.c
 
-noinst_HEADERS = evnt_types.h
+include_HEADERS = evnt_types.h evnt_write.h evnt_read.h
 
 clean-local:
-	rm -rf .deps Makefile Makefile.in Makefile.bk
+	rm -rf Makefile.in Makefile.bk

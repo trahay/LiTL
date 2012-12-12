@@ -22,17 +22,15 @@
 int main(int argc, const char **argv) {
     int i;
     long long int start, fin;
-    const char* filename = "trace";
+    const char* filename = "trace.trace";
     uint32_t buf_size;
     evnt_t* event;
     evnt_trace_t buffer;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
-    else {
-        fprintf(stderr, "Specify the name of the trace file using '-f'\n");
-        exit(-1);
-    }
+    else
+        filename = "test_evnt_write.trace";
 
     printf("=============================================================\n");
     printf("What is the optimal buffer size for recording events?\n\n");
@@ -40,7 +38,8 @@ int main(int argc, const char **argv) {
 
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
-        init_trace(filename, buf_size);
+        set_write_buffer_size(buf_size);
+        init_trace(filename);
 
         start = get_ticks();
         for (i = 0; i < (NB_EVENTS + 1) / 10; i++) {

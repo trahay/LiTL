@@ -15,7 +15,7 @@
 
 static FILE* __ftrace;
 static evnt_trace_t __buffer_ptr;
-static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
+static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
 static uint32_t __offset = 0;
 static uint32_t __tracker;
@@ -54,24 +54,29 @@ evnt_block_t get_evnt_block() {
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-evnt_trace_t open_trace(const char* file_path) {
+evnt_trace_t open_trace(const char* filename) {
     struct stat st;
 
-    if (!(__ftrace = fopen(file_path, "r")))
+    if (!(__ftrace = fopen(filename, "r"))) {
         perror("Could not open the trace file for reading!");
+        exit(EXIT_FAILURE);
+    }
 
-    if (stat(file_path, &st) != 0)
+    if (stat(filename, &st) != 0)
         perror("Could not get the attributes of the trace file!");
 
     if (__buffer_size > st.st_size)
         __buffer_size = st.st_size;
+
     __buffer_ptr = malloc(__buffer_size);
 
     int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
-    if ((res != 0) && (res != 1))
+    if ((res != 0) && (res != 1)) {
         perror("Could not copy the top of the trace file to a buffer!");
+        exit(EXIT_FAILURE);
+    }
 
     return __buffer_ptr;
 }
@@ -85,8 +90,10 @@ static evnt_trace_t __next_trace() {
     int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
-    if ((res != 0) && (res != 1))
+    if ((res != 0) && (res != 1)) {
         perror("Could not copy the next part of the trace file to a buffer!");
+        exit(EXIT_FAILURE);
+    }
 
     return __buffer_ptr;
 }
@@ -183,8 +190,8 @@ int main(int argc, const char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else {
-        fprintf(stderr, "Specify the name of the trace file using '-f'\n");
-        exit(-1);
+        perror("Specify the name of the trace file using '-f'\n");
+        exit(EXIT_FAILURE);
     }
 
     buffer = open_trace(filename);

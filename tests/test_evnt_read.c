@@ -15,16 +15,14 @@
 
 int main(int argc, const char **argv) {
     evnt_size_t i;
-    const char* filename = "trace";
+    const char* filename = "trace.trace";
     evnt_t* event;
     evnt_trace_t buffer;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
-    else {
-        fprintf(stderr, "Specify the name of the trace file using '-f'\n");
-        exit(-1);
-    }
+    else
+        filename = "test_evnt_write.trace";
 
     buffer = open_trace(filename);
     printf("=============================================================\n");

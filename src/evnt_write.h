@@ -23,7 +23,7 @@ void set_write_buffer_size(const uint32_t);
 /*
  * This function initializes the trace
  */
-void init_trace(const char*, const uint32_t);
+void init_trace(const char*);
 
 /*
  * This function finalizes the trace

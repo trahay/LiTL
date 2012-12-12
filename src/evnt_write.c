@@ -16,7 +16,7 @@
 
 static evnt_trace_t __buffer_ptr;
 static evnt_trace_t __buffer_cur;
-static uint32_t __buffer_size = 256 * 1024; // 256 KB
+static uint32_t __buffer_size = 512 * 1024; // 512KB
 static buffer_flags_t __buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags_t __thread_safe_flag = EVNT_NOTHREAD_SAFE;
 
@@ -24,10 +24,10 @@ static FILE* __ftrace;
 static char* __evnt_filename;
 
 static int __is_flushed = 0;
-int tid_activated = 0;
+static int __tid_activated = 0;
 
 /*
- * This variable is used in order to make sure that EZTrace does nor start recording events before initialization finished
+ * This variable is used in order to guarantee that EZTrace does not start recording events before the initialization is finished
  */
 static int __evnt_initialized = 0;
 
@@ -50,21 +50,21 @@ static evnt_time_t __get_time() {
 }
 
 /*
- * Activate flushing buffer. By default it is activated
+ * Activate flushing buffer
  */
 void enable_buffer_flush() {
     __buffer_flush_flag = EVNT_BUFFER_FLUSH;
 }
 
 /*
- * Deactivate flushing buffer
+ * Deactivate flushing buffer. It is activated by default
  */
 void disable_buffer_flush() {
     __buffer_flush_flag = EVNT_BUFFER_NOFLUSH;
 }
 
 /*
- * Activate thread-safety. By default it is deactivated
+ * Activate thread-safety. It is not activated by default
  */
 void enable_thread_safe() {
     __thread_safe_flag = EVNT_THREAD_SAFE;
@@ -78,17 +78,17 @@ void disable_thread_safe() {
 }
 
 /*
- * Activate recording tid. By default it is not activated.
+ * Activate recording tid. It is not activated by default
  */
 void enable_tid_record() {
-    tid_activated = 1;
+    __tid_activated = 1;
 }
 
 /*
  * Deactivate recording tid
  */
 void disable_tid_record() {
-    tid_activated = 0;
+    __tid_activated = 0;
 }
 
 /*
@@ -97,12 +97,16 @@ void disable_tid_record() {
 void set_filename(const char* filename) {
     if (__evnt_filename) {
         if (__is_flushed)
-            fprintf(stderr, "Warning: change the trace file name to %s after some events have been saved in file %s\n",
+            fprintf(stderr,
+                    "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
                     filename, __evnt_filename);
-        free(__evnt_filename);
+//        free(__evnt_filename);
     }
-    if (asprintf(&__evnt_filename, "%s", filename) == -1)
-        fprintf(stderr, "Error: Cannot set filename!\n");
+
+    if (asprintf(&__evnt_filename, "%s", filename) == -1) {
+        perror("Error: Cannot set the filename for recording events!\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*
@@ -115,32 +119,25 @@ void set_write_buffer_size(const uint32_t buf_size) {
 /*
  * This function initializes the trace
  */
-void init_trace(const char* filename, const uint32_t buf_size) {
+void init_trace(const char* filename) {
     void *vp;
 
-    // TODO: add a checker, so if any of the arguments is not given, then the default value will be taken
-
-    /*// allocate memory in such way that it is aligned
-     int ok;
-     ok = posix_memalign(&vp, sizeof(uint64_t), buf_size + sizeof(evnt));
-     if (ok != 0)
-     perror("Could not allocate memory for the buffer!");*/
-    // the size of buffer is slightly bigger than it was required, because one additional event is added after tracing
-    vp = malloc(buf_size + sizeof(evnt_t));
-    if (!vp)
+    // the size of buffer is slightly bigger than it was required, because one additional event is added after the tracing
+    vp = malloc(__buffer_size + get_event_size(EVNT_MAX_PARAMS));
+    if (!vp) {
         perror("Could not allocate memory for the buffer!");
+        exit(EXIT_FAILURE);
+    }
 
     // set variables
     __buffer_ptr = vp;
     __buffer_cur = __buffer_ptr;
-    __buffer_size = buf_size;
-    set_write_buffer_size(buf_size);
 
-    // TODO: perhaps, it is better to touch each block in buffer_ptr in order to load it
+    // TODO: touch each block in buffer_ptr in order to load it
 
     // check whether the file name was set
     if (filename == NULL )
-        // TODO: set the name dynamically using env variables
+        // TODO: set the name dynamically using environment variables
         set_filename("/tmp/roman_eztrace_log_rank_1");
     else
         set_filename(filename);
@@ -175,7 +172,10 @@ void fin_trace() {
 
     fclose(__ftrace);
     free(__buffer_ptr);
+
+    __ftrace = NULL;
     __buffer_ptr = NULL;
+    __evnt_filename = NULL;
 }
 
 /*
@@ -185,8 +185,10 @@ void flush_buffer() {
     if (!__evnt_initialized)
         return;
 
-    if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1)
+    if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
+        exit(EXIT_FAILURE);
+    }
 
     __buffer_cur = __buffer_ptr;
     __is_flushed = 1;
@@ -453,7 +455,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 }
 
 /*
- * This function records an event in a raw state, where the size is #args in the void* array
+ * This function records an event in a raw state, where the size is the number of chars in the array
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
@@ -466,7 +468,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
         ((evnt_raw_t *) __buffer_cur)->time = __get_time();
         code = set_bit(code);
         ((evnt_raw_t *) __buffer_cur)->code = code;
-        ((evnt_raw_t *) __buffer_cur)->size = size; // / sizeof(uint64_t);
+        ((evnt_raw_t *) __buffer_cur)->size = size;
         if (size > 0)
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) __buffer_cur)->raw[i] = data[i];

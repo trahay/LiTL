@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
     int i, nb_iter;
 
     const char* filename = "trace";
-    uint32_t buffer_size = 256 * 1024; // 256 KB
+    const uint32_t buffer_size = 512 * 1024; // 512KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -27,7 +27,8 @@ int main(int argc, const char **argv) {
     printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
 
-    init_trace(filename, buffer_size);
+    set_write_buffer_size(buffer_size);
+    init_trace(filename);
 
     printf("Enter the number of events to be recorded (nb >= 1): ");
     i = scanf("%d", &nb_iter);
