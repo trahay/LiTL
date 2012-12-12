@@ -19,3 +19,7 @@ test_evnt_buffer_SOURCES = test_evnt_buffer_size.c timer.c timer.h
 test_evnt_buffer_LDADD = -levnt
 
 noinst_HEADERS = timer.h
+
+clean-local:
+	rm -rf .deps Makefile Makefile.in Makefile.bk
+	
