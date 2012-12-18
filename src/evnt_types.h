@@ -39,7 +39,7 @@ typedef uint8_t evnt_data_t;
 
 #define EVNT_TRACE_END 0
 
-#define EVNT_MAX_PARAMS 9
+#define EVNT_MAX_PARAMS 10
 
 // regular event
 typedef struct {

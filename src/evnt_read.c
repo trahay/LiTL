@@ -15,7 +15,7 @@
 
 static FILE* __ftrace;
 static evnt_trace_t __buffer_ptr;
-static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal size on Intel Core 2
+static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
 static uint32_t __offset = 0;
 static uint32_t __tracker;

@@ -36,13 +36,15 @@ int main(int argc, const char **argv) {
     printf("What is the optimal buffer size for recording events?\n\n");
     printf("Buffer size (KB) \t Time \n");
 
+    evnt_data_t val[] =
+            "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
         set_write_buffer_size(buf_size);
         init_trace(filename);
 
         start = get_ticks();
-        for (i = 0; i < (NB_EVENTS + 1) / 10; i++) {
+        for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
             evnt_probe0(10 * i + 1);
             evnt_probe1(10 * i + 2, 1);
             evnt_probe2(10 * i + 3, 1, 3);
@@ -53,6 +55,8 @@ int main(int argc, const char **argv) {
             evnt_probe7(10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
             evnt_probe8(10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
             evnt_probe9(10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+            evnt_probe10(10 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
+            evnt_raw_probe(10 * i + 12, sizeof(val) - 1, val);
         }
         fin = get_ticks();
 

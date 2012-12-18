@@ -89,6 +89,12 @@ void evnt_probe9(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_par
         evnt_param_t, evnt_param_t, evnt_param_t);
 
 /*
+ * This function records an event with ten arguments
+ */
+void evnt_probe10(evnt_code_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t,
+        evnt_param_t, evnt_param_t, evnt_param_t, evnt_param_t);
+
+/*
  * This function records an event in a raw state, where the size is #args in the void* array
  * That helps to discover places where the application has crashed while using EZTrace
  */

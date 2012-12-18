@@ -16,7 +16,7 @@
 
 static evnt_trace_t __buffer_ptr;
 static evnt_trace_t __buffer_cur;
-static uint32_t __buffer_size = 512 * 1024; // 512KB
+static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
 static buffer_flags_t __buffer_flush_flag = EVNT_BUFFER_FLUSH;
 static thread_flags_t __thread_safe_flag = EVNT_NOTHREAD_SAFE;
 
@@ -451,6 +451,39 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         // TODO: thread-safety
         flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
+    }
+}
+
+/*
+ * This function records an event with ten arguments
+ */
+void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
+        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9,
+        evnt_param_t param10) {
+    if (!__evnt_initialized)
+        return;
+
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
+        ((evnt_t *) __buffer_cur)->time = __get_time();
+        ((evnt_t *) __buffer_cur)->code = code;
+        ((evnt_t *) __buffer_cur)->nb_params = 10;
+        ((evnt_t *) __buffer_cur)->param[0] = param1;
+        ((evnt_t *) __buffer_cur)->param[1] = param2;
+        ((evnt_t *) __buffer_cur)->param[2] = param3;
+        ((evnt_t *) __buffer_cur)->param[3] = param4;
+        ((evnt_t *) __buffer_cur)->param[4] = param5;
+        ((evnt_t *) __buffer_cur)->param[5] = param6;
+        ((evnt_t *) __buffer_cur)->param[6] = param7;
+        ((evnt_t *) __buffer_cur)->param[7] = param8;
+        ((evnt_t *) __buffer_cur)->param[8] = param9;
+        ((evnt_t *) __buffer_cur)->param[9] = param10;
+
+        __buffer_cur += get_event_components(10);
+    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        // TODO: thread-safety
+        flush_buffer();
+        evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
 }
 
