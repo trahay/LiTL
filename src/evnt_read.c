@@ -197,7 +197,7 @@ int main(int argc, const char **argv) {
     buffer = open_trace(filename);
     printf("=============================================================\n");
     printf("Printing events from the %s file\n\n", filename);
-    printf("Event Code \t Thread ID \t Time \t NB args \t Arguments (0-9)\n");
+    printf("Event Code \t Thread ID \t Time[ns] \t NB args \t Arguments[0-9]\n");
 
     while (buffer != NULL ) {
         event = read_event(&buffer);
@@ -210,7 +210,7 @@ int main(int argc, const char **argv) {
             printf("%lx \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
-                printf("\t %lu", event->param[i]);
+                printf("\t %lx", event->param[i]);
         } else {
             // raw event
             event->code = clear_bit(event->code);
