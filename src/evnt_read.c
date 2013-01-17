@@ -195,9 +195,6 @@ int main(int argc, const char **argv) {
     }
 
     buffer = open_trace(filename);
-    printf("=============================================================\n");
-    printf("Printing events from the %s file\n\n", filename);
-    printf("Event Code \t Thread ID \t Time[ns] \t NB args \t Arguments[0-9]\n");
 
     while (buffer != NULL ) {
         event = read_event(&buffer);
@@ -222,7 +219,6 @@ int main(int argc, const char **argv) {
         printf("\n");
     }
 
-    printf("=============================================================\n");
     close_trace(&buffer);
 
     return EXIT_SUCCESS;
