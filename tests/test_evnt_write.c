@@ -27,8 +27,8 @@ int main(int argc, const char **argv) {
     printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
 
-    set_write_buffer_size(buffer_size);
-    init_trace(filename);
+    set_filename(filename);
+    init_trace(buffer_size);
 
     printf("Enter the number of events to be recorded (nb >= 1): ");
     i = scanf("%d", &nb_iter);

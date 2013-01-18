@@ -100,8 +100,12 @@ void set_filename(const char* filename) {
             fprintf(stderr,
                     "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
                     filename, __evnt_filename);
-//        free(__evnt_filename);
+        free(__evnt_filename);
     }
+
+    // check whether the file name was set. If no, set it by default trace name.
+    if (filename == NULL )
+        sprintf(filename, "/tmp/%s_%s", getenv("USER"), "eztrace_log_rank_1");
 
     if (asprintf(&__evnt_filename, "%s", filename) == -1) {
         perror("Error: Cannot set the filename for recording events!\n");
@@ -112,18 +116,20 @@ void set_filename(const char* filename) {
 /*
  * This function sets the buffer size
  */
-void set_write_buffer_size(const uint32_t buf_size) {
+static void __set_write_buffer_size(const uint32_t buf_size) {
     __buffer_size = buf_size;
 }
 
 /*
  * This function initializes the trace
  */
-void init_trace(const char* filename) {
+void init_trace(const uint32_t buf_size) {
     void *vp;
 
-    // the size of buffer is slightly bigger than it was required, because one additional event is added after the tracing
-    vp = malloc(__buffer_size + get_event_size(EVNT_MAX_PARAMS));
+    __set_write_buffer_size(buf_size);
+
+    // the size of the buffer is slightly bigger than it was required, because one additional event is added after the tracing
+    vp = malloc(buf_size + get_event_size(EVNT_MAX_PARAMS));
     if (!vp) {
         perror("Could not allocate memory for the buffer!");
         exit(EXIT_FAILURE);
@@ -135,15 +141,8 @@ void init_trace(const char* filename) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    // check whether the file name was set
-    if (filename == NULL )
-        // TODO: set the name dynamically using environment variables
-        set_filename("/tmp/roman_eztrace_log_rank_1");
-    else
-        set_filename(filename);
-
     // check whether the trace file can be opened
-    if (!(__ftrace = fopen(filename, "w+"))) {
+    if (!(__ftrace = fopen(__evnt_filename, "w+"))) {
         perror("Could not open the trace file for writing!");
         exit(EXIT_FAILURE);
     }

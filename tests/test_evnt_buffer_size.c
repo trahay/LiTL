@@ -40,8 +40,8 @@ int main(int argc, const char **argv) {
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
-        set_write_buffer_size(buf_size);
-        init_trace(filename);
+        set_filename(filename);
+        init_trace(buf_size);
 
         start = get_ticks();
         for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
