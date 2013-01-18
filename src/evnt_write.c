@@ -153,8 +153,6 @@ void init_trace(const uint32_t buf_size) {
  * This function finalizes the trace
  */
 void fin_trace() {
-    __evnt_initialized = 0;
-
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     ((evnt_t *) __buffer_cur)->tid = CUR_TID;
     ((evnt_t *) __buffer_cur)->time = __get_time();
@@ -171,6 +169,8 @@ void fin_trace() {
     __ftrace = NULL;
     __buffer_ptr = NULL;
     __evnt_filename = NULL;
+    __evnt_initialized = 0;
+    __is_flushed = 0;
 }
 
 /*
