@@ -23,13 +23,18 @@ static thread_flags_t __thread_safe_flag = EVNT_NOTHREAD_SAFE;
 static FILE* __ftrace;
 static char* __evnt_filename;
 
-static int __is_flushed = 0;
-static int __tid_activated = 0;
+static uint8_t __tid_activated = 0;
 
 /*
- * This variable is used in order to guarantee that EZTrace does not start recording events before the initialization is finished
+ * __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
  */
-static int __evnt_initialized = 0;
+static uint8_t __evnt_initialized = 0;
+
+/*
+ * __is_flushed is used to check whether the buffer was flushed as well as
+ *                  to ensure that the correct and unique trace file was opened
+ */
+static uint8_t __is_flushed = 0;
 
 /*
  * This function computes the size of data in buffer
@@ -141,12 +146,6 @@ void init_trace(const uint32_t buf_size) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    // check whether the trace file can be opened
-    if (!(__ftrace = fopen(__evnt_filename, "w+"))) {
-        perror("Could not open the trace file for writing!");
-        exit(EXIT_FAILURE);
-    }
-
     __evnt_initialized = 1;
 }
 
@@ -164,10 +163,7 @@ void fin_trace() {
 
     __buffer_cur += get_event_components(0);
 
-    if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1) {
-        perror("Could not write measured data to the trace file!");
-        exit(EXIT_FAILURE);
-    }
+    flush_buffer();
 
     fclose(__ftrace);
     free(__buffer_ptr);
@@ -183,6 +179,13 @@ void fin_trace() {
 void flush_buffer() {
     if (!__evnt_initialized)
         return;
+
+    if (!__is_flushed)
+        // check whether the trace file can be opened
+        if (!(__ftrace = fopen(__evnt_filename, "w+"))) {
+            perror("Could not open the trace file for writing!");
+            exit(EXIT_FAILURE);
+        }
 
     if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
