@@ -99,7 +99,7 @@ void disable_tid_record() {
 /*
  * Set a new name for the trace file
  */
-void set_filename(const char* filename) {
+void set_filename(char* filename) {
     if (__evnt_filename) {
         if (__is_flushed)
             fprintf(stderr,

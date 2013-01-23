@@ -40,6 +40,7 @@ typedef uint8_t evnt_data_t;
 #define EVNT_TRACE_END 0
 
 #define EVNT_MAX_PARAMS 10
+#define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(uint64_t))
 
 // regular event
 typedef struct {
@@ -48,7 +49,7 @@ typedef struct {
     // Code contains, in the highest bit, info about raw (1) or regular (0) event
     evnt_code_t code; // code of the event
     evnt_size_t nb_params; // number of arguments
-    evnt_param_t param[]; // array of arguments; the array is of lengths from 0 to 6
+    evnt_param_t param[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 10
 } evnt_t;
 
 // raw event
@@ -58,7 +59,7 @@ typedef struct {
     // Code contains, in the highest bit, info about raw (1) or regular (0) event
     evnt_code_t code; // code of the event
     evnt_size_t size; // size of data in bytes
-    evnt_data_t raw[]; // raw data
+    evnt_data_t raw[EVNT_MAX_DATA]; // raw data
 } evnt_raw_t;
 
 // Flags that corresponds to flushing the buffer

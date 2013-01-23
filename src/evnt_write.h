@@ -16,7 +16,7 @@ void enable_thread_safe();
 
 void enable_tid_record();
 
-void set_filename(const char*);
+void set_filename(char*);
 
 /*
  * This function initializes the trace
