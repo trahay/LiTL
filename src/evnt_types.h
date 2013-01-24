@@ -80,6 +80,7 @@ typedef struct {
     FILE* fp;
     evnt_trace_t trace;
     uint32_t offset;
+    uint32_t tracker;
 } evnt_block_t;
 
 #endif /* EVNT_TYPES_H_ */

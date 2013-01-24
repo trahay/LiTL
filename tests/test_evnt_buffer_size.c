@@ -26,6 +26,7 @@ int main(int argc, const char **argv) {
     uint32_t buf_size;
     evnt_t* event;
     evnt_trace_t buffer;
+    evnt_block_t block;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -77,17 +78,18 @@ int main(int argc, const char **argv) {
     while (buf_size <= MAX_BUFFER_SIZE) {
         set_read_buffer_size(buf_size);
         buffer = open_trace(filename);
+        block = get_evnt_block(buffer);
 
         start = get_ticks();
-        while (buffer != NULL ) {
-            event = read_event(&buffer);
+        while (block.trace != NULL ) {
+            event = read_event(&block);
 
             if (event == NULL )
                 break;
         }
         fin = get_ticks();
 
-        close_trace(&buffer);
+        close_trace(&block);
         printf("\t%u\t\t %llu\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;

@@ -14,39 +14,40 @@
 #include "evnt_read.h"
 
 static FILE* __ftrace;
-static evnt_trace_t __buffer_ptr;
+static evnt_trace_t __buffer;
 static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
 // offset from the beginning of the trace file
-static uint32_t __offset = 0;
-static uint32_t __tracker;
+//static uint32_t __offset = 0;
+//static uint32_t __tracker;
 
 /*
  * This function initialize tracker using __offset and __buffer_size
  */
-void __init_tracker() __attribute__((constructor));
+//void __init_tracker() __attribute__((constructor));
 
-void __init_tracker() {
+/*void __init_tracker() {
     __tracker = __offset + __buffer_size;
-}
+}*/
 
 /*
  * This function sets the buffer size
  */
 void set_read_buffer_size(const uint32_t buf_size) {
-    __offset = 0;
+//    __offset = 0;
     __buffer_size = buf_size;
-    __tracker = __offset + __buffer_size;
+//    __tracker = __offset + __buffer_size;
 }
 
 /*
  * This function returns the current trace, FILE pointer, and the current position in the file
  */
-evnt_block_t get_evnt_block() {
+evnt_block_t get_evnt_block(evnt_trace_t trace) {
     evnt_block_t block;
 
     block.fp = __ftrace;
-    block.offset = __offset;
-    block.trace = __buffer_ptr;
+    block.trace = trace;
+    block.offset = 0;
+    block.tracker = __buffer_size;
 
     return block;
 }
@@ -68,9 +69,9 @@ evnt_trace_t open_trace(const char* filename) {
     if (__buffer_size > st.st_size)
         __buffer_size = st.st_size;
 
-    __buffer_ptr = malloc(__buffer_size);
+    __buffer = (evnt_trace_t) malloc(__buffer_size);
 
-    int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
+    int res = fread(__buffer, __buffer_size, 1, __ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
@@ -78,16 +79,16 @@ evnt_trace_t open_trace(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    return __buffer_ptr;
+    return __buffer;
 }
 
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static evnt_trace_t __next_trace() {
-    fseek(__ftrace, __offset, SEEK_SET);
+static evnt_trace_t __next_trace(evnt_block_t* block) {
+    fseek(block->fp, block->offset, SEEK_SET);
 
-    int res = fread(__buffer_ptr, __buffer_size, 1, __ftrace);
+    int res = fread(__buffer, __buffer_size, 1, block->fp);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
@@ -95,23 +96,25 @@ static evnt_trace_t __next_trace() {
         exit(EXIT_FAILURE);
     }
 
-    return __buffer_ptr;
+    return __buffer;
 }
 
 /*
  * This function resets the trace
  */
-void reset_trace(evnt_trace_t* buffer) {
+/*void reset_trace(evnt_trace_t* buffer) {
     *buffer = __buffer_ptr;
-}
+}*/
 
 /*
  * This function reads an event
  */
-evnt_t* read_event(evnt_trace_t* buffer) {
+evnt_t* read_event(evnt_block_t* block) {
     uint8_t to_be_loaded = 0;
     evnt_size_t size;
     evnt_t* event;
+    evnt_trace_t* buffer;
+    buffer = &block->trace;
 
     if (*buffer == NULL )
         return NULL ;
@@ -125,25 +128,27 @@ evnt_t* read_event(evnt_trace_t* buffer) {
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
     // regular event
-    if ((__tracker - __offset <= sizeof(evnt_t))
-            || ((get_bit(event->code) == 0) && (__tracker - __offset < get_event_size(event->nb_params))))
+    if ((block->tracker - block->offset <= sizeof(evnt_t))
+            || ((get_bit(event->code) == 0) && (block->tracker - block->offset < get_event_size(event->nb_params))))
         to_be_loaded = 1;
     // raw event
     else if (((get_bit(event->code) == 1)
-            && (__tracker - __offset
+            && (block->tracker - block->offset
                     < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t))))))
         to_be_loaded = 1;
 
     // fetch the next block of data from the trace
     if (to_be_loaded == 1) {
-        *buffer = __next_trace();
+        block->trace = __next_trace(block);
+        buffer = &block->trace;
         event = (evnt_t *) *buffer;
-        __tracker = __offset + __buffer_size;
+        block->tracker = block->offset + __buffer_size;
         to_be_loaded = 0;
     }
 
     // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
+        block->trace = NULL;
         *buffer = NULL;
         return NULL ;
     }
@@ -157,7 +162,7 @@ evnt_t* read_event(evnt_trace_t* buffer) {
         size = event->nb_params;
 
     *buffer += get_event_components(size);
-    __offset += get_event_size(size);
+    block->offset += get_event_size(size);
 
     return event;
 }
@@ -165,20 +170,21 @@ evnt_t* read_event(evnt_trace_t* buffer) {
 /*
  * This function reads the next event from the buffer
  */
-evnt_t* next_event(evnt_trace_t* buffer) {
-    return read_event(buffer);
+evnt_t* next_event(evnt_block_t* block) {
+    return read_event(block);
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void close_trace(evnt_trace_t* buffer) {
-    fclose(__ftrace);
-    free(__buffer_ptr);
+void close_trace(evnt_block_t* block) {
+    fclose(block->fp);
+    free(block->trace);
 
     // set pointers to NULL
-    __buffer_ptr = NULL;
-    *buffer = NULL;
+    __buffer = NULL;
+    block->fp = NULL;
+    block->trace = NULL;
 }
 
 int main(int argc, const char **argv) {
@@ -186,6 +192,7 @@ int main(int argc, const char **argv) {
     const char* filename = "trace";
     evnt_t* event;
     evnt_trace_t buffer;
+    evnt_block_t block;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -195,9 +202,10 @@ int main(int argc, const char **argv) {
     }
 
     buffer = open_trace(filename);
+    block = get_evnt_block(buffer);
 
-    while (buffer != NULL ) {
-        event = read_event(&buffer);
+    while (block.trace != NULL ) {
+        event = read_event(&block);
 
         if (event == NULL )
             break;
@@ -219,7 +227,7 @@ int main(int argc, const char **argv) {
         printf("\n");
     }
 
-    close_trace(&buffer);
+    close_trace(&block);
 
     return EXIT_SUCCESS;
 }

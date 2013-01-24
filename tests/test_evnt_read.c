@@ -18,6 +18,7 @@ int main(int argc, const char **argv) {
     const char* filename = "trace.trace";
     evnt_t* event;
     evnt_trace_t buffer;
+    evnt_block_t block;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -25,12 +26,13 @@ int main(int argc, const char **argv) {
         filename = "test_evnt_write.trace";
 
     buffer = open_trace(filename);
+    block = get_evnt_block(buffer);
     printf("=============================================================\n");
     printf("Printing events from the %s file\n\n", filename);
     printf("Event Code \t Thread ID \t Time[ns] \t NB args \t Arguments[0-9]\n");
 
-    while (buffer != NULL ) {
-        event = read_event(&buffer);
+    while (block.trace != NULL ) {
+        event = read_event(&block);
 
         if (event == NULL )
             break;
@@ -53,7 +55,7 @@ int main(int argc, const char **argv) {
     }
 
     printf("=============================================================\n");
-    close_trace(&buffer);
+    close_trace(&block);
 
     return EXIT_SUCCESS;
 }
