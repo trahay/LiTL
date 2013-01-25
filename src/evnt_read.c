@@ -14,28 +14,13 @@
 #include "evnt_read.h"
 
 static FILE* __ftrace;
-static evnt_trace_t __buffer;
 static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
-// offset from the beginning of the trace file
-//static uint32_t __offset = 0;
-//static uint32_t __tracker;
-
-/*
- * This function initialize tracker using __offset and __buffer_size
- */
-//void __init_tracker() __attribute__((constructor));
-
-/*void __init_tracker() {
-    __tracker = __offset + __buffer_size;
-}*/
 
 /*
  * This function sets the buffer size
  */
 void set_read_buffer_size(const uint32_t buf_size) {
-//    __offset = 0;
     __buffer_size = buf_size;
-//    __tracker = __offset + __buffer_size;
 }
 
 /*
@@ -45,6 +30,7 @@ evnt_block_t get_evnt_block(evnt_trace_t trace) {
     evnt_block_t block;
 
     block.fp = __ftrace;
+    block.trace_head = trace;
     block.trace = trace;
     block.offset = 0;
     block.tracker = __buffer_size;
@@ -69,9 +55,9 @@ evnt_trace_t open_trace(const char* filename) {
     if (__buffer_size > st.st_size)
         __buffer_size = st.st_size;
 
-    __buffer = (evnt_trace_t) malloc(__buffer_size);
+    evnt_trace_t buffer = (evnt_trace_t) malloc(__buffer_size);
 
-    int res = fread(__buffer, __buffer_size, 1, __ftrace);
+    int res = fread(buffer, __buffer_size, 1, __ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
@@ -79,16 +65,18 @@ evnt_trace_t open_trace(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    return __buffer;
+    return buffer;
 }
 
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static evnt_trace_t __next_trace(evnt_block_t* block) {
+static __next_trace(evnt_block_t* block) {
     fseek(block->fp, block->offset, SEEK_SET);
 
-    int res = fread(__buffer, __buffer_size, 1, block->fp);
+    printf("before fread\n");
+    int res = fread(block->trace_head, __buffer_size, 1, block->fp);
+    printf("after fread\n");
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
@@ -96,27 +84,29 @@ static evnt_trace_t __next_trace(evnt_block_t* block) {
         exit(EXIT_FAILURE);
     }
 
-    return __buffer;
+    block->trace = block->trace_head;
+    block->tracker = block->offset + __buffer_size;
 }
 
 /*
  * This function resets the trace
  */
-/*void reset_trace(evnt_trace_t* buffer) {
-    *buffer = __buffer_ptr;
-}*/
+void reset_trace(evnt_block_t* block) {
+    block->trace = block->trace_head;
+}
 
 /*
  * This function reads an event
  */
 evnt_t* read_event(evnt_block_t* block) {
-    uint8_t to_be_loaded = 0;
+    uint8_t to_be_loaded;
     evnt_size_t size;
     evnt_t* event;
     evnt_trace_t* buffer;
     buffer = &block->trace;
+    to_be_loaded = 0;
 
-    if (*buffer == NULL )
+    if (!*buffer)
         return NULL ;
 
     event = (evnt_t *) *buffer;
@@ -128,21 +118,20 @@ evnt_t* read_event(evnt_block_t* block) {
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
     // regular event
-    if ((block->tracker - block->offset <= sizeof(evnt_t))
+    if ((block->tracker - block->offset < get_event_size(0))
             || ((get_bit(event->code) == 0) && (block->tracker - block->offset < get_event_size(event->nb_params))))
         to_be_loaded = 1;
     // raw event
-    else if (((get_bit(event->code) == 1)
+    else if ((get_bit(event->code) == 1)
             && (block->tracker - block->offset
-                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t))))))
+                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t)))))
         to_be_loaded = 1;
 
     // fetch the next block of data from the trace
-    if (to_be_loaded == 1) {
-        block->trace = __next_trace(block);
+    if (to_be_loaded) {
+        __next_trace(block);
         buffer = &block->trace;
         event = (evnt_t *) *buffer;
-        block->tracker = block->offset + __buffer_size;
         to_be_loaded = 0;
     }
 
@@ -179,12 +168,12 @@ evnt_t* next_event(evnt_block_t* block) {
  */
 void close_trace(evnt_block_t* block) {
     fclose(block->fp);
-    free(block->trace);
+    free(block->trace_head);
 
     // set pointers to NULL
-    __buffer = NULL;
     block->fp = NULL;
     block->trace = NULL;
+    block->trace_head = NULL;
 }
 
 int main(int argc, const char **argv) {

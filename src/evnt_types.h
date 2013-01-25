@@ -78,7 +78,9 @@ typedef uint64_t* evnt_trace_t;
 // data structure for reading events from trace file
 typedef struct {
     FILE* fp;
+    evnt_trace_t trace_head;
     evnt_trace_t trace;
+    // offset from the beginning of the trace file
     uint32_t offset;
     uint32_t tracker;
 } evnt_block_t;
