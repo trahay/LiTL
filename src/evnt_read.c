@@ -74,9 +74,7 @@ evnt_trace_t open_trace(const char* filename) {
 static __next_trace(evnt_block_t* block) {
     fseek(block->fp, block->offset, SEEK_SET);
 
-    printf("before fread\n");
     int res = fread(block->trace_head, __buffer_size, 1, block->fp);
-    printf("after fread\n");
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
