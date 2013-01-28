@@ -10,9 +10,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <pthread.h>
 
 #include "evnt_macro.h"
 #include "evnt_write.h"
+
+/*
+ * To handle write conflicts while using pthread
+ */
+static pthread_mutex_t __evnt_flush_lock;
 
 static evnt_trace_t __buffer_ptr;
 static evnt_trace_t __buffer_cur;
@@ -31,10 +37,10 @@ static uint8_t __tid_activated = 0;
 static uint8_t __evnt_initialized = 0;
 
 /*
- * __is_flushed is used to check whether the buffer was flushed as well as
- *                  to ensure that the correct and unique trace file was opened
+ * __already_flushed is used to check whether the buffer was flushed as well as
+ *                   to ensure that the correct and unique trace file was opened
  */
-static uint8_t __is_flushed = 0;
+static uint8_t __already_flushed = 0;
 
 /*
  * This function computes the size of data in buffer
@@ -101,7 +107,7 @@ void disable_tid_record() {
  */
 void set_filename(char* filename) {
     if (__evnt_filename) {
-        if (__is_flushed)
+        if (__already_flushed)
             fprintf(stderr,
                     "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
                     filename, __evnt_filename);
@@ -146,6 +152,10 @@ void init_trace(const uint32_t buf_size) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
+    if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+        pthread_mutex_init(&__evnt_flush_lock, NULL );
+    }
+
     __evnt_initialized = 1;
 }
 
@@ -170,7 +180,7 @@ void fin_trace() {
     __buffer_ptr = NULL;
     __evnt_filename = NULL;
     __evnt_initialized = 0;
-    __is_flushed = 0;
+    __already_flushed = 0;
 }
 
 /*
@@ -180,7 +190,9 @@ void flush_buffer() {
     if (!__evnt_initialized)
         return;
 
-    if (!__is_flushed)
+    pthread_mutex_lock(&__evnt_flush_lock);
+
+    if (!__already_flushed)
         // check whether the trace file can be opened
         if (!(__ftrace = fopen(__evnt_filename, "w+"))) {
             perror("Could not open the trace file for writing!");
@@ -192,8 +204,10 @@ void flush_buffer() {
         exit(EXIT_FAILURE);
     }
 
+    pthread_mutex_unlock(&__evnt_flush_lock);
+
     __buffer_cur = __buffer_ptr;
-    __is_flushed = 1;
+    __already_flushed = 1;
 }
 
 /*
