@@ -164,12 +164,7 @@ void init_trace(const uint32_t buf_size) {
  */
 void fin_trace() {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
-    ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-    ((evnt_t *) __buffer_cur)->time = __get_time();
-    ((evnt_t *) __buffer_cur)->code = EVNT_TRACE_END;
-    ((evnt_t *) __buffer_cur)->nb_params = 0;
-
-    __buffer_cur += get_event_components(0);
+    evnt_probe0(EVNT_TRACE_END);
 
     flush_buffer();
 
@@ -217,15 +212,18 @@ void evnt_probe0(evnt_code_t code) {
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 0;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(0);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(0);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 0;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe0(code);
     }
@@ -238,16 +236,19 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 1;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(1);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(1);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 1;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe1(code, param1);
     }
@@ -260,17 +261,20 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 2;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(2);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(2);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 2;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe2(code, param1, param2);
     }
@@ -283,18 +287,21 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 3;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(3);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(3);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 3;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe3(code, param1, param2, param3);
     }
@@ -307,19 +314,22 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 4;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(4);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(4);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 4;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe4(code, param1, param2, param3, param4);
     }
@@ -333,20 +343,23 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 5;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(5);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(5);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 5;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe5(code, param1, param2, param3, param4, param5);
     }
@@ -360,21 +373,24 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 6;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
-        ((evnt_t *) __buffer_cur)->param[5] = param6;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(6);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(6);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 6;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
+        ((evnt_t *) cur_ptr)->param[5] = param6;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe6(code, param1, param2, param3, param4, param5, param6);
     }
@@ -388,22 +404,25 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 7;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
-        ((evnt_t *) __buffer_cur)->param[5] = param6;
-        ((evnt_t *) __buffer_cur)->param[6] = param7;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(7);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(7);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 7;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
+        ((evnt_t *) cur_ptr)->param[5] = param6;
+        ((evnt_t *) cur_ptr)->param[6] = param7;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
     }
@@ -417,23 +436,26 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 8;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
-        ((evnt_t *) __buffer_cur)->param[5] = param6;
-        ((evnt_t *) __buffer_cur)->param[6] = param7;
-        ((evnt_t *) __buffer_cur)->param[7] = param8;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(8);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(8);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 8;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
+        ((evnt_t *) cur_ptr)->param[5] = param6;
+        ((evnt_t *) cur_ptr)->param[6] = param7;
+        ((evnt_t *) cur_ptr)->param[7] = param8;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
@@ -447,24 +469,27 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 9;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
-        ((evnt_t *) __buffer_cur)->param[5] = param6;
-        ((evnt_t *) __buffer_cur)->param[6] = param7;
-        ((evnt_t *) __buffer_cur)->param[7] = param8;
-        ((evnt_t *) __buffer_cur)->param[8] = param9;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(9);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(9);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 9;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
+        ((evnt_t *) cur_ptr)->param[5] = param6;
+        ((evnt_t *) cur_ptr)->param[6] = param7;
+        ((evnt_t *) cur_ptr)->param[7] = param8;
+        ((evnt_t *) cur_ptr)->param[8] = param9;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
@@ -479,25 +504,28 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
     if (!__evnt_initialized)
         return;
 
-    if (__get_buffer_size() < __buffer_size) {
-        ((evnt_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_t *) __buffer_cur)->time = __get_time();
-        ((evnt_t *) __buffer_cur)->code = code;
-        ((evnt_t *) __buffer_cur)->nb_params = 10;
-        ((evnt_t *) __buffer_cur)->param[0] = param1;
-        ((evnt_t *) __buffer_cur)->param[1] = param2;
-        ((evnt_t *) __buffer_cur)->param[2] = param3;
-        ((evnt_t *) __buffer_cur)->param[3] = param4;
-        ((evnt_t *) __buffer_cur)->param[4] = param5;
-        ((evnt_t *) __buffer_cur)->param[5] = param6;
-        ((evnt_t *) __buffer_cur)->param[6] = param7;
-        ((evnt_t *) __buffer_cur)->param[7] = param8;
-        ((evnt_t *) __buffer_cur)->param[8] = param9;
-        ((evnt_t *) __buffer_cur)->param[9] = param10;
+    evnt_trace_t cur_ptr;
 
-        __buffer_cur += get_event_components(10);
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += get_event_components(10);
+    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__get_buffer_size() < __buffer_size) {
+        ((evnt_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_t *) cur_ptr)->time = __get_time();
+        ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->nb_params = 10;
+        ((evnt_t *) cur_ptr)->param[0] = param1;
+        ((evnt_t *) cur_ptr)->param[1] = param2;
+        ((evnt_t *) cur_ptr)->param[2] = param3;
+        ((evnt_t *) cur_ptr)->param[3] = param4;
+        ((evnt_t *) cur_ptr)->param[4] = param5;
+        ((evnt_t *) cur_ptr)->param[5] = param6;
+        ((evnt_t *) cur_ptr)->param[6] = param7;
+        ((evnt_t *) cur_ptr)->param[7] = param8;
+        ((evnt_t *) cur_ptr)->param[8] = param9;
+        ((evnt_t *) cur_ptr)->param[9] = param10;
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
@@ -512,19 +540,22 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
         return;
 
     int i;
+    evnt_trace_t cur_ptr;
+
+    pthread_mutex_lock(&__evnt_flush_lock);
+    cur_ptr = __buffer_cur;
+    __buffer_cur += 4 + (uint64_t) ceil((double) size / sizeof(uint64_t));
+    pthread_mutex_unlock(&__evnt_flush_lock);
     if (__get_buffer_size() < __buffer_size) {
-        ((evnt_raw_t *) __buffer_cur)->tid = CUR_TID;
-        ((evnt_raw_t *) __buffer_cur)->time = __get_time();
+        ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
+        ((evnt_raw_t *) cur_ptr)->time = __get_time();
         code = set_bit(code);
-        ((evnt_raw_t *) __buffer_cur)->code = code;
-        ((evnt_raw_t *) __buffer_cur)->size = size;
+        ((evnt_raw_t *) cur_ptr)->code = code;
+        ((evnt_raw_t *) cur_ptr)->size = size;
         if (size > 0)
             for (i = 0; i < size; i++)
-                ((evnt_raw_t *) __buffer_cur)->raw[i] = data[i];
-
-        __buffer_cur += 4 + (uint64_t) ceil((double) size / sizeof(uint64_t));
+                ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
     } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
-        // TODO: thread-safety
         flush_buffer();
         evnt_raw_probe(code, size, data);
     }
