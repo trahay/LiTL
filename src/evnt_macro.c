@@ -28,7 +28,7 @@ evnt_size_t get_event_size(evnt_size_t nb_params) {
 }
 
 /*
- * This function converts evnt's parameters to string. As a separator, a space is used
+ * This function converts evnt's parameters to string. As a separator, space is used
  */
 char* params_to_string(evnt_t* ev) {
     evnt_size_t i;

@@ -22,18 +22,18 @@ static pthread_mutex_t __evnt_flush_lock;
 
 static evnt_trace_t __buffer_ptr;
 static evnt_trace_t __buffer_cur;
-static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
-static buffer_flags_t __buffer_flush_flag = EVNT_BUFFER_FLUSH;
-static thread_flags_t __thread_safe_flag = EVNT_NOTHREAD_SAFE;
+static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal buffer size for recording events on Intel Core2
+// __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
+static uint8_t __buffer_flush = 1;
+// __thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
+static uint8_t __thread_safety = 0;
 
 static FILE* __ftrace;
 static char* __evnt_filename;
 
 static uint8_t __tid_activated = 0;
 
-/*
- * __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
- */
+// __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
 static uint8_t __evnt_initialized = 0;
 
 /*
@@ -61,31 +61,31 @@ static evnt_time_t __get_time() {
 }
 
 /*
- * Activate flushing buffer
+ * Activate buffer flush
  */
 void enable_buffer_flush() {
-    __buffer_flush_flag = EVNT_BUFFER_FLUSH;
+    __buffer_flush = 1;
 }
 
 /*
- * Deactivate flushing buffer. It is activated by default
+ * Deactivate buffer flush. It is activated by default
  */
 void disable_buffer_flush() {
-    __buffer_flush_flag = EVNT_BUFFER_NOFLUSH;
+    __buffer_flush = 0;
 }
 
 /*
  * Activate thread-safety. It is not activated by default
  */
-void enable_thread_safe() {
-    __thread_safe_flag = EVNT_THREAD_SAFE;
+void enable_thread_safety() {
+    __thread_safety = 1;
 }
 
 /*
  * Deactivate thread-safety
  */
-void disable_thread_safe() {
-    __thread_safe_flag = EVNT_NOTHREAD_SAFE;
+void disable_thread_safetyty() {
+    __thread_safety = 0;
 }
 
 /*
@@ -152,7 +152,7 @@ void init_trace(const uint32_t buf_size) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    if (__buffer_flush) {
         pthread_mutex_init(&__evnt_flush_lock, NULL );
     }
 
@@ -170,6 +170,7 @@ void fin_trace() {
 
     fclose(__ftrace);
     free(__buffer_ptr);
+    pthread_mutex_destroy(&__evnt_flush_lock);
 
     __ftrace = NULL;
     __buffer_ptr = NULL;
@@ -223,7 +224,7 @@ void evnt_probe0(evnt_code_t code) {
         ((evnt_t *) cur_ptr)->time = __get_time();
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 0;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe0(code);
     }
@@ -248,7 +249,7 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe1(code, param1);
     }
@@ -274,7 +275,7 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
         ((evnt_t *) cur_ptr)->nb_params = 2;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe2(code, param1, param2);
     }
@@ -301,7 +302,7 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe3(code, param1, param2, param3);
     }
@@ -329,7 +330,7 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe4(code, param1, param2, param3, param4);
     }
@@ -359,7 +360,7 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe5(code, param1, param2, param3, param4, param5);
     }
@@ -390,7 +391,7 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe6(code, param1, param2, param3, param4, param5, param6);
     }
@@ -422,7 +423,7 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
     }
@@ -455,7 +456,7 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
@@ -489,7 +490,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
@@ -525,7 +526,7 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
         ((evnt_t *) cur_ptr)->param[9] = param10;
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
@@ -555,7 +556,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
         if (size > 0)
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
-    } else if (__buffer_flush_flag == EVNT_BUFFER_FLUSH) {
+    } else if (__buffer_flush) {
         flush_buffer();
         evnt_raw_probe(code, size, data);
     }
