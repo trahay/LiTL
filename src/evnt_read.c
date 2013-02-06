@@ -14,7 +14,7 @@
 #include "evnt_read.h"
 
 static FILE* __ftrace;
-static uint32_t __buffer_size = 256 * 1024; // 256KB is the optimal size on Intel Core 2
+static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal size on Intel Core 2
 
 /*
  * This function sets the buffer size

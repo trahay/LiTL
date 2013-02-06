@@ -16,7 +16,7 @@ TESTS = $(CTESTS)
 
 test_evnt_write_SOURCES = test_evnt_write.c
 test_evnt_read_SOURCES = test_evnt_read.c
-test_evnt_buffer_SOURCES = test_evnt_buffer_size.c timer.c timer.h
+test_evnt_buffer_SOURCES = test_evnt_buffer_size.c
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk

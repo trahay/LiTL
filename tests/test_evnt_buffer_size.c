@@ -21,7 +21,7 @@
 
 int main(int argc, const char **argv) {
     int i;
-    long long int start, fin;
+    evnt_time_t start, fin;
     const char* filename = "trace.trace";
     uint32_t buf_size;
     evnt_t* event;

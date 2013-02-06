@@ -13,8 +13,8 @@ AC_PROG_LIBTOOL
 AM_PROG_CC_C_O
 
 # Checks for libraries.
-AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_LIB([m], [ceil])
+AC_CHECK_LIB([rt], [clock_gettime])
 
 # Check the OS type
 os_type=`uname -s`
@@ -51,6 +51,29 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([atexit])
+
+AC_ARG_ENABLE([gettid],
+    AC_HELP_STRING([--enable-gettid],
+        [Use syscall(SYS_gettid) to get the thread ID instead of pthread_self().
+          This however costs a system call for each trace entry]))
+if test "x$enable_gettid" = xyes; then
+  AC_DEFINE([USE_GETTID], [1], [Use gettid])
+fi
+
+# On many multicore CPUs, clock cycles are not synchronized. Therefore, we prefer to use clock_gettime() instead of 
+# time stamp counter (clock cycles).
+AC_MSG_CHECKING([for clock_gettime(CLOCK_MONOTONIC_RAW)])
+AC_COMPILE_IFELSE(
+  AC_LANG_PROGRAM([[
+    #include <time.h>
+    struct timespec tp;
+    ]],
+    [[ clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
+    ]]),
+  AC_DEFINE(CLOCK_GETTIME_AVAIL, [1], [Use clock_gettime])
+  AC_MSG_RESULT([yes]),
+  AC_MSG_RESULT([no])
+)
 
 AC_SUBST(libdir)
 AC_SUBST(exec_prefix)
