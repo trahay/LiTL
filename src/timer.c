@@ -9,6 +9,8 @@
 
 #include "timer.h"
 
+// in order to fix the problem on ARM processors
+#ifndef CLOCK_GETTIME_AVAIL
 static evnt_time_t __ticks_per_sec;
 
 /*
@@ -36,6 +38,20 @@ void __init_time() {
 }
 
 /*
+ * This function measures time in clock ticks
+ */
+evnt_time_t get_ticks() {
+    evnt_time_t time;
+    rdtscll(time);
+    return time;
+}
+
+evnt_time_t get_ticks_per_sec() {
+    return __ticks_per_sec;
+}
+#endif
+
+/*
  * This function measures time in ns or clock ticks depending on the timer used
  */
 evnt_time_t get_time() {
@@ -55,17 +71,4 @@ evnt_time_t get_time() {
 #endif
 
     return time;
-}
-
-/*
- * This function measures time in clock ticks
- */
-evnt_time_t get_ticks() {
-    evnt_time_t time;
-    rdtscll(time);
-    return time;
-}
-
-evnt_time_t get_ticks_per_sec() {
-    return __ticks_per_sec;
 }

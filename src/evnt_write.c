@@ -45,7 +45,7 @@ static uint8_t __already_flushed = 0;
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size() {
-    return sizeof(uint64_t) * ((evnt_trace_t) __buffer_cur - (evnt_trace_t) __buffer_ptr);
+    return sizeof(evnt_trace_t) * ((evnt_trace_t) __buffer_cur - (evnt_trace_t) __buffer_ptr);
 }
 
 /*
@@ -533,7 +533,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
 
     pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
-    __buffer_cur += 4 + (uint64_t) ceil((double) size / sizeof(uint64_t));
+    __buffer_cur += 4 + (evnt_param_t) ceil((double) size / sizeof(evnt_param_t));
     pthread_mutex_unlock(&__evnt_flush_lock);
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
