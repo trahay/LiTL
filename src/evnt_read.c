@@ -1,8 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * evnt_read.c
- *
- *  Created on: Oct 31, 2012
- *      Author: Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #include <stdlib.h>

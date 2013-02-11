@@ -1,3 +1,5 @@
+# Copyright © Télécom SudParis.
+# See COPYING in top-level directory.
 
 AM_CFLAGS = $(FXT_CPPFLAGS)
 AM_LDFLAGS = $(FXT_LDFLAGS)
@@ -16,4 +18,4 @@ libevnt_la_SOURCES = evnt_types.h evnt_write.h evnt_write.c evnt_read.h evnt_rea
 include_HEADERS = evnt_types.h evnt_write.h evnt_read.h timer.h
 
 clean-local:
-	rm -rf Makefile.in Makefile.bk
+	rm -rf Makefile.bk

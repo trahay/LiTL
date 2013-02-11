@@ -1,8 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * evnt_write.c
- *
- *  Created on: Oct 31, 2012
- *      Author: Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #define _GNU_SOURCE

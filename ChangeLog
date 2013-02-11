@@ -1,0 +1,10 @@
+Version 0.1
+----------
+* The first release supports:
+	* Recording events only on the user level;
+	* Recording events with up to 10 parameters;
+	* Recording events when parameters are saved as a string, e.g. for error msgs;
+	* Thread-safety through pthread_mutex;
+	* Analyzing the trace (evnt_read);
+	* Testing libevnt through testing recording and analyzing;
+	* The choice of the optimal buffer size for both recording and analyzing events.

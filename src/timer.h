@@ -1,8 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * timer.h
- *
- *  Created on: Mar 24, 2010
- *      Author: Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #ifndef TIMER_H_

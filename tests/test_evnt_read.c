@@ -1,8 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * test_evnt_read.c
- *
- *  Created on: Nov 6, 2012
- *      Author: Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #include <stdio.h>
@@ -29,7 +28,7 @@ int main(int argc, const char **argv) {
     block = get_evnt_block(buffer);
     printf("=============================================================\n");
     printf("Printing events from the %s file\n\n", filename);
-    printf("Event Code \t Thread ID \t Time[ns] \t NB args \t Arguments[0-9]\n");
+    printf("Event Code \t Thread ID \t Time \t NB args \t Arguments[0-9]\n");
 
     while (block.trace != NULL ) {
         event = read_event(&block);

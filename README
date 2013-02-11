@@ -1,1 +1,60 @@
-Evnt is a lightweight tool for recording events.
+
+What is Evnt?
+=============================================
+Evnt (or libevnt) is a lightweight tool for recording events during the execution of scientific high-performance
+applications. libevnt is designed to record events on the user level only. Therefore, it will consume much less
+resources (CPU time, memory, and the disk space) as the alternative tools, e.g. FxT, that gather events on both user
+and kernel levels. As a result, libenvt will be well-suited for recording events on embedded systems like ARM
+architectures.
+
+
+Requirements
+=============================================
+In order to use libevnt, the following software is needed:
+    * autoconf 2.63;
+    
+    * libelf or libbfd. On Debian, libelf can be installed from command line by the following command:
+        apt-get install libelf-dev
+
+
+Getting Evnt
+=============================================
+Current development version of Evnt is available via Git
+    git clone git+ssh://roman@fusionforge.int-evry.fr//var/lib/gforge/chroot/scmrepos/git/evnt/evnt.git
+
+After getting the latest development version (from Git), './bootstrap' should be run in the root directory and only then
+the tool can be built.
+
+
+Building Evnt
+=============================================
+At first, to configure Evnt the following script should be invoked:
+    $ ./configure --prefix=<WHERE_YOU_INSTALL_EZTRACE>
+
+The configuration script contains many different options that can be set. However, we recommend to use the default
+settings.  
+
+Once Evnt is configured, the next two commands should be run:
+    $ make
+    $ make install
+    
+In order to check whether libevnt was installed correctly, a set of tests can be executed by
+    $ make check        
+
+
+How to Use Evnt
+=============================================
+evnt_read
+---------
+
+    This tool analyzes a trace produced by Evnt. It shows the recorded events in the following format:
+        - the code of the probe
+        - the id of the current thread on this CPU        
+        - the time since last probe record on the same CPU
+        - the number of parameters of the probe
+        - the list of parameters of the probe, if any
+
+Options:
+    -f specify the path to the input trace file
+
+    -h prints some reference help

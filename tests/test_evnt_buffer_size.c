@@ -1,8 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * test_evnt_buffer_size.c
- *
- *  Created on: Nov 12, 2012
- *      Author: Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #include <stdio.h>
@@ -35,7 +34,7 @@ int main(int argc, const char **argv) {
 
     printf("=============================================================\n");
     printf("What is the optimal buffer size for recording events?\n\n");
-    printf("Buffer size[KB] \t Time[cycles] \n");
+    printf("Buffer size[KB] \t Time \n");
 
     evnt_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
@@ -72,7 +71,7 @@ int main(int argc, const char **argv) {
     printf("\n");
     printf("=============================================================\n");
     printf("What is the optimal buffer size for reading the trace file?\n\n");
-    printf("Buffer size[KB] \t Time[cycles] \n");
+    printf("Buffer size[KB] \t Time \n");
 
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {

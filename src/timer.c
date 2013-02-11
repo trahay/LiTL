@@ -1,7 +1,7 @@
+/* -*- c-file-style: "GNU" -*- */
 /*
- * timer.c
- *
- * Created by Roman Iakymchuk
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
  */
 
 #include <stdio.h>

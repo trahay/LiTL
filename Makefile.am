@@ -1,3 +1,5 @@
+# Copyright © Télécom SudParis.
+# See COPYING in top-level directory.
 
 FXTCFLAGS=$(FXT_CPPFLAGS)
 FXTLDFLAGS=$(FXT_LDFLAGS)
@@ -11,5 +13,5 @@ pkgconfig_DATA = evnt.pc
 EXTRA_DIST = ChangeLog
 
 clean-local:
-	rm -rf Makefile.in aclocal.m4 autom4te.cache/ config.log evnt.pc libtool
+	rm -rf aclocal.m4 autom4te.cache/ config.log evnt.pc libtool
 	

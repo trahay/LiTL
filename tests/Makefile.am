@@ -1,3 +1,5 @@
+# Copyright © Télécom SudParis.
+# See COPYING in top-level directory.
 
 AM_CFLAGS = $(FXT_CPPFLAGS)
 AM_CFLAGS += -I$(top_srcdir)/src

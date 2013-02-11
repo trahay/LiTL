@@ -1,3 +1,6 @@
+# Copyright © Télécom SudParis.
+# See COPYING in top-level directory.
+
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
