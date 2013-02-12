@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "evnt_macro.h"
 
@@ -14,9 +15,11 @@
  * This function returns the number of components in a particular event depending on the number of arguments
  */
 evnt_size_t get_event_components(evnt_size_t nb_params) {
-    // 3 corresponds to the memory slot occupied by tid (uint64_t), time (uint64_t), code (uint32_t), and
-    // nb_params (uint32_t). And, it equals to 3 * sizeof(uint64_t)
-    return nb_params + 3;
+    // ceil(...) corresponds to the memory slot occupied by tid (evnt_tid_t), time (evnt_time_t), code (evnt_code_t),
+    // and nb_params (evnt_size_t). And, it equals to n * sizeof(evnt_param_t)
+    return nb_params
+            + ceil((sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
+                            / sizeof(evnt_param_t));
 }
 
 /*
@@ -40,9 +43,9 @@ char* params_to_string(evnt_t* ev) {
 
     for (i = 0; i < ev->nb_params; i++)
         if (i == 0)
-            len += sprintf(str + len, "%lu", ev->param[i]);
+            len += sprintf(str + len, "%"PRIu64, ev->param[i]);
         else
-            len += sprintf(str + len, " %lu", ev->param[i]);
+            len += sprintf(str + len, "%"PRIu64, ev->param[i]);
 
     return str;
 }
