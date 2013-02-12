@@ -27,19 +27,34 @@
 /*
  * Defining libevnt data types
  */
+#ifdef __x86_64__
 typedef uint64_t evnt_tid_t;
 typedef uint64_t evnt_time_t;
-// TODO: check whether it is possible to use uint32_t for evnt_code_t
-typedef uint64_t evnt_code_t;
-// TODO: change to uint8_t
-typedef uint64_t evnt_size_t;
+typedef uint32_t evnt_code_t;
+// TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
+//       function get_event_components() in evnt_macro.c should be changed accordingly.
+typedef uint32_t evnt_size_t;
 typedef uint64_t evnt_param_t;
+// data structure for holding a set of events
+typedef uint64_t* evnt_trace_t;
+
+#elif defined __arm__
+typedef uint32_t evnt_tid_t;
+typedef uint32_t evnt_time_t;
+typedef uint32_t evnt_code_t;
+// TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
+//       function get_event_components() in evnt_macro.c should be changed accordingly.
+typedef uint32_t evnt_size_t;
+typedef uint32_t evnt_param_t;
+// data structure for holding a set of events
+typedef uint32_t* evnt_trace_t;
+#endif
 typedef uint8_t evnt_data_t;
 
 #define EVNT_TRACE_END 0
 
 #define EVNT_MAX_PARAMS 10
-#define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(uint64_t))
+#define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(evnt_param_t))
 
 // regular event
 typedef struct {
@@ -58,9 +73,6 @@ typedef struct {
     evnt_size_t size; // size of data in bytes
     evnt_data_t raw[EVNT_MAX_DATA]; // raw data
 } evnt_raw_t;
-
-// data structure for holding a set of events
-typedef uint64_t* evnt_trace_t;
 
 // data structure for reading events from trace file
 typedef struct {

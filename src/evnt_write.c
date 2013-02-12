@@ -533,7 +533,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
 
     pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
-    __buffer_cur += 4 + (evnt_param_t) ceil((double) size / sizeof(evnt_param_t));
+    __buffer_cur += get_event_components(ceil((double) size / sizeof(evnt_param_t)));
     pthread_mutex_unlock(&__evnt_flush_lock);
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;

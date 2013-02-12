@@ -14,8 +14,9 @@
  * This function returns the number of components in a particular event depending on the number of arguments
  */
 evnt_size_t get_event_components(evnt_size_t nb_params) {
-    // 4 is the size of tid, time, code, and nb_params
-    return nb_params + 4;
+    // 3 corresponds to the memory slot occupied by tid (uint64_t), time (uint64_t), code (uint32_t), and
+    // nb_params (uint32_t). And, it equals to 3 * sizeof(uint64_t)
+    return nb_params + 3;
 }
 
 /*

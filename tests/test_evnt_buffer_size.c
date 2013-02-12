@@ -43,7 +43,7 @@ int main(int argc, const char **argv) {
         set_filename(filename);
         init_trace(buf_size);
 
-        start = get_ticks();
+        start = get_time();
         for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
             evnt_probe0(10 * i + 1);
             evnt_probe1(10 * i + 2, 1);
@@ -58,7 +58,7 @@ int main(int argc, const char **argv) {
             evnt_probe10(10 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
             evnt_raw_probe(10 * i + 12, sizeof(val) - 1, val);
         }
-        fin = get_ticks();
+        fin = get_time();
 
         fin_trace();
         printf("\t%u\t\t %llu\n", buf_size / 1024, fin - start);
@@ -79,14 +79,14 @@ int main(int argc, const char **argv) {
         buffer = open_trace(filename);
         block = get_evnt_block(buffer);
 
-        start = get_ticks();
+        start = get_time();
         while (block.trace != NULL ) {
             event = read_event(&block);
 
             if (event == NULL )
                 break;
         }
-        fin = get_ticks();
+        fin = get_time();
 
         close_trace(&block);
         printf("\t%u\t\t %llu\n", buf_size / 1024, fin - start);

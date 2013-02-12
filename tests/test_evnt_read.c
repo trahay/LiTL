@@ -15,6 +15,7 @@
 int main(int argc, const char **argv) {
     evnt_size_t i;
     const char* filename = "trace.trace";
+    const evnt_size_t buffer_size = 16 * 1024 * 1024; // 16MB
     evnt_t* event;
     evnt_trace_t buffer;
     evnt_block_t block;
@@ -24,6 +25,7 @@ int main(int argc, const char **argv) {
     else
         filename = "test_evnt_write.trace";
 
+    set_read_buffer_size(buffer_size);
     buffer = open_trace(filename);
     block = get_evnt_block(buffer);
     printf("=============================================================\n");
@@ -38,7 +40,7 @@ int main(int argc, const char **argv) {
 
         if (get_bit(event->code) == 0) {
             // regular event
-            printf("%lx \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_params);
+            printf("%x \t %lu \t %lu \t %u", event->code, event->tid, event->time, event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
                 printf("\t %lx", event->param[i]);
@@ -46,7 +48,7 @@ int main(int argc, const char **argv) {
             // raw event
             event->code = clear_bit(event->code);
 
-            printf("%lx \t %lu \t %lu \t %lu", event->code, event->tid, event->time, event->nb_params);
+            printf("%x \t %lu \t %lu \t %u", event->code, event->tid, event->time, event->nb_params);
             printf("\t %s", (evnt_data_t *) event->param);
         }
 
