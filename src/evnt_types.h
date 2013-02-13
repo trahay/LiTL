@@ -83,4 +83,17 @@ typedef struct {
     uint32_t tracker; // indicator of the end of the buffer = offset + buffer size
 } evnt_block_t;
 
+// defining the printing formats
+#ifdef __x86_64__
+#define PRTIu32 "u"
+#define PRTIu64 "lu"
+#define PRTIx32 "x"
+#define PRTIx64 "lx"
+#elif defined __arm__
+#define PRTIu32 "u"
+#define PRTIu64 "u"
+#define PRTIx32 "x"
+#define PRTIx64 "x"
+#endif
+
 #endif /* EVNT_TYPES_H_ */

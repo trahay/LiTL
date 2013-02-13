@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include <inttypes.h>
 
 #include "evnt_types.h"
 #include "evnt_write.h"
@@ -62,7 +61,7 @@ int main(int argc, const char **argv) {
         fin = get_time();
 
         fin_trace();
-        printf("\t%"PRIx32"\t\t %"PRIu64"\n", buf_size / 1024, fin - start);
+        printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;
     }
@@ -90,7 +89,7 @@ int main(int argc, const char **argv) {
         fin = get_time();
 
         close_trace(&block);
-        printf("\t%"PRIx32"\t\t %"PRIu64"\n", buf_size / 1024, fin - start);
+        printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;
     }

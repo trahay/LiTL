@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <string.h>
-#include <inttypes.h>
 
 #include "evnt_macro.h"
 #include "evnt_read.h"
@@ -199,15 +198,15 @@ int main(int argc, const char **argv) {
 
         if (get_bit(event->code) == 0) {
             // regular event
-            printf("%"PRIx32" \t %"PRIu64" \t %"PRIu64" \t %"PRIu32, event->code, event->tid, event->time, event->nb_params);
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time, event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
-                printf("\t %"PRIx64, event->param[i]);
+                printf("\t %"PRTIx64, event->param[i]);
         } else {
             // raw event
             event->code = clear_bit(event->code);
 
-            printf("%"PRIx32" \t %"PRIu64" \t %"PRIu64" \t %"PRIu32, event->code, event->tid, event->time, event->nb_params);
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time, event->nb_params);
             printf("\t %s", (evnt_data_t *) event->param);
         }
 
