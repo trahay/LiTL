@@ -26,6 +26,7 @@ int main(int argc, const char **argv) {
     evnt_t* event;
     evnt_trace_t buffer;
     evnt_block_t block;
+    evnt_info_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -78,6 +79,7 @@ int main(int argc, const char **argv) {
         set_read_buffer_size(buf_size);
         buffer = open_trace(filename);
         block = get_evnt_block(buffer);
+        header = get_trace_header(&block);
 
         start = get_time();
         while (block.trace != NULL ) {

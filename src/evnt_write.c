@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
+#include <sys/utsname.h>
 
 #include "timer.h"
 #include "evnt_macro.h"
@@ -120,6 +121,33 @@ static void __set_write_buffer_size(const uint32_t buf_size) {
 }
 
 /*
+ * This function adds a header to the trace file the information regarding:
+ *   - OS
+ *   - Processor type
+ *   - Version of libevnt
+ */
+static void add_trace_header() {
+    int n, size;
+    struct utsname uts;
+
+    if (uname(&uts) < 0)
+        perror("Could not use uname()!");
+
+    // get the number of symbols for libevnt_ver
+    n = sprintf(((evnt_info_t *) __buffer_cur)->libevnt_ver, "%s", VERSION);
+    // +1 corresponds to the '\0' symbol
+    size = n + 1;
+
+    // get the number of symbols for sysinfo
+    n = sprintf(((evnt_info_t *) __buffer_cur)->sysinfo, "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
+            uts.version, uts.machine);
+    // +1 corresponds to the '\0' symbol
+    size += n + 1;
+
+    __buffer_cur += (evnt_param_t) ceil((double) size / sizeof(evnt_param_t));
+}
+
+/*
  * This function initializes the trace
  */
 void init_trace(const uint32_t buf_size) {
@@ -143,6 +171,9 @@ void init_trace(const uint32_t buf_size) {
     if (__buffer_flush) {
         pthread_mutex_init(&__evnt_flush_lock, NULL );
     }
+
+    // add a header to the trace file
+    add_trace_header();
 
     __evnt_initialized = 1;
 }
@@ -533,7 +564,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
 
     pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(ceil((double) size / sizeof(evnt_param_t)));
+    __buffer_cur += get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
     pthread_mutex_unlock(&__evnt_flush_lock);
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;

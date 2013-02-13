@@ -74,7 +74,7 @@ typedef struct {
     evnt_data_t raw[EVNT_MAX_DATA]; // raw data
 } evnt_raw_t;
 
-// data structure for reading events from trace file
+// data structure for reading events from a trace file
 typedef struct {
     FILE* fp; // pointer to the trace file
     evnt_trace_t trace_head; // pointer to the beginning of the buffer
@@ -82,6 +82,12 @@ typedef struct {
     uint32_t offset; // offset from the beginning of the trace file
     uint32_t tracker; // indicator of the end of the buffer = offset + buffer size
 } evnt_block_t;
+
+// data structure that corresponds to the header of a trace file
+typedef struct {
+    evnt_data_t libevnt_ver[4];
+    evnt_data_t sysinfo[100];
+} evnt_info_t;
 
 // defining the printing formats
 #ifdef __x86_64__

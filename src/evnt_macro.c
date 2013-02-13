@@ -19,7 +19,7 @@ evnt_size_t get_event_components(evnt_size_t nb_params) {
     // and nb_params (evnt_size_t). And, it equals to n * sizeof(evnt_param_t)
     return nb_params
             + ceil((sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
-                            / sizeof(evnt_param_t));
+                            / (double) sizeof(evnt_param_t));
 }
 
 /*

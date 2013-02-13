@@ -23,21 +23,6 @@ void set_read_buffer_size(const uint32_t buf_size) {
 }
 
 /*
- * This function returns the current trace, FILE pointer, and the current position in the file
- */
-evnt_block_t get_evnt_block(evnt_trace_t trace) {
-    evnt_block_t block;
-
-    block.fp = __ftrace;
-    block.trace_head = trace;
-    block.trace = trace;
-    block.offset = 0;
-    block.tracker = __buffer_size;
-
-    return block;
-}
-
-/*
  * This function opens a trace and reads the first portion of data to the buffer
  */
 evnt_trace_t open_trace(const char* filename) {
@@ -65,6 +50,41 @@ evnt_trace_t open_trace(const char* filename) {
     }
 
     return buffer;
+}
+
+/*
+ * This function reads information contained in the trace header
+ */
+evnt_info_t* get_trace_header(evnt_block_t* block) {
+    evnt_size_t size;
+    evnt_info_t* header;
+    evnt_trace_t* buffer;
+    buffer = &block->trace;
+
+    header = (evnt_info_t *) *buffer;
+    // +2 corresponds for the '\0' symbol after each string
+    size = strlen(header->libevnt_ver) + strlen(header->sysinfo) + 2;
+
+    size = (evnt_size_t) ceil((double) size / sizeof(evnt_param_t));
+    *buffer += size;
+    block->offset += size * sizeof(evnt_param_t);
+
+    return header;
+}
+
+/*
+ * This function returns the current trace, FILE pointer, and the current position in the file
+ */
+evnt_block_t get_evnt_block(evnt_trace_t trace) {
+    evnt_block_t block;
+
+    block.fp = __ftrace;
+    block.trace_head = trace;
+    block.trace = trace;
+    block.offset = 0;
+    block.tracker = __buffer_size;
+
+    return block;
 }
 
 /*
@@ -179,6 +199,7 @@ int main(int argc, const char **argv) {
     evnt_t* event;
     evnt_trace_t buffer;
     evnt_block_t block;
+    evnt_info_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -189,6 +210,11 @@ int main(int argc, const char **argv) {
 
     buffer = open_trace(filename);
     block = get_evnt_block(buffer);
+    header = get_trace_header(&block);
+
+    // print the header
+    printf("    libevnt v.%s\n", header->libevnt_ver);
+    printf("    %s\n", header->sysinfo);
 
     while (block.trace != NULL ) {
         event = read_event(&block);
@@ -198,7 +224,8 @@ int main(int argc, const char **argv) {
 
         if (get_bit(event->code) == 0) {
             // regular event
-            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time, event->nb_params);
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
+                    event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
                 printf("\t %"PRTIx64, event->param[i]);
@@ -206,7 +233,8 @@ int main(int argc, const char **argv) {
             // raw event
             event->code = clear_bit(event->code);
 
-            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time, event->nb_params);
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
+                    event->nb_params);
             printf("\t %s", (evnt_data_t *) event->param);
         }
 

@@ -15,14 +15,19 @@
 void set_read_buffer_size(const uint32_t);
 
 /*
- * This function returns the current trace, FILE pointer, and the current position in the file
- */
-evnt_block_t get_evnt_block(evnt_trace_t);
-
-/*
  * This function opens a trace and reads the first portion of data to the buffer
  */
 evnt_trace_t open_trace(const char*);
+
+/*
+ * This function reads information contained in the trace header
+ */
+evnt_info_t* get_trace_header(evnt_block_t*);
+
+/*
+ * This function returns the current trace, FILE pointer, and the current position in the file
+ */
+evnt_block_t get_evnt_block(evnt_trace_t);
 
 /*
  * This function resets the trace
