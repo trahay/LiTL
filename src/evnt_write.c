@@ -140,7 +140,7 @@ void init_trace(const uint32_t buf_size) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    if (__buffer_flush) {
+    if (__thread_safety && __buffer_flush) {
         pthread_mutex_init(&__evnt_flush_lock, NULL );
     }
 
@@ -158,7 +158,9 @@ void fin_trace() {
 
     fclose(__ftrace);
     free(__buffer_ptr);
-    pthread_mutex_destroy(&__evnt_flush_lock);
+
+    if (__thread_safety)
+        pthread_mutex_destroy(&__evnt_flush_lock);
 
     __ftrace = NULL;
     __buffer_ptr = NULL;
@@ -174,7 +176,8 @@ void flush_buffer() {
     if (!__evnt_initialized)
         return;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
 
     if (!__already_flushed)
         // check whether the trace file can be opened
@@ -188,7 +191,8 @@ void flush_buffer() {
         exit(EXIT_FAILURE);
     }
 
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
 
     __buffer_cur = __buffer_ptr;
     __already_flushed = 1;
@@ -203,10 +207,13 @@ void evnt_probe0(evnt_code_t code) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(0);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -227,10 +234,13 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(1);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -252,10 +262,13 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(2);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -278,10 +291,13 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(3);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -305,10 +321,13 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(4);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -334,10 +353,13 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(5);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -364,10 +386,13 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(6);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -395,10 +420,13 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(7);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -427,10 +455,13 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(8);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -460,10 +491,13 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(9);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -495,10 +529,13 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(10);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = get_time();
@@ -531,10 +568,13 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
     int i;
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(ceil((double) size / sizeof(evnt_param_t)));
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_raw_t *) cur_ptr)->time = get_time();
