@@ -18,6 +18,9 @@ void evnt_thread_safety_off();
 void evnt_tid_recording_on();
 void evnt_tid_recording_off();
 
+void evnt_pause_recording();
+void evnt_resume_recording();
+
 void evnt_set_filename(char*);
 
 /*

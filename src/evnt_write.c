@@ -35,6 +35,7 @@ static uint8_t __tid_activated = 0;
 
 // __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
 static uint8_t __evnt_initialized = 0;
+volatile uint8_t __evnt_paused = 0;
 
 /*
  * __already_flushed is used to check whether the buffer was flushed as well as
@@ -89,6 +90,15 @@ void evnt_tid_recording_on() {
  */
 void evnt_tid_recording_off() {
     __tid_activated = 0;
+}
+
+
+void evnt_pause_recording() {
+  __evnt_paused = 1;
+}
+
+void evnt_resume_recording() {
+  __evnt_paused = 0;
 }
 
 /*
@@ -176,6 +186,7 @@ void evnt_init_trace(const uint32_t buf_size) {
     //    add_trace_header();
 
     __evnt_initialized = 1;
+    __evnt_paused = 0;
 }
 
 /*
@@ -233,7 +244,7 @@ void evnt_flush_buffer() {
  * This function records an event without any arguments
  */
 void evnt_probe0(evnt_code_t code) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -260,7 +271,7 @@ void evnt_probe0(evnt_code_t code) {
  * This function records an event with one argument
  */
 void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -288,7 +299,7 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
  * This function records an event with two arguments
  */
 void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -317,7 +328,7 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
  * This function records an event with three arguments
  */
 void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -347,7 +358,7 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  * This function records an event with four arguments
  */
 void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -379,7 +390,7 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  */
 void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -412,7 +423,7 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  */
 void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5, evnt_param_t param6) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -446,7 +457,7 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  */
 void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5, evnt_param_t param6, evnt_param_t param7) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -481,7 +492,7 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  */
 void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -517,7 +528,7 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
  */
 void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -555,7 +566,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
         evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9,
         evnt_param_t param10) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     evnt_trace_t cur_ptr;
@@ -593,7 +604,7 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
-    if (!__evnt_initialized)
+    if (!__evnt_initialized || __evnt_paused)
         return;
 
     int i;

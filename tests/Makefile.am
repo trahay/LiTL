@@ -11,7 +11,8 @@ EVNTDEPENDENCIES = $(AM_LDFLAGS)
 
 CTESTS = test_evnt_write \
          test_evnt_read \
-         test_evnt_buffer
+         test_evnt_buffer \
+	     test_evnt_pause
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
@@ -19,6 +20,7 @@ TESTS = $(CTESTS)
 test_evnt_write_SOURCES = test_evnt_write.c
 test_evnt_read_SOURCES = test_evnt_read.c
 test_evnt_buffer_SOURCES = test_evnt_buffer_size.c
+test_evnt_pause_SOURCES = test_evnt_pause.c
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
