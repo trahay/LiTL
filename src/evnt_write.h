@@ -11,9 +11,11 @@
 
 void enable_buffer_flush();
 
-void enable_thread_safe();
+void enable_thread_safety();
+void disable_thread_safety();
 
 void enable_tid_record();
+void disable_tid_record();
 
 void set_filename(char*);
 

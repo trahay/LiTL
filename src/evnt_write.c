@@ -73,7 +73,7 @@ void enable_thread_safety() {
 /*
  * Deactivate thread-safety
  */
-void disable_thread_safetyty() {
+void disable_thread_safety() {
     __thread_safety = 0;
 }
 
