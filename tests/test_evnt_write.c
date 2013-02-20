@@ -26,8 +26,8 @@ int main(int argc, const char **argv) {
     printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
 
-    set_filename(filename);
-    init_trace(buffer_size);
+    evnt_set_filename(filename);
+    evnt_init_trace(buffer_size);
 
     printf("Enter the number of events to be recorded (nb >= 1): ");
     i = scanf("%d", &nb_iter);
@@ -64,7 +64,7 @@ int main(int argc, const char **argv) {
         usleep(100);
     }
 
-    fin_trace();
+    evnt_fin_trace();
 
     printf("\nEvents are recorded and written in the %s file\n", filename);
     printf("=============================================================\n");

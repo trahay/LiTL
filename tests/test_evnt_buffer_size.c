@@ -40,8 +40,8 @@ int main(int argc, const char **argv) {
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
-        set_filename(filename);
-        init_trace(buf_size);
+        evnt_set_filename(filename);
+        evnt_init_trace(buf_size);
 
         start = get_time();
         for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
@@ -60,7 +60,7 @@ int main(int argc, const char **argv) {
         }
         fin = get_time();
 
-        fin_trace();
+        evnt_fin_trace();
         printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;
@@ -76,19 +76,19 @@ int main(int argc, const char **argv) {
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
         set_read_buffer_size(buf_size);
-        buffer = open_trace(filename);
-        block = get_evnt_block(buffer);
+        buffer = evnt_open_trace(filename);
+        block = evnt_get_block(buffer);
 
         start = get_time();
         while (block.trace != NULL ) {
-            event = read_event(&block);
+            event = evnt_read_event(&block);
 
             if (event == NULL )
                 break;
         }
         fin = get_time();
 
-        close_trace(&block);
+        evnt_close_trace(&block);
         printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;

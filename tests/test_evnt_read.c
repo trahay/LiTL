@@ -26,14 +26,14 @@ int main(int argc, const char **argv) {
         filename = "test_evnt_write.trace";
 
     set_read_buffer_size(buffer_size);
-    buffer = open_trace(filename);
-    block = get_evnt_block(buffer);
+    buffer = evnt_open_trace(filename);
+    block = evnt_get_block(buffer);
     printf("=============================================================\n");
     printf("Printing events from the %s file\n\n", filename);
     printf("Event Code \t Thread ID \t Time \t NB args \t Arguments[0-9]\n");
 
     while (block.trace != NULL ) {
-        event = read_event(&block);
+        event = evnt_read_event(&block);
 
         if (event == NULL )
             break;
@@ -56,7 +56,7 @@ int main(int argc, const char **argv) {
     }
 
     printf("=============================================================\n");
-    close_trace(&block);
+    evnt_close_trace(&block);
 
     return EXIT_SUCCESS;
 }

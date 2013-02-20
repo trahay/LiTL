@@ -51,49 +51,49 @@ static uint32_t __get_buffer_size() {
 /*
  * Activate buffer flush
  */
-void enable_buffer_flush() {
+void evnt_buffer_flush_on() {
     __buffer_flush = 1;
 }
 
 /*
  * Deactivate buffer flush. It is activated by default
  */
-void disable_buffer_flush() {
+void evnt_buffer_flush_off() {
     __buffer_flush = 0;
 }
 
 /*
  * Activate thread-safety. It is not activated by default
  */
-void enable_thread_safety() {
+void evnt_thread_safety_on() {
     __thread_safety = 1;
 }
 
 /*
  * Deactivate thread-safety
  */
-void disable_thread_safetyty() {
+void evnt_thread_safety_off() {
     __thread_safety = 0;
 }
 
 /*
  * Activate recording tid. It is not activated by default
  */
-void enable_tid_record() {
+void evnt_tid_recording_on() {
     __tid_activated = 1;
 }
 
 /*
  * Deactivate recording tid
  */
-void disable_tid_record() {
+void evnt_tid_recording_off() {
     __tid_activated = 0;
 }
 
 /*
  * Set a new name for the trace file
  */
-void set_filename(char* filename) {
+void evnt_set_filename(char* filename) {
     if (__evnt_filename) {
         if (__already_flushed)
             fprintf(stderr,
@@ -122,7 +122,7 @@ static void __set_write_buffer_size(const uint32_t buf_size) {
 /*
  * This function initializes the trace
  */
-void init_trace(const uint32_t buf_size) {
+void evnt_init_trace(const uint32_t buf_size) {
     void *vp;
 
     __set_write_buffer_size(buf_size);
@@ -150,11 +150,11 @@ void init_trace(const uint32_t buf_size) {
 /*
  * This function finalizes the trace
  */
-void fin_trace() {
+void evnt_fin_trace() {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     evnt_probe0(EVNT_TRACE_END);
 
-    flush_buffer();
+    evnt_flush_buffer();
 
     fclose(__ftrace);
     free(__buffer_ptr);
@@ -172,7 +172,7 @@ void fin_trace() {
 /*
  * This function writes the recorded events from the buffer to the trace file
  */
-void flush_buffer() {
+void evnt_flush_buffer() {
     if (!__evnt_initialized)
         return;
 
@@ -220,7 +220,7 @@ void evnt_probe0(evnt_code_t code) {
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 0;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe0(code);
     }
 }
@@ -248,7 +248,7 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe1(code, param1);
     }
 }
@@ -277,7 +277,7 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe2(code, param1, param2);
     }
 }
@@ -307,7 +307,7 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe3(code, param1, param2, param3);
     }
 }
@@ -338,7 +338,7 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe4(code, param1, param2, param3, param4);
     }
 }
@@ -371,7 +371,7 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe5(code, param1, param2, param3, param4, param5);
     }
 }
@@ -405,7 +405,7 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe6(code, param1, param2, param3, param4, param5, param6);
     }
 }
@@ -440,7 +440,7 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
     }
 }
@@ -476,7 +476,7 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
 }
@@ -513,7 +513,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
 }
@@ -552,7 +552,7 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
         ((evnt_t *) cur_ptr)->param[8] = param9;
         ((evnt_t *) cur_ptr)->param[9] = param10;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
 }
@@ -585,7 +585,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_raw_probe(code, size, data);
     }
 }

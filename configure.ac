@@ -5,7 +5,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([evnt], [0.1], [todo-evnt@fusionforge.int-evry.fr])
+AC_INIT([evnt], [0.1-rc1], [todo-evnt@fusionforge.int-evry.fr])
 AM_INIT_AUTOMAKE([1.10 tar-pax color-tests])
 
 # Checks for programs.
