@@ -12,6 +12,9 @@
 #include "evnt_types.h"
 #include "evnt_write.h"
 
+/* This test tries to write several traces in a row. */
+
+
 void write_trace(int suffix) {
   int i;
   char* filename;
