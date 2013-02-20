@@ -12,6 +12,9 @@
 #include "evnt_types.h"
 #include "evnt_write.h"
 
+/* This test tries to write several traces in a row. */
+
+
 void write_trace(int suffix) {
   int i;
   char* filename;
@@ -21,8 +24,8 @@ void write_trace(int suffix) {
 
   printf("=============================================================\n");
   printf("Recording events with various number of arguments\n\n");
-  set_filename(filename);
-  init_trace(buffer_size);
+  evnt_set_filename(filename);
+  evnt_init_trace(buffer_size);
 
   int nb_iter = 5;
   evnt_data_t val[] =
@@ -54,7 +57,7 @@ void write_trace(int suffix) {
     usleep(100);
   }
 
-  fin_trace();
+  evnt_fin_trace();
 
   printf("\nEvents are recorded and written in the %s file\n", filename);
   printf("=============================================================\n");
