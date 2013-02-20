@@ -17,6 +17,9 @@ void disable_thread_safety();
 void enable_tid_record();
 void disable_tid_record();
 
+void evnt_pause_recording();
+void evnt_resume_recording();
+
 void set_filename(char*);
 
 /*
