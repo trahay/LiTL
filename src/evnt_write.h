@@ -9,28 +9,31 @@
 
 #include "evnt_types.h"
 
-void enable_buffer_flush();
+void evnt_buffer_flush_on();
+void evnt_buffer_flush_off();
 
-void enable_thread_safe();
+void evnt_thread_safety_on();
+void evnt_thread_safety_off();
 
-void enable_tid_record();
+void evnt_tid_recording_on();
+void evnt_tid_recording_off();
 
-void set_filename(char*);
+void evnt_set_filename(char*);
 
 /*
  * This function initializes the trace
  */
-void init_trace(const uint32_t);
+void evnt_init_trace(const uint32_t);
 
 /*
  * This function finalizes the trace
  */
-void fin_trace();
+void evnt_fin_trace();
 
 /*
  * This function writes the recorded events from the buffer to the trace file
  */
-void flush_buffer();
+void evnt_flush_buffer();
 
 /*
  * This function records an event without any arguments

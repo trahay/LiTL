@@ -85,7 +85,7 @@ typedef struct {
 
 // data structure that corresponds to the header of a trace file
 typedef struct {
-    evnt_data_t libevnt_ver[4];
+    evnt_data_t libevnt_ver[8];
     evnt_data_t sysinfo[100];
 } evnt_info_t;
 

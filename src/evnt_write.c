@@ -52,49 +52,49 @@ static uint32_t __get_buffer_size() {
 /*
  * Activate buffer flush
  */
-void enable_buffer_flush() {
+void evnt_buffer_flush_on() {
     __buffer_flush = 1;
 }
 
 /*
  * Deactivate buffer flush. It is activated by default
  */
-void disable_buffer_flush() {
+void evnt_buffer_flush_off() {
     __buffer_flush = 0;
 }
 
 /*
  * Activate thread-safety. It is not activated by default
  */
-void enable_thread_safety() {
+void evnt_thread_safety_on() {
     __thread_safety = 1;
 }
 
 /*
  * Deactivate thread-safety
  */
-void disable_thread_safetyty() {
+void evnt_thread_safety_off() {
     __thread_safety = 0;
 }
 
 /*
  * Activate recording tid. It is not activated by default
  */
-void enable_tid_record() {
+void evnt_tid_recording_on() {
     __tid_activated = 1;
 }
 
 /*
  * Deactivate recording tid
  */
-void disable_tid_record() {
+void evnt_tid_recording_off() {
     __tid_activated = 0;
 }
 
 /*
  * Set a new name for the trace file
  */
-void set_filename(char* filename) {
+void evnt_set_filename(char* filename) {
     if (__evnt_filename) {
         if (__already_flushed)
             fprintf(stderr,
@@ -150,7 +150,7 @@ static void add_trace_header() {
 /*
  * This function initializes the trace
  */
-void init_trace(const uint32_t buf_size) {
+void evnt_init_trace(const uint32_t buf_size) {
     void *vp;
 
     __set_write_buffer_size(buf_size);
@@ -168,12 +168,12 @@ void init_trace(const uint32_t buf_size) {
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    if (__buffer_flush) {
+    if (__thread_safety && __buffer_flush) {
         pthread_mutex_init(&__evnt_flush_lock, NULL );
     }
 
     // add a header to the trace file
-    add_trace_header();
+    //    add_trace_header();
 
     __evnt_initialized = 1;
 }
@@ -181,15 +181,17 @@ void init_trace(const uint32_t buf_size) {
 /*
  * This function finalizes the trace
  */
-void fin_trace() {
+void evnt_fin_trace() {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     evnt_probe0(EVNT_TRACE_END);
 
-    flush_buffer();
+    evnt_flush_buffer();
 
     fclose(__ftrace);
     free(__buffer_ptr);
-    pthread_mutex_destroy(&__evnt_flush_lock);
+
+    if (__thread_safety)
+        pthread_mutex_destroy(&__evnt_flush_lock);
 
     __ftrace = NULL;
     __buffer_ptr = NULL;
@@ -201,11 +203,12 @@ void fin_trace() {
 /*
  * This function writes the recorded events from the buffer to the trace file
  */
-void flush_buffer() {
+void evnt_flush_buffer() {
     if (!__evnt_initialized)
         return;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
 
     if (!__already_flushed)
         // check whether the trace file can be opened
@@ -219,7 +222,8 @@ void flush_buffer() {
         exit(EXIT_FAILURE);
     }
 
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
 
     __buffer_cur = __buffer_ptr;
     __already_flushed = 1;
@@ -234,17 +238,20 @@ void evnt_probe0(evnt_code_t code) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(0);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 0;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe0(code);
     }
 }
@@ -258,10 +265,13 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(1);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -269,7 +279,7 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe1(code, param1);
     }
 }
@@ -283,10 +293,13 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(2);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -295,7 +308,7 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe2(code, param1, param2);
     }
 }
@@ -309,10 +322,13 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(3);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -322,7 +338,7 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe3(code, param1, param2, param3);
     }
 }
@@ -336,10 +352,13 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(4);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -350,7 +369,7 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe4(code, param1, param2, param3, param4);
     }
 }
@@ -365,10 +384,13 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(5);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -380,7 +402,7 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe5(code, param1, param2, param3, param4, param5);
     }
 }
@@ -395,10 +417,13 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(6);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -411,7 +436,7 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe6(code, param1, param2, param3, param4, param5, param6);
     }
 }
@@ -426,10 +451,13 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(7);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -443,7 +471,7 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
     }
 }
@@ -458,10 +486,13 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(8);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -476,7 +507,7 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
 }
@@ -491,10 +522,13 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(9);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -510,7 +544,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
 }
@@ -526,10 +560,13 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
 
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components(10);
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
@@ -546,7 +583,7 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
         ((evnt_t *) cur_ptr)->param[8] = param9;
         ((evnt_t *) cur_ptr)->param[9] = param10;
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
 }
@@ -562,10 +599,13 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
     int i;
     evnt_trace_t cur_ptr;
 
-    pthread_mutex_lock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_lock(&__evnt_flush_lock);
     cur_ptr = __buffer_cur;
     __buffer_cur += get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
-    pthread_mutex_unlock(&__evnt_flush_lock);
+    if (__thread_safety)
+        pthread_mutex_unlock(&__evnt_flush_lock);
+
     if (__get_buffer_size() < __buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_raw_t *) cur_ptr)->time = evnt_get_time();
@@ -576,7 +616,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
     } else if (__buffer_flush) {
-        flush_buffer();
+        evnt_flush_buffer();
         evnt_raw_probe(code, size, data);
     }
 }
