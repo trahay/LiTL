@@ -9,66 +9,115 @@
 
 #include "timer.h"
 
-// in order to fix the problem on ARM processors
-#ifndef CLOCK_GETTIME_AVAIL
-static evnt_time_t __ticks_per_sec;
+#define ERROR_TIMER_NOT_AVAILABLE() do {					\
+    fprintf(stderr, "Trying to use timer function %s, but it is not available on this platform\n",__FUNCTION__); \
+    abort();								\
+  } while(0)
 
-/*
- * This is a copy of rdtscll function from asm/msr.h
- */
-#define rdtscll(val) do { \
-      uint32_t __a,__d; \
-      asm volatile("rdtsc" : "=a" (__a), "=d" (__d)); \
-      (val) = ((evnt_time_t)__a) | (((evnt_time_t)__d)<<32); \
-} while(0)
 
-/*
- * This function initializes __ticks_per_sec
- */
-void __init_time() __attribute__((constructor));
-void __init_time() {
+/* choose the default timing method */
+#ifdef CLOCK_GETTIME_AVAIL
+#ifdef CLOCK_MONOTONIC_RAW
+  #define TIMER_DEFAULT evnt_get_time_monotonic_raw
+#else
+  #define TIMER_DEFAULT evnt_get_time_monotonic
+#endif	/* CLOCK_MONOTONIC_RAW */
+
+#else  /* CLOCK_GETTIME_AVAIL */
+  #define TIMER_DEFAULT evnt_get_time_ticks
+#endif /* CLOCK_GETTIME_AVAIL */
+
+
+/* Selected timimng method */
+evnt_timing_method_t evnt_get_time = TIMER_DEFAULT;
+
+
+/* return -1 if not available. return 0 otherwise */
+int evnt_set_timing_method(evnt_timing_method_t callback) {
+  if(!callback)
+    return -1;
+
+  evnt_get_time = callback;
+  return 0;
+}
+
+
+evnt_time_t evnt_get_time_monotonic_raw() {
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC_RAW))
+    evnt_time_t time;
+    struct timespec tp;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
+    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
+    return time;
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+    return -1;
+#endif
+}
+
+
+evnt_time_t evnt_get_time_monotonic() {
+#ifdef CLOCK_GETTIME_AVAIL
+    evnt_time_t time;
+    struct timespec tp;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
+    return time;
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+    return -1;
+#endif
+}
+
+evnt_time_t evnt_get_time_ticks() {
+
+#if HAVE_RDTSC
+  /*
+   * This is a copy of rdtscll function from asm/msr.h
+   */
+#define ticks(val) do {					\
+    uint32_t __a,__d;						\
+    asm volatile("rdtsc" : "=a" (__a), "=d" (__d));		\
+    (val) = ((evnt_time_t)__a) | (((evnt_time_t)__d)<<32);	\
+  } while(0)
+
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+#define ticks(val) (val) = -1
+#endif
+
+
+  static int ticks_initialized = 0;
+  static evnt_time_t __ticks_per_sec = -1;
+  if(!ticks_initialized) {
     evnt_time_t init_start, init_end;
-    rdtscll(init_start);
+    ticks(init_start);
     usleep(1000000);
-    rdtscll(init_end);
+    ticks(init_end);
 
     __ticks_per_sec = init_end - init_start;
-//    printf("1 second is %lu clock ticks\n", __ticks_per_sec);
-//    printf("machine seems to run with %.2lf GHz\n", __ticks_per_sec / 1000000000.0);
+    ticks_initialized = 1;
+  }
+
+  evnt_time_t time;
+  ticks(time);
+
+  return time*1e9/__ticks_per_sec;
 }
 
-/*
- * This function measures time in clock ticks
- */
-evnt_time_t get_ticks() {
-    evnt_time_t time;
-    rdtscll(time);
-    return time;
-}
 
-evnt_time_t get_ticks_per_sec() {
-    return __ticks_per_sec;
-}
-#endif
-
-/*
- * This function measures time in ns or clock ticks depending on the timer used
- */
-evnt_time_t get_time() {
-    evnt_time_t time;
-
-#ifdef CLOCK_GETTIME_AVAIL
-    struct timespec tp;
-#ifdef CLOCK_MONOTONIC_RAW
-    // avoid NTP
-    clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
-#else
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-#endif
-    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
-#else
-    time = get_ticks();
-#endif
-
-    return time;
+void evnt_time_initialize() {
+  char* time_str = getenv("EVNT_TIMING_METHOD");
+  if(time_str) {
+    if(strcmp(time_str, "monotonic_raw") == 0)
+      evnt_set_timing_method(evnt_get_time_monotonic_raw);
+    else if(strcmp(time_str, "monotonic") == 0)
+      evnt_set_timing_method(evnt_get_time_monotonic);
+    else if(strcmp(time_str, "ticks") == 0 )
+      evnt_set_timing_method(evnt_get_time_ticks);
+    else {
+      fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
+      abort();
+    }
+  }
 }

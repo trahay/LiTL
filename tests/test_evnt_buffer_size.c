@@ -44,7 +44,7 @@ int main(int argc, const char **argv) {
         set_filename(filename);
         init_trace(buf_size);
 
-        start = get_time();
+        start = evnt_get_time();
         for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
             evnt_probe0(10 * i + 1);
             evnt_probe1(10 * i + 2, 1);
@@ -59,7 +59,7 @@ int main(int argc, const char **argv) {
             evnt_probe10(10 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
             evnt_raw_probe(10 * i + 12, sizeof(val) - 1, val);
         }
-        fin = get_time();
+        fin = evnt_get_time();
 
         fin_trace();
         printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
@@ -81,14 +81,14 @@ int main(int argc, const char **argv) {
         block = get_evnt_block(buffer);
         header = get_trace_header(&block);
 
-        start = get_time();
+        start = evnt_get_time();
         while (block.trace != NULL ) {
             event = read_event(&block);
 
             if (event == NULL )
                 break;
         }
-        fin = get_time();
+        fin = evnt_get_time();
 
         close_trace(&block);
         printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
