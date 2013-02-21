@@ -24,7 +24,7 @@ int main(int argc, const char **argv) {
     const char* filename = "trace.trace";
     uint32_t buf_size;
     evnt_t* event;
-    evnt_trace_t buffer;
+    evnt_buffer_t buffer;
     evnt_block_t block;
     evnt_info_t* header;
 
@@ -82,7 +82,7 @@ int main(int argc, const char **argv) {
         //        header = evnt_get_trace_header(&block);
 
         start = evnt_get_time();
-        while (block.trace != NULL ) {
+        while (block.buffer != NULL ) {
             event = evnt_read_event(&block);
 
             if (event == NULL )

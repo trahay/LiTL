@@ -20,8 +20,8 @@
  */
 static pthread_mutex_t __evnt_flush_lock;
 
-static evnt_trace_t __buffer_ptr;
-static evnt_trace_t __buffer_cur;
+static evnt_buffer_t __buffer_ptr;
+static evnt_buffer_t __buffer_cur;
 static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
 // __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
 static uint8_t __buffer_flush = 1;
@@ -47,7 +47,7 @@ static uint8_t __already_flushed = 0;
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size() {
-    return sizeof(evnt_trace_t) * ((evnt_trace_t) __buffer_cur - (evnt_trace_t) __buffer_ptr);
+    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) __buffer_cur - (evnt_buffer_t) __buffer_ptr);
 }
 
 /*
@@ -247,7 +247,7 @@ void evnt_probe0(evnt_code_t code) {
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -274,7 +274,7 @@ void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -302,7 +302,7 @@ void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -331,7 +331,7 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -361,7 +361,7 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -393,7 +393,7 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -426,7 +426,7 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -460,7 +460,7 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -495,7 +495,7 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -531,7 +531,7 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -569,7 +569,7 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
     if (!__evnt_initialized || __evnt_paused)
         return;
 
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);
@@ -608,7 +608,7 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
         return;
 
     int i;
-    evnt_trace_t cur_ptr;
+    evnt_buffer_t cur_ptr;
 
     if (__thread_safety)
         pthread_mutex_lock(&__evnt_flush_lock);

@@ -36,7 +36,7 @@ typedef uint32_t evnt_code_t;
 typedef uint32_t evnt_size_t;
 typedef uint64_t evnt_param_t;
 // data structure for holding a set of events
-typedef uint64_t* evnt_trace_t;
+typedef uint64_t* evnt_buffer_t;
 
 #elif defined __arm__
 typedef uint32_t evnt_tid_t;
@@ -47,7 +47,7 @@ typedef uint32_t evnt_code_t;
 typedef uint32_t evnt_size_t;
 typedef uint32_t evnt_param_t;
 // data structure for holding a set of events
-typedef uint32_t* evnt_trace_t;
+typedef uint32_t* evnt_buffer_t;
 #endif
 typedef uint8_t evnt_data_t;
 
@@ -77,8 +77,8 @@ typedef struct {
 // data structure for reading events from a trace file
 typedef struct {
     FILE* fp; // pointer to the trace file
-    evnt_trace_t trace_head; // pointer to the beginning of the buffer
-    evnt_trace_t trace; // pointer either to the next event or to the end of the trace
+    evnt_buffer_t buffer_ptr; // pointer to the beginning of the buffer
+    evnt_buffer_t buffer; // pointer either to the next event or to the end of the trace
     uint32_t offset; // offset from the beginning of the trace file
     uint32_t tracker; // indicator of the end of the buffer = offset + buffer size
 } evnt_block_t;
@@ -88,6 +88,30 @@ typedef struct {
     evnt_data_t libevnt_ver[8];
     evnt_data_t sysinfo[100];
 } evnt_info_t;
+
+typedef struct {
+    FILE* ftrace;
+    char* evnt_filename;
+
+    evnt_buffer_t buffer_ptr;
+    evnt_buffer_t buffer_cur;
+
+    uint32_t buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
+    uint8_t buffer_flush = 1; // __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
+
+    pthread_mutex_t evnt_flush_lock; // to handle write conflicts while using pthread
+    uint8_t thread_safety = 0; // __thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
+
+    uint8_t tid_activated = 0;
+
+    // __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
+    uint8_t evnt_initialized = 0;
+    volatile uint8_t evnt_paused = 0;
+
+    // __already_flushed is used to check whether the buffer was flushed as well as
+    //                    to ensure that the correct and unique trace file was opened
+    uint8_t already_flushed = 0;
+} evnt_trace_t;
 
 // defining the printing formats
 #ifdef __x86_64__

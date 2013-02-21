@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
     const char* filename = "trace.trace";
     const evnt_size_t buffer_size = 16 * 1024 * 1024; // 16MB
     evnt_t* event;
-    evnt_trace_t buffer;
+    evnt_buffer_t buffer;
     evnt_block_t block;
     evnt_info_t* header;
 
@@ -41,7 +41,7 @@ int main(int argc, const char **argv) {
 
     printf("Event Code\t Thread ID\t Time\t\t   NB args\t Arguments[0-9]\n");
 
-    while (block.trace != NULL ) {
+    while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
 
         if (event == NULL )

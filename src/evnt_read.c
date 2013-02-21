@@ -25,7 +25,7 @@ void set_read_buffer_size(const uint32_t buf_size) {
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-evnt_trace_t evnt_open_trace(const char* filename) {
+evnt_buffer_t evnt_open_trace(const char* filename) {
     struct stat st;
 
     if (!(__ftrace = fopen(filename, "r"))) {
@@ -39,7 +39,7 @@ evnt_trace_t evnt_open_trace(const char* filename) {
     if (__buffer_size > st.st_size)
         __buffer_size = st.st_size;
 
-    evnt_trace_t buffer = (evnt_trace_t) malloc(__buffer_size);
+    evnt_buffer_t buffer = (evnt_buffer_t) malloc(__buffer_size);
 
     int res = fread(buffer, __buffer_size, 1, __ftrace);
     // If the end of file is reached, then all data are read. So, res is 0.
@@ -58,8 +58,8 @@ evnt_trace_t evnt_open_trace(const char* filename) {
 evnt_info_t* evnt_get_trace_header(evnt_block_t* block) {
     evnt_size_t size;
     evnt_info_t* header;
-    evnt_trace_t* buffer;
-    buffer = &block->trace;
+    evnt_buffer_t* buffer;
+    buffer = &block->buffer;
 
     header = (evnt_info_t *) *buffer;
     // +2 corresponds for the '\0' symbol after each string
@@ -73,14 +73,14 @@ evnt_info_t* evnt_get_trace_header(evnt_block_t* block) {
 }
 
 /*
- * This function returns the current trace, FILE pointer, and the current position in the file
+ * This function returns the current buffer, FILE pointer, and the current position in the file
  */
-evnt_block_t evnt_get_block(evnt_trace_t trace) {
+evnt_block_t evnt_get_block(evnt_buffer_t buffer) {
     evnt_block_t block;
 
     block.fp = __ftrace;
-    block.trace_head = trace;
-    block.trace = trace;
+    block.buffer_ptr = buffer;
+    block.buffer = buffer;
     block.offset = 0;
     block.tracker = __buffer_size;
 
@@ -93,7 +93,7 @@ evnt_block_t evnt_get_block(evnt_trace_t trace) {
 static __next_trace(evnt_block_t* block) {
     fseek(block->fp, block->offset, SEEK_SET);
 
-    int res = fread(block->trace_head, __buffer_size, 1, block->fp);
+    int res = fread(block->buffer_ptr, __buffer_size, 1, block->fp);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
@@ -101,7 +101,7 @@ static __next_trace(evnt_block_t* block) {
         exit(EXIT_FAILURE);
     }
 
-    block->trace = block->trace_head;
+    block->buffer = block->buffer_ptr;
     block->tracker = block->offset + __buffer_size;
 }
 
@@ -109,7 +109,7 @@ static __next_trace(evnt_block_t* block) {
  * This function resets the trace
  */
 void evnt_reset_trace(evnt_block_t* block) {
-    block->trace = block->trace_head;
+    block->buffer = block->buffer_ptr;
 }
 
 /*
@@ -119,8 +119,8 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
     uint8_t to_be_loaded;
     evnt_size_t size;
     evnt_t* event;
-    evnt_trace_t* buffer;
-    buffer = &block->trace;
+    evnt_buffer_t* buffer;
+    buffer = &block->buffer;
     to_be_loaded = 0;
 
     if (!*buffer)
@@ -147,14 +147,14 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
     // fetch the next block of data from the trace
     if (to_be_loaded) {
         __next_trace(block);
-        buffer = &block->trace;
+        buffer = &block->buffer;
         event = (evnt_t *) *buffer;
         to_be_loaded = 0;
     }
 
     // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
-        block->trace = NULL;
+        block->buffer = NULL;
         *buffer = NULL;
         return NULL ;
     }
@@ -185,19 +185,19 @@ evnt_t* evnt_next_event(evnt_block_t* block) {
  */
 void evnt_close_trace(evnt_block_t* block) {
     fclose(block->fp);
-    free(block->trace_head);
+    free(block->buffer_ptr);
 
     // set pointers to NULL
     block->fp = NULL;
-    block->trace = NULL;
-    block->trace_head = NULL;
+    block->buffer = NULL;
+    block->buffer_ptr = NULL;
 }
 
 int main(int argc, const char **argv) {
     evnt_size_t i;
     const char* filename = "trace";
     evnt_t* event;
-    evnt_trace_t buffer;
+    evnt_buffer_t buffer;
     evnt_block_t block;
     evnt_info_t* header;
 
@@ -216,7 +216,7 @@ int main(int argc, const char **argv) {
     printf("    libevnt v.%s\n", header->libevnt_ver);
     printf("    %s\n", header->sysinfo);*/
 
-    while (block.trace != NULL ) {
+    while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
 
         if (event == NULL )
