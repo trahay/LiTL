@@ -26,3 +26,5 @@ test_evnt_pause_SOURCES = test_evnt_pause.c
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
+	rm -rf *.trace 
+	

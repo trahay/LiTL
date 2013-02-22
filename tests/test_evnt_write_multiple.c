@@ -8,26 +8,41 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <semaphore.h>
+#include <pthread.h>
 
 #include "evnt_types.h"
 #include "evnt_write.h"
 
-/* This test tries to write several traces in a row. */
+#define NBTHREAD 4
 
-void write_trace(int suffix) {
+/*
+ * Only used during thread creating to make sure that the thread
+ * got the correct args.
+ */
+sem_t thread_ready;
+
+/*
+ * This test records several traces at the same time
+ */
+void* write_trace(void* arg) {
     int i;
     char* filename;
-    asprintf(&filename, "test_evnt_write_%d.trace", suffix);
+    uint8_t my_id = *(uint8_t*) arg;
+
+    // Notify the main thread that we got the args
+    sem_post(&thread_ready);
+
+    printf("Recording events on thread #%d\n", my_id);
+    asprintf(&filename, "test_evnt_write_%d.trace", my_id);
 
     evnt_trace_t trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB
 
-    printf("=============================================================\n");
-    printf("Recording events with various number of arguments\n\n");
     trace = evnt_init_trace(buffer_size);
     evnt_set_filename(&trace, filename);
 
-    int nb_iter = 5;
+    int nb_iter = 1000;
     evnt_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     for (i = 0; i < nb_iter; i++) {
@@ -57,17 +72,26 @@ void write_trace(int suffix) {
         usleep(100);
     }
 
+    printf("Events for thread #%d are stored in %s\n", my_id, trace.evnt_filename);
+
     evnt_fin_trace(&trace);
 
-    printf("\nEvents are recorded and written in the %s file\n", filename);
-    printf("=============================================================\n");
+    return NULL;
 }
 
 int main(int argc, const char **argv) {
     int i;
+    pthread_t tid[NBTHREAD];
 
-    for (i = 0; i < 10; i++) {
-        write_trace(i);
+    sem_init(&thread_ready, 0, 0);
+
+    for (i = 0; i < NBTHREAD; i++) {
+        pthread_create(&tid[i], NULL, write_trace, &i);
+        sem_wait(&thread_ready);
     }
+
+    for (i = 0; i < NBTHREAD; i++)
+        pthread_join(tid[i], NULL );
+
     return EXIT_SUCCESS;
 }
