@@ -18,7 +18,8 @@ evnt_size_t get_event_components(evnt_size_t nb_params) {
     // ceil(...) corresponds to the memory slot occupied by tid (evnt_tid_t), time (evnt_time_t), code (evnt_code_t),
     // and nb_params (evnt_size_t). And, it equals to n * sizeof(evnt_param_t)
     return nb_params
-            + ceil((sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
+            + (evnt_size_t) ceil(
+                    (sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
                             / (double) sizeof(evnt_param_t));
 }
 
@@ -26,8 +27,9 @@ evnt_size_t get_event_components(evnt_size_t nb_params) {
  * This function returns the size of a particular event in bytes depending on the number of arguments
  */
 evnt_size_t get_event_size(evnt_size_t nb_params) {
-    return sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t)
-            + nb_params * sizeof(evnt_param_t);
+    return nb_params * sizeof(evnt_param_t)
+            + (evnt_size_t) ceil((sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
+                            / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
 }
 
 /*

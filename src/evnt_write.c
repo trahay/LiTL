@@ -16,127 +16,12 @@
 #include "evnt_write.h"
 
 /*
- * To handle write conflicts while using pthread
- */
-static pthread_mutex_t __evnt_flush_lock;
-
-static evnt_buffer_t __buffer_ptr;
-static evnt_buffer_t __buffer_cur;
-static uint32_t __buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
-// __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
-static uint8_t __buffer_flush = 1;
-// __thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
-static uint8_t __thread_safety = 0;
-
-static FILE* __ftrace;
-static char* __evnt_filename;
-
-static uint8_t __tid_activated = 0;
-
-// __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
-static uint8_t __evnt_initialized = 0;
-volatile uint8_t __evnt_paused = 0;
-
-/*
- * __already_flushed is used to check whether the buffer was flushed as well as
- *                   to ensure that the correct and unique trace file was opened
- */
-static uint8_t __already_flushed = 0;
-
-/*
- * This function computes the size of data in buffer
- */
-static uint32_t __get_buffer_size() {
-    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) __buffer_cur - (evnt_buffer_t) __buffer_ptr);
-}
-
-/*
- * Activate buffer flush
- */
-void evnt_buffer_flush_on() {
-    __buffer_flush = 1;
-}
-
-/*
- * Deactivate buffer flush. It is activated by default
- */
-void evnt_buffer_flush_off() {
-    __buffer_flush = 0;
-}
-
-/*
- * Activate thread-safety. It is not activated by default
- */
-void evnt_thread_safety_on() {
-    __thread_safety = 1;
-}
-
-/*
- * Deactivate thread-safety
- */
-void evnt_thread_safety_off() {
-    __thread_safety = 0;
-}
-
-/*
- * Activate recording tid. It is not activated by default
- */
-void evnt_tid_recording_on() {
-    __tid_activated = 1;
-}
-
-/*
- * Deactivate recording tid
- */
-void evnt_tid_recording_off() {
-    __tid_activated = 0;
-}
-
-
-void evnt_pause_recording() {
-  __evnt_paused = 1;
-}
-
-void evnt_resume_recording() {
-  __evnt_paused = 0;
-}
-
-/*
- * Set a new name for the trace file
- */
-void evnt_set_filename(char* filename) {
-    if (__evnt_filename) {
-        if (__already_flushed)
-            fprintf(stderr,
-                    "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
-                    filename, __evnt_filename);
-        free(__evnt_filename);
-    }
-
-    // check whether the file name was set. If no, set it by default trace name.
-    if (filename == NULL )
-        sprintf(filename, "/tmp/%s_%s", getenv("USER"), "eztrace_log_rank_1");
-
-    if (asprintf(&__evnt_filename, "%s", filename) == -1) {
-        perror("Error: Cannot set the filename for recording events!\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-/*
- * This function sets the buffer size
- */
-static void __set_write_buffer_size(const uint32_t buf_size) {
-    __buffer_size = buf_size;
-}
-
-/*
  * This function adds a header to the trace file the information regarding:
  *   - OS
  *   - Processor type
  *   - Version of libevnt
  */
-static void add_trace_header() {
+static void add_trace_header(evnt_trace_t* trace) {
     int n, size;
     struct utsname uts;
 
@@ -144,26 +29,27 @@ static void add_trace_header() {
         perror("Could not use uname()!");
 
     // get the number of symbols for libevnt_ver
-    n = sprintf(((evnt_info_t *) __buffer_cur)->libevnt_ver, "%s", VERSION);
+    n = sprintf(((evnt_info_t *) trace->buffer_cur)->libevnt_ver, "%s", VERSION);
     // +1 corresponds to the '\0' symbol
     size = n + 1;
 
     // get the number of symbols for sysinfo
-    n = sprintf(((evnt_info_t *) __buffer_cur)->sysinfo, "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
+    n = sprintf(((evnt_info_t *) trace->buffer_cur)->sysinfo, "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
             uts.version, uts.machine);
     // +1 corresponds to the '\0' symbol
     size += n + 1;
 
-    __buffer_cur += (evnt_param_t) ceil((double) size / sizeof(evnt_param_t));
+    trace->buffer_cur += (evnt_param_t) ceil((double) size / sizeof(evnt_param_t));
 }
 
 /*
  * This function initializes the trace
  */
-void evnt_init_trace(const uint32_t buf_size) {
+evnt_trace_t evnt_init_trace(const uint32_t buf_size) {
     void *vp;
+    evnt_trace_t trace;
 
-    __set_write_buffer_size(buf_size);
+    trace.buffer_size = buf_size;
 
     // the size of the buffer is slightly bigger than it was required, because one additional event is added after the tracing
     vp = malloc(buf_size + get_event_size(EVNT_MAX_PARAMS));
@@ -173,174 +59,238 @@ void evnt_init_trace(const uint32_t buf_size) {
     }
 
     // set variables
-    __buffer_ptr = vp;
-    __buffer_cur = __buffer_ptr;
+    trace.buffer_ptr = vp;
+    trace.buffer_cur = trace.buffer_ptr;
+    trace.buffer_flush = 1;
+    trace.thread_safety = 0;
+    trace.tid_activated = 0;
+    trace.already_flushed = 0;
+    trace.evnt_filename = NULL;
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    if (__thread_safety && __buffer_flush) {
-        pthread_mutex_init(&__evnt_flush_lock, NULL );
+    if (trace.thread_safety && trace.buffer_flush) {
+        pthread_mutex_init(&trace.evnt_flush_lock, NULL );
     }
 
     // add a header to the trace file
     //    add_trace_header();
 
-    __evnt_initialized = 1;
-    __evnt_paused = 0;
+    trace.evnt_initialized = 1;
+    trace.evnt_paused = 0;
+
+    return trace;
 }
 
 /*
- * This function finalizes the trace
+ * This function computes the size of data in buffer
  */
-void evnt_fin_trace() {
-    // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
-    evnt_probe0(EVNT_TRACE_END);
+static uint32_t __get_buffer_size(evnt_trace_t* trace) {
+    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) trace->buffer_cur - (evnt_buffer_t) trace->buffer_ptr);
+}
 
-    evnt_flush_buffer();
+/*
+ * Activate buffer flush
+ */
+void evnt_buffer_flush_on(evnt_trace_t* trace) {
+    trace->buffer_flush = 1;
+}
 
-    fclose(__ftrace);
-    free(__buffer_ptr);
+/*
+ * Deactivate buffer flush. It is activated by default
+ */
+void evnt_buffer_flush_off(evnt_trace_t* trace) {
+    trace->buffer_flush = 0;
+}
 
-    if (__thread_safety)
-        pthread_mutex_destroy(&__evnt_flush_lock);
+/*
+ * Activate thread-safety. It is not activated by default
+ */
+void evnt_thread_safety_on(evnt_trace_t* trace) {
+    trace->thread_safety = 1;
+}
 
-    __ftrace = NULL;
-    __buffer_ptr = NULL;
-    __evnt_filename = NULL;
-    __evnt_initialized = 0;
-    __already_flushed = 0;
+/*
+ * Deactivate thread-safety
+ */
+void evnt_thread_safety_off(evnt_trace_t* trace) {
+    trace->thread_safety = 0;
+}
+
+/*
+ * Activate recording tid. It is not activated by default
+ */
+void evnt_tid_recording_on(evnt_trace_t* trace) {
+    trace->tid_activated = 1;
+}
+
+/*
+ * Deactivate recording tid
+ */
+void evnt_tid_recording_off(evnt_trace_t* trace) {
+    trace->tid_activated = 0;
+}
+
+void evnt_pause_recording(evnt_trace_t* trace) {
+    trace->evnt_paused = 1;
+}
+
+void evnt_resume_recording(evnt_trace_t* trace) {
+    trace->evnt_paused = 0;
+}
+
+/*
+ * Set a new name for the trace file
+ */
+void evnt_set_filename(evnt_trace_t* trace, char* filename) {
+    if (trace->evnt_filename) {
+        if (trace->already_flushed)
+            fprintf(stderr,
+                    "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
+                    filename, trace->evnt_filename);
+        free(trace->evnt_filename);
+    }
+
+    // check whether the file name was set. If no, set it by default trace name.
+    if (filename == NULL )
+        sprintf(filename, "/tmp/%s_%s", getenv("USER"), "eztrace_log_rank_1");
+
+    if (asprintf(&trace->evnt_filename, filename) == -1) {
+        perror("Error: Cannot set the filename for recording events!\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*
  * This function writes the recorded events from the buffer to the trace file
  */
-void evnt_flush_buffer() {
-    if (!__evnt_initialized)
+void evnt_flush_buffer(evnt_trace_t* trace) {
+    if (!trace->evnt_initialized)
         return;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
 
-    if (!__already_flushed)
+    if (!trace->already_flushed)
         // check whether the trace file can be opened
-        if (!(__ftrace = fopen(__evnt_filename, "w+"))) {
+        if (!(trace->ftrace = fopen(trace->evnt_filename, "w+"))) {
             perror("Could not open the trace file for writing!");
             exit(EXIT_FAILURE);
         }
 
-    if (fwrite(__buffer_ptr, __get_buffer_size(), 1, __ftrace) != 1) {
+    if (fwrite(trace->buffer_ptr, __get_buffer_size(trace), 1, trace->ftrace) != 1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
         exit(EXIT_FAILURE);
     }
 
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    __buffer_cur = __buffer_ptr;
-    __already_flushed = 1;
+    trace->buffer_cur = trace->buffer_ptr;
+    trace->already_flushed = 1;
 }
 
 /*
  * This function records an event without any arguments
  */
-void evnt_probe0(evnt_code_t code) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(0);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(0);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 0;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe0(code);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe0(trace, code);
     }
 }
 
 /*
  * This function records an event with one argument
  */
-void evnt_probe1(evnt_code_t code, evnt_param_t param1) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(1);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(1);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe1(code, param1);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe1(trace, code, param1);
     }
 }
 
 /*
  * This function records an event with two arguments
  */
-void evnt_probe2(evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(2);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(2);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 2;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe2(code, param1, param2);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe2(trace, code, param1, param2);
     }
 }
 
 /*
  * This function records an event with three arguments
  */
-void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(3);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(3);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -348,29 +298,30 @@ void evnt_probe3(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe3(code, param1, param2, param3);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe3(trace, code, param1, param2, param3);
     }
 }
 
 /*
  * This function records an event with four arguments
  */
-void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(4);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(4);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -379,30 +330,30 @@ void evnt_probe4(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe4(code, param1, param2, param3, param4);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe4(trace, code, param1, param2, param3, param4);
     }
 }
 
 /*
  * This function records an event with five arguments
  */
-void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(5);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(5);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -412,30 +363,30 @@ void evnt_probe5(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe5(code, param1, param2, param3, param4, param5);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe5(trace, code, param1, param2, param3, param4, param5);
     }
 }
 
 /*
  * This function records an event with six arguments
  */
-void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5, evnt_param_t param6) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5, evnt_param_t param6) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(6);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(6);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -446,30 +397,30 @@ void evnt_probe6(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe6(code, param1, param2, param3, param4, param5, param6);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe6(trace, code, param1, param2, param3, param4, param5, param6);
     }
 }
 
 /*
  * This function records an event with seven arguments
  */
-void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(7);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(7);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -481,30 +432,30 @@ void evnt_probe7(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe7(code, param1, param2, param3, param4, param5, param6, param7);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe7(trace, code, param1, param2, param3, param4, param5, param6, param7);
     }
 }
 
 /*
  * This function records an event with eight arguments
  */
-void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(8);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(8);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -517,30 +468,31 @@ void evnt_probe8(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe8(code, param1, param2, param3, param4, param5, param6, param7, param8);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe8(trace, code, param1, param2, param3, param4, param5, param6, param7, param8);
     }
 }
 
 /*
  * This function records an event with nine arguments
  */
-void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8,
+        evnt_param_t param9) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(9);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(9);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -554,31 +506,31 @@ void evnt_probe9(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evn
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe9(code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe9(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     }
 }
 
 /*
  * This function records an event with ten arguments
  */
-void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3, evnt_param_t param4,
-        evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8, evnt_param_t param9,
-        evnt_param_t param10) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
+        evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8,
+        evnt_param_t param9, evnt_param_t param10) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components(10);
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components(10);
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
@@ -593,9 +545,9 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
         ((evnt_t *) cur_ptr)->param[9] = param10;
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_probe10(code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_probe10(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     }
 }
 
@@ -603,21 +555,21 @@ void evnt_probe10(evnt_code_t code, evnt_param_t param1, evnt_param_t param2, ev
  * This function records an event in a raw state, where the size is the number of chars in the array
  * That helps to discover places where the application has crashed while using EZTrace
  */
-void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
-    if (!__evnt_initialized || __evnt_paused)
+void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
+    if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
     int i;
     evnt_buffer_t cur_ptr;
 
-    if (__thread_safety)
-        pthread_mutex_lock(&__evnt_flush_lock);
-    cur_ptr = __buffer_cur;
-    __buffer_cur += get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
-    if (__thread_safety)
-        pthread_mutex_unlock(&__evnt_flush_lock);
+    if (trace->thread_safety)
+        pthread_mutex_lock(&trace->evnt_flush_lock);
+    cur_ptr = trace->buffer_cur;
+    trace->buffer_cur += get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
+    if (trace->thread_safety)
+        pthread_mutex_unlock(&trace->evnt_flush_lock);
 
-    if (__get_buffer_size() < __buffer_size) {
+    if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_raw_t *) cur_ptr)->time = evnt_get_time();
         code = set_bit(code);
@@ -626,8 +578,31 @@ void evnt_raw_probe(evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
         if (size > 0)
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
-    } else if (__buffer_flush) {
-        evnt_flush_buffer();
-        evnt_raw_probe(code, size, data);
+    } else if (trace->buffer_flush) {
+        evnt_flush_buffer(trace);
+        evnt_raw_probe(trace, code, size, data);
     }
+}
+
+/*
+ * This function finalizes the trace
+ */
+void evnt_fin_trace(evnt_trace_t* trace) {
+    // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
+    evnt_probe0(trace, EVNT_TRACE_END);
+
+    evnt_flush_buffer(trace);
+
+    fclose(trace->ftrace);
+    free(trace->buffer_ptr);
+
+    if (trace->thread_safety)
+        pthread_mutex_destroy(&trace->evnt_flush_lock);
+
+    trace->ftrace = NULL;
+    trace->buffer_ptr = NULL;
+    free(trace->evnt_filename);
+    trace->evnt_filename = NULL;
+    trace->evnt_initialized = 0;
+    trace->already_flushed = 0;
 }

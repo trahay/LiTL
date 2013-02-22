@@ -20,9 +20,11 @@
 
 int main(int argc, const char **argv) {
     int i;
-    evnt_time_t start, fin;
     const char* filename = "trace.trace";
     uint32_t buf_size;
+
+    evnt_time_t start, fin;
+    evnt_trace_t trace;
     evnt_t* event;
     evnt_buffer_t buffer;
     evnt_block_t block;
@@ -41,27 +43,27 @@ int main(int argc, const char **argv) {
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
-        evnt_set_filename(filename);
-        evnt_init_trace(buf_size);
+        trace = evnt_init_trace(buf_size);
+        evnt_set_filename(&trace, filename);
 
         start = evnt_get_time();
         for (i = 0; i < (NB_EVENTS + 1) / 12; i++) {
-            evnt_probe0(10 * i + 1);
-            evnt_probe1(10 * i + 2, 1);
-            evnt_probe2(10 * i + 3, 1, 3);
-            evnt_probe3(10 * i + 4, 1, 3, 5);
-            evnt_probe4(10 * i + 5, 1, 3, 5, 7);
-            evnt_probe5(10 * i + 6, 1, 3, 5, 7, 11);
-            evnt_probe6(10 * i + 7, 1, 3, 5, 7, 11, 13);
-            evnt_probe7(10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
-            evnt_probe8(10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
-            evnt_probe9(10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
-            evnt_probe10(10 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
-            evnt_raw_probe(10 * i + 12, sizeof(val) - 1, val);
+            evnt_probe0(&trace, 10 * i + 1);
+            evnt_probe1(&trace, 10 * i + 2, 1);
+            evnt_probe2(&trace, 10 * i + 3, 1, 3);
+            evnt_probe3(&trace, 10 * i + 4, 1, 3, 5);
+            evnt_probe4(&trace, 10 * i + 5, 1, 3, 5, 7);
+            evnt_probe5(&trace, 10 * i + 6, 1, 3, 5, 7, 11);
+            evnt_probe6(&trace, 10 * i + 7, 1, 3, 5, 7, 11, 13);
+            evnt_probe7(&trace, 10 * i + 8, 1, 3, 5, 7, 11, 13, 17);
+            evnt_probe8(&trace, 10 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
+            evnt_probe9(&trace, 10 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+            evnt_probe10(&trace, 10 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
+            evnt_raw_probe(&trace, 10 * i + 12, sizeof(val) - 1, val);
         }
         fin = evnt_get_time();
 
-        evnt_fin_trace();
+        evnt_fin_trace(&trace);
         printf("\t%"PRTIu32"\t\t %"PRTIu64"\n", buf_size / 1024, fin - start);
 
         buf_size = 2 * buf_size;

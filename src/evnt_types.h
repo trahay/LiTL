@@ -96,21 +96,21 @@ typedef struct {
     evnt_buffer_t buffer_ptr;
     evnt_buffer_t buffer_cur;
 
-    uint32_t buffer_size = 512 * 1024; // 512KB is the optimal buffer size for recording events on Intel Core2
-    uint8_t buffer_flush = 1; // __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
+    uint32_t buffer_size; // the buffer size for recording events on Intel Core2
+    uint8_t buffer_flush; // __buffer_flush indicates whether buffer flush is enabled (1) or not (0)
 
     pthread_mutex_t evnt_flush_lock; // to handle write conflicts while using pthread
-    uint8_t thread_safety = 0; // __thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
+    uint8_t thread_safety; // __thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
 
-    uint8_t tid_activated = 0;
+    uint8_t tid_activated;
 
     // __evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is finished
-    uint8_t evnt_initialized = 0;
-    volatile uint8_t evnt_paused = 0;
+    uint8_t evnt_initialized;
+    volatile uint8_t evnt_paused;
 
     // __already_flushed is used to check whether the buffer was flushed as well as
     //                    to ensure that the correct and unique trace file was opened
-    uint8_t already_flushed = 0;
+    uint8_t already_flushed;
 } evnt_trace_t;
 
 // defining the printing formats

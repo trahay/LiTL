@@ -212,9 +212,9 @@ int main(int argc, const char **argv) {
     block = evnt_get_block(buffer);
     /*header = evnt_get_trace_header(&block);
 
-    // print the header
-    printf("    libevnt v.%s\n", header->libevnt_ver);
-    printf("    %s\n", header->sysinfo);*/
+     // print the header
+     printf("    libevnt v.%s\n", header->libevnt_ver);
+     printf("    %s\n", header->sysinfo);*/
 
     while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
