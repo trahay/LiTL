@@ -122,9 +122,11 @@ int main(int argc, const char **argv) {
 
     printf("\nEvents are recorded and written in the %s file\n", filename);
 
-    printf("\nChecking whether recording of events was paused\n");
+    printf("\nChecking whether the recording of events was paused\n");
 
     read_trace(filename, 0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
+
+    printf("Yes, the recording of events was paused\n");
 
     printf("=============================================================\n");
 
