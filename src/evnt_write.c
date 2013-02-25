@@ -16,6 +16,12 @@
 #include "evnt_write.h"
 
 /*
+ * Implementation of thread safety through atomic compare and swap operation
+ */
+#define evnt_cmpxchg(ptr, obj1, obj2) \
+        __sync_bool_compare_and_swap((ptr), (obj1), (obj2))
+
+/*
  * This function adds a header to the trace file the information regarding:
  *   - OS
  *   - Processor type
@@ -104,14 +110,14 @@ void evnt_buffer_flush_off(evnt_trace_t* trace) {
 }
 
 /*
- * Activate thread-safety. It is not activated by default
+ * Activate thread safety. It is not activated by default
  */
 void evnt_thread_safety_on(evnt_trace_t* trace) {
     trace->allow_thread_safety = 1;
 }
 
 /*
- * Deactivate thread-safety
+ * Deactivate thread safety
  */
 void evnt_thread_safety_off(evnt_trace_t* trace) {
     trace->allow_thread_safety = 0;
@@ -197,14 +203,13 @@ void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(0);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(0);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -224,14 +229,13 @@ void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(1);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(1);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -252,14 +256,13 @@ void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(2);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(2);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -281,14 +284,13 @@ void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(3);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(3);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -312,14 +314,13 @@ void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(4);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(4);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -344,14 +345,13 @@ void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(5);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(5);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -377,14 +377,13 @@ void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(6);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(6);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -411,14 +410,13 @@ void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(7);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(7);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -446,14 +444,13 @@ void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(8);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(8);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -483,14 +480,13 @@ void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(9);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(9);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -521,14 +517,13 @@ void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, ev
     if (!trace->evnt_initialized || trace->evnt_paused)
         return;
 
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components(10);
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components(10);
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
@@ -560,14 +555,13 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
         return;
 
     evnt_size_t i;
-    evnt_buffer_t cur_ptr;
+    evnt_buffer_t cur_ptr, next_ptr;
 
-    if (trace->allow_thread_safety)
-        pthread_mutex_lock(&trace->lock_evnt_flush);
-    cur_ptr = trace->buffer_cur;
-    trace->buffer_cur += get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
-    if (trace->allow_thread_safety)
-        pthread_mutex_unlock(&trace->lock_evnt_flush);
+    // thread safety through atomic compare and swap method
+    do {
+        cur_ptr = trace->buffer_cur;
+        next_ptr = trace->buffer_cur + get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
+    } while (!evnt_cmpxchg(&trace->buffer_cur, cur_ptr, next_ptr));
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
