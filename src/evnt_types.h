@@ -98,6 +98,7 @@ typedef struct {
 
     uint32_t buffer_size; // the buffer size for recording events on Intel Core2
     uint8_t allow_buffer_flush; // buffer_flush indicates whether buffer flush is enabled (1) or not (0)
+    uint8_t is_buffer_full; // in case when the flushing is disabled, the recording of events should be skipped
 
     pthread_mutex_t lock_evnt_flush; // to handle write conflicts while using pthread
     uint8_t allow_thread_safety; // allow_thread_safety indicates whether libevnt uses thread-safety (1) or not (0)

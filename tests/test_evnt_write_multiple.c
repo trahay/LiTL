@@ -34,7 +34,7 @@ void* write_trace(void* arg) {
     sem_post(&thread_ready);
 
     printf("Recording events on thread #%d\n", my_id);
-    asprintf(&filename, "test_evnt_write_%d.trace", my_id);
+    asprintf(&filename, "/tmp/test_evnt_write_%d.trace", my_id);
 
     evnt_trace_t trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB

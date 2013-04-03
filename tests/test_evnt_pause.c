@@ -113,7 +113,7 @@ int main(int argc, const char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
-        filename = "test_evnt_pause.trace";
+        filename = "/tmp/test_evnt_pause.trace";
 
     printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");

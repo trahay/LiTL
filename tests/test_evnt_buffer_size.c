@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
-        filename = "test_evnt_write.trace";
+        filename = "/tmp/test_evnt_write.trace";
 
     printf("=============================================================\n");
     printf("What is the optimal buffer size for recording events?\n\n");

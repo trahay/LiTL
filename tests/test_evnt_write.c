@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
-        filename = "test_evnt_write.trace";
+        filename = "/tmp/test_evnt_write.trace";
 
     printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
@@ -30,11 +30,12 @@ int main(int argc, const char **argv) {
     trace = evnt_init_trace(buffer_size);
     evnt_set_filename(&trace, filename);
 
-    printf("Enter the number of events to be recorded (nb >= 1): ");
-    i = scanf("%d", &nb_iter);
+    /*printf("Enter the number of events to be recorded (nb >= 1): ");
+     i = scanf("%d", &nb_iter);
 
-    if (nb_iter < 12)
-        nb_iter = 12;
+     if (nb_iter < 12)
+     nb_iter = 12;*/
+    nb_iter = 1000;
 
     evnt_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";

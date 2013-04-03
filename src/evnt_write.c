@@ -7,6 +7,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <pthread.h>
 #include <sys/utsname.h>
@@ -67,15 +68,23 @@ evnt_trace_t evnt_init_trace(const uint32_t buf_size) {
     // set variables
     trace.buffer_ptr = vp;
     trace.buffer_cur = trace.buffer_ptr;
-    trace.allow_buffer_flush = 1;
-    trace.allow_thread_safety = 0;
-    trace.record_tid_activated = 0;
+    evnt_thread_safety_off(&trace);
+    evnt_tid_recording_off(&trace);
     trace.already_flushed = 0;
     trace.evnt_filename = NULL;
 
+    // set trace.allow_buffer_flush using the environment variable
+    char* flush_str = getenv("EVNT_BUFFER_FLUSH");
+    if (flush_str)
+        if (strcmp(flush_str, "off") == 0)
+            evnt_buffer_flush_off(&trace);
+        else
+            evnt_buffer_flush_on(&trace);
+    trace.is_buffer_full = 0;
+
     // TODO: touch each block in buffer_ptr in order to load it
 
-    if (trace.allow_thread_safety && trace.allow_buffer_flush) {
+    if (trace.allow_thread_safety) {
         pthread_mutex_init(&trace.lock_evnt_flush, NULL );
     }
 
@@ -200,7 +209,7 @@ void evnt_flush_buffer(evnt_trace_t* trace) {
  * This function records an event without any arguments
  */
 void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -219,14 +228,16 @@ void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe0(trace, code);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
  * This function records an event with one argument
  */
 void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -246,14 +257,16 @@ void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe1(trace, code, param1);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
  * This function records an event with two arguments
  */
 void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -274,14 +287,16 @@ void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe2(trace, code, param1, param2);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
  * This function records an event with three arguments
  */
 void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -303,7 +318,9 @@ void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe3(trace, code, param1, param2, param3);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -311,7 +328,7 @@ void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
  */
 void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -334,7 +351,9 @@ void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe4(trace, code, param1, param2, param3, param4);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -342,7 +361,7 @@ void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
  */
 void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -366,7 +385,9 @@ void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe5(trace, code, param1, param2, param3, param4, param5);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -374,7 +395,7 @@ void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
  */
 void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5, evnt_param_t param6) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -399,7 +420,9 @@ void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe6(trace, code, param1, param2, param3, param4, param5, param6);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -407,7 +430,7 @@ void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
  */
 void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -433,7 +456,9 @@ void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe7(trace, code, param1, param2, param3, param4, param5, param6, param7);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -441,7 +466,7 @@ void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
  */
 void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -468,7 +493,9 @@ void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe8(trace, code, param1, param2, param3, param4, param5, param6, param7, param8);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -477,7 +504,7 @@ void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
 void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8,
         evnt_param_t param9) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -505,7 +532,9 @@ void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe9(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -514,7 +543,7 @@ void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
 void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evnt_param_t param2, evnt_param_t param3,
         evnt_param_t param4, evnt_param_t param5, evnt_param_t param6, evnt_param_t param7, evnt_param_t param8,
         evnt_param_t param9, evnt_param_t param10) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_buffer_t cur_ptr, next_ptr;
@@ -543,7 +572,9 @@ void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, ev
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_probe10(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
@@ -551,7 +582,7 @@ void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, ev
  * That helps to discover places where the application has crashed while using EZTrace
  */
 void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evnt_data_t data[]) {
-    if (!trace->evnt_initialized || trace->evnt_paused)
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
     evnt_size_t i;
@@ -575,7 +606,9 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
         evnt_raw_probe(trace, code, size, data);
-    }
+    } else
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
 }
 
 /*
