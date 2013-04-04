@@ -68,31 +68,37 @@ evnt_trace_t evnt_init_trace(const uint32_t buf_size) {
     // set variables
     trace.buffer_ptr = vp;
     trace.buffer_cur = trace.buffer_ptr;
-    evnt_thread_safety_off(&trace);
-    evnt_tid_recording_off(&trace);
-    trace.already_flushed = 0;
     trace.evnt_filename = NULL;
+    trace.already_flushed = 0;
+    trace.is_buffer_full = 0;
+    evnt_tid_recording_on(&trace);
 
-    // set trace.allow_buffer_flush using the environment variable
-    char* flush_str = getenv("EVNT_BUFFER_FLUSH");
-    if (flush_str)
-        if (strcmp(flush_str, "off") == 0)
+    // set trace.allow_buffer_flush using the environment variable. By default the flushing is enabled
+    char* str = getenv("EVNT_BUFFER_FLUSH");
+    if (str)
+        if (strcmp(str, "off") == 0)
             evnt_buffer_flush_off(&trace);
         else
             evnt_buffer_flush_on(&trace);
-    trace.is_buffer_full = 0;
 
-    // TODO: touch each block in buffer_ptr in order to load it
+    // set trace.allow_thread_safety using the environment variable. By default thread safety is enabled
+    str = getenv("EVNT_THREAD_SAFETY");
+    if (str)
+        if (strcmp(str, "off") == 0)
+            evnt_thread_safety_off(&trace);
+        else
+            evnt_thread_safety_on(&trace);
 
-    if (trace.allow_thread_safety) {
+    if (trace.allow_thread_safety)
         pthread_mutex_init(&trace.lock_evnt_flush, NULL );
-    }
 
     // add a header to the trace file
     //    add_trace_header();
 
-    trace.evnt_initialized = 1;
+    // TODO: touch each block in buffer_ptr in order to load it
+
     trace.evnt_paused = 0;
+    trace.evnt_initialized = 1;
 
     return trace;
 }
