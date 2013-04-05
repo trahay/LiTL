@@ -75,25 +75,23 @@ evnt_trace_t evnt_init_trace(const uint32_t buf_size) {
 
     // set trace.allow_buffer_flush using the environment variable. By default the flushing is enabled
     char* str = getenv("EVNT_BUFFER_FLUSH");
-    if (str)
-        if (strcmp(str, "off") == 0)
-            evnt_buffer_flush_off(&trace);
-        else
-            evnt_buffer_flush_on(&trace);
+    if (str && (strcmp(str, "off") == 0))
+        evnt_buffer_flush_off(&trace);
+    else
+        evnt_buffer_flush_on(&trace);
 
     // set trace.allow_thread_safety using the environment variable. By default thread safety is enabled
     str = getenv("EVNT_THREAD_SAFETY");
-    if (str)
-        if (strcmp(str, "off") == 0)
-            evnt_thread_safety_off(&trace);
-        else
-            evnt_thread_safety_on(&trace);
+    if (str && (strcmp(str, "off") == 0))
+        evnt_thread_safety_off(&trace);
+    else
+        evnt_thread_safety_on(&trace);
 
     if (trace.allow_thread_safety)
         pthread_mutex_init(&trace.lock_evnt_flush, NULL );
 
     // add a header to the trace file
-    //    add_trace_header();
+    add_trace_header(&trace);
 
     // TODO: touch each block in buffer_ptr in order to load it
 
@@ -232,6 +230,7 @@ void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
         ((evnt_t *) cur_ptr)->code = code;
         ((evnt_t *) cur_ptr)->nb_params = 0;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(0);
         evnt_flush_buffer(trace);
         evnt_probe0(trace, code);
     } else
@@ -261,6 +260,7 @@ void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(1);
         evnt_flush_buffer(trace);
         evnt_probe1(trace, code, param1);
     } else
@@ -291,6 +291,7 @@ void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(2);
         evnt_flush_buffer(trace);
         evnt_probe2(trace, code, param1, param2);
     } else
@@ -322,6 +323,7 @@ void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[1] = param2;
         ((evnt_t *) cur_ptr)->param[2] = param3;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(3);
         evnt_flush_buffer(trace);
         evnt_probe3(trace, code, param1, param2, param3);
     } else
@@ -355,6 +357,7 @@ void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[2] = param3;
         ((evnt_t *) cur_ptr)->param[3] = param4;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(4);
         evnt_flush_buffer(trace);
         evnt_probe4(trace, code, param1, param2, param3, param4);
     } else
@@ -389,6 +392,7 @@ void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[3] = param4;
         ((evnt_t *) cur_ptr)->param[4] = param5;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(5);
         evnt_flush_buffer(trace);
         evnt_probe5(trace, code, param1, param2, param3, param4, param5);
     } else
@@ -424,6 +428,7 @@ void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[4] = param5;
         ((evnt_t *) cur_ptr)->param[5] = param6;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(6);
         evnt_flush_buffer(trace);
         evnt_probe6(trace, code, param1, param2, param3, param4, param5, param6);
     } else
@@ -460,6 +465,7 @@ void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[5] = param6;
         ((evnt_t *) cur_ptr)->param[6] = param7;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(7);
         evnt_flush_buffer(trace);
         evnt_probe7(trace, code, param1, param2, param3, param4, param5, param6, param7);
     } else
@@ -497,6 +503,7 @@ void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[6] = param7;
         ((evnt_t *) cur_ptr)->param[7] = param8;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(8);
         evnt_flush_buffer(trace);
         evnt_probe8(trace, code, param1, param2, param3, param4, param5, param6, param7, param8);
     } else
@@ -536,6 +543,7 @@ void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->param[7] = param8;
         ((evnt_t *) cur_ptr)->param[8] = param9;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(9);
         evnt_flush_buffer(trace);
         evnt_probe9(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
     } else
@@ -576,6 +584,7 @@ void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, ev
         ((evnt_t *) cur_ptr)->param[8] = param9;
         ((evnt_t *) cur_ptr)->param[9] = param10;
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur - get_event_components(10);
         evnt_flush_buffer(trace);
         evnt_probe10(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
     } else
@@ -610,6 +619,8 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
     } else if (trace->allow_buffer_flush) {
+        trace->buffer_cur = trace->buffer_cur
+                - get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
         evnt_flush_buffer(trace);
         evnt_raw_probe(trace, code, size, data);
     } else

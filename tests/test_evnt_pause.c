@@ -61,7 +61,7 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
         }
     }
 
-    printf("Events with code between %x and %x were not recorded\n", 0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
+    printf("\nEvents with code between %x and %x were not recorded\n", 0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
 
     evnt_fin_trace(&trace);
 }
@@ -77,6 +77,10 @@ void read_trace(char* filename, int left_bound, int right_bound) {
     set_read_buffer_size(buffer_size);
     buffer = evnt_open_trace(filename);
     block = evnt_get_block(buffer);
+
+    // the header
+    evnt_info_t* header;
+    header = evnt_get_trace_header(&block);
 
     while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
@@ -115,20 +119,17 @@ int main(int argc, const char **argv) {
     else
         filename = "/tmp/test_evnt_pause.trace";
 
-    printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
 
     write_trace(filename, nb_iter, skipped_iter);
 
-    printf("\nEvents are recorded and written in the %s file\n", filename);
+    printf("Events are recorded and written in the %s file\n", filename);
 
     printf("\nChecking whether the recording of events was paused\n");
 
     read_trace(filename, 0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
 
     printf("Yes, the recording of events was paused\n");
-
-    printf("=============================================================\n");
 
     return EXIT_SUCCESS;
 }

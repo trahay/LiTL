@@ -35,8 +35,7 @@ int main(int argc, const char **argv) {
     else
         filename = "/tmp/test_evnt_write.trace";
 
-    printf("=============================================================\n");
-    printf("What is the optimal buffer size for recording events?\n\n");
+    printf("What is the optimal buffer size for recording events?\n");
     printf("Buffer size[KB] \t Time \n");
 
     evnt_data_t val[] =
@@ -68,12 +67,9 @@ int main(int argc, const char **argv) {
 
         buf_size = 2 * buf_size;
     }
-    printf("=============================================================\n");
     printf("NB: time was measured only once on writing %d events to the %s file.\n\n", NB_EVENTS, filename);
 
-    printf("\n");
-    printf("=============================================================\n");
-    printf("What is the optimal buffer size for reading the trace file?\n\n");
+    printf("What is the optimal buffer size for reading the trace file?\n");
     printf("Buffer size[KB] \t Time \n");
 
     buf_size = 1024; // 1KB
@@ -81,7 +77,8 @@ int main(int argc, const char **argv) {
         set_read_buffer_size(buf_size);
         buffer = evnt_open_trace(filename);
         block = evnt_get_block(buffer);
-        //        header = evnt_get_trace_header(&block);
+        // the header
+        header = evnt_get_trace_header(&block);
 
         start = evnt_get_time();
         while (block.buffer != NULL ) {
@@ -97,7 +94,6 @@ int main(int argc, const char **argv) {
 
         buf_size = 2 * buf_size;
     }
-    printf("=============================================================\n");
     printf("NB: time was measured only once on reading %d events from the %s file.\n\n", NB_EVENTS, filename);
 
     return EXIT_SUCCESS;

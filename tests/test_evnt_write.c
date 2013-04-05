@@ -24,7 +24,6 @@ int main(int argc, const char **argv) {
     else
         filename = "/tmp/test_evnt_write.trace";
 
-    printf("=============================================================\n");
     printf("Recording events with various number of arguments\n\n");
 
     trace = evnt_init_trace(buffer_size);
@@ -69,7 +68,6 @@ int main(int argc, const char **argv) {
     evnt_fin_trace(&trace);
 
     printf("\nEvents are recorded and written in the %s file\n", filename);
-    printf("=============================================================\n");
 
     return EXIT_SUCCESS;
 }

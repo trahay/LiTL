@@ -19,7 +19,6 @@ int main(int argc, const char **argv) {
     evnt_t* event;
     evnt_buffer_t buffer;
     evnt_block_t block;
-    evnt_info_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -29,17 +28,15 @@ int main(int argc, const char **argv) {
     set_read_buffer_size(buffer_size);
     buffer = evnt_open_trace(filename);
     block = evnt_get_block(buffer);
-    //    header = evnt_get_trace_header(&block);
 
-    printf("=============================================================\n");
-    printf("Printing events from the %s file\n\n", filename);
+    // the header
+    evnt_info_t* header;
+    header = evnt_get_trace_header(&block);
+    printf(" libevnt v.%s\n", header->libevnt_ver);
+    printf(" %s\n", header->sysinfo);
+    printf("\n");
 
-    /*// print the header
-     printf("    libevnt v.%s\n", header->libevnt_ver);
-     printf("    %s\n", header->sysinfo);
-     printf("\n");*/
-
-    printf("Event Code\t Thread ID\t Time\t\t   NB args\t Arguments[0-9]\n");
+    printf("Event Code \t Thread ID\t Time\t\t   NB args\t Arguments[0-9]\n");
 
     while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
@@ -49,7 +46,7 @@ int main(int argc, const char **argv) {
 
         if (get_bit(event->code) == 0) {
             // regular event
-            printf("%"PRTIx32"\t %"PRTIu64"\t %"PRTIu64"\t %"PRTIu32, event->code, event->tid, event->time,
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
                     event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
@@ -58,7 +55,7 @@ int main(int argc, const char **argv) {
             // raw event
             event->code = clear_bit(event->code);
 
-            printf("%"PRTIx32"\t %"PRTIu64"\t %"PRTIu64"\t %"PRTIu32, event->code, event->tid, event->time,
+            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
                     event->nb_params);
             printf("\t %s", (evnt_data_t *) event->param);
         }
@@ -66,7 +63,6 @@ int main(int argc, const char **argv) {
         printf("\n");
     }
 
-    printf("=============================================================\n");
     evnt_close_trace(&block);
 
     return EXIT_SUCCESS;
