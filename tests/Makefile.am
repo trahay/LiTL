@@ -10,9 +10,9 @@ AM_LDFLAGS = $(top_builddir)/src/libevnt.la
 EVNTDEPENDENCIES = $(AM_LDFLAGS)
 
 CTESTS = test_evnt_write \
-         test_evnt_read \ 
+         test_evnt_read \
          test_evnt_pause \
-		 test_evnt_write_multiple \
+         test_evnt_write_multiple \
          test_evnt_buffer		 
 
 check_PROGRAMS = $(CTESTS)
@@ -26,5 +26,4 @@ test_evnt_pause_SOURCES = test_evnt_pause.c
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
-	rm -rf *.trace 
-	
+	rm -rf test_evnt_write test_evnt_read test_evnt_pause test_evnt_write_multiple test_evnt_buffer

@@ -162,7 +162,7 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
     // move pointer to the next event and update __offset
     if (get_bit(event->code) == 1)
         // raw event
-        size = ceil((double) event->nb_params / sizeof(evnt_param_t));
+        size = (evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t));
     else
         // regular event
         size = event->nb_params;

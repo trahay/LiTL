@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
 
     evnt_trace_t trace;
     const char* filename = "trace";
-    const uint32_t buffer_size = 512 * 1024; // 512KB
+    const uint32_t buffer_size = 1024; // 512KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -61,7 +61,7 @@ int main(int argc, const char **argv) {
         usleep(100);
         evnt_probe10(&trace, 0x100 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
         usleep(100);
-        evnt_raw_probe(&trace, 0x100 * i + 12, sizeof(val) - 1, val);
+        evnt_raw_probe(&trace, 0x100 * i + 12, sizeof(val), val);
         usleep(100);
     }
 
