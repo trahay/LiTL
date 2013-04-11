@@ -103,7 +103,6 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 
 #define ADD_ARG(ptr, arg) do {			\
     typeof(arg) _arg = arg;			\
-    fprintf(stderr, "\tcpy-> %p\n", ptr);	\
     memcpy(ptr, &_arg, sizeof(_arg));		\
     ptr = ((char*)ptr)+sizeof(_arg);		\
   } while(0)
@@ -153,7 +152,6 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      fprintf(stderr, "base = %p\n", p_evt);				\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
       void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
