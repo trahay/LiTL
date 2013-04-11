@@ -56,11 +56,18 @@ typedef uint8_t evnt_data_t;
 #define EVNT_MAX_PARAMS 10
 #define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(evnt_param_t))
 
+typedef enum {
+  EVENT_TYPE_REGULAR,
+  EVENT_TYPE_RAW,
+  EVENT_TYPE_PACKED,
+} evnt_type_t;
+
 // regular event
 typedef struct {
     evnt_tid_t tid; // thread ID
     evnt_time_t time; // time of the measurement
     evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
+    evnt_type_t type;
     evnt_size_t nb_params; // number of arguments
     evnt_param_t param[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 10
 } evnt_t;
@@ -70,9 +77,21 @@ typedef struct {
     evnt_tid_t tid; // thread ID
     evnt_time_t time; // time of the measurement
     evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
+    evnt_type_t type;
     evnt_size_t size; // size of data in bytes
     evnt_data_t raw[EVNT_MAX_DATA]; // raw data
 } evnt_raw_t;
+
+// packed event
+typedef struct {
+    evnt_tid_t tid; // thread ID
+    evnt_time_t time; // time of the measurement
+    evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
+    evnt_type_t type;
+    evnt_size_t size; // size of data in bytes
+    evnt_data_t param[EVNT_MAX_DATA]; // raw data
+} evnt_packed_t;
+
 
 // data structure for reading events from a trace file
 typedef struct {

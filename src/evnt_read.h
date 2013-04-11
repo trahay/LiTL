@@ -49,4 +49,149 @@ evnt_t* evnt_next_event(evnt_block_t*);
  */
 void evnt_close_trace(evnt_block_t*);
 
+
+
+#define GET_ARG_REGULAR(ptr, arg) do {		\
+    arg = *(evnt_param_t*)ptr;			\
+    (evnt_param_t*)ptr++;			\
+  } while(0)
+
+
+#define GET_ARG_PACKED(ptr, arg) do {		\
+    memcpy(&arg, ptr, sizeof(arg));		\
+    ptr = ((char*)ptr)+sizeof(arg);		\
+  } while(0)
+
+#define GET_ARG(evt, ptr, arg)			\
+  do {						\
+    if(evt->type == EVENT_TYPE_REGULAR)		\
+      GET_ARG_REGULAR(ptr, arg);		\
+    else					\
+      GET_ARG_PACKED(ptr, arg);			\
+  } while(0)
+
+
+#define INIT_PTR(evt, ptr)				\
+  do {							\
+    if(evt->type == EVENT_TYPE_REGULAR)			\
+      ptr = &evt->param[0];				\
+    else						\
+      ptr =  &((evnt_packed_t*)evt)->param[0];	\
+  } while(0)
+
+#define evnt_get_param_1(p_evt, arg1)		\
+  do {						\
+    void* ptr;					\
+    INIT_PTR(p_evt, ptr);			\
+    GET_ARG(p_evt, ptr, arg1);			\
+  } while(0)
+
+#define evnt_get_param_2(p_evt, arg1, arg2)	\
+  do {						\
+    void* ptr;					\
+    INIT_PTR(p_evt, ptr);			\
+    GET_ARG(p_evt, ptr, arg1);			\
+    GET_ARG(p_evt, ptr, arg2);			\
+  } while(0)
+
+#define evnt_get_param_3(p_evt, arg1, arg2, arg3)	\
+  do {							\
+    void* ptr;						\
+    INIT_PTR(p_evt, ptr);				\
+    GET_ARG(p_evt, ptr, arg1);				\
+    GET_ARG(p_evt, ptr, arg2);				\
+    GET_ARG(p_evt, ptr, arg3);				\
+  } while(0)
+
+#define evnt_get_param_4(p_evt, arg1, arg2, arg3, arg4)	\
+  do {							\
+    void* ptr;						\
+    INIT_PTR(p_evt, ptr);				\
+    GET_ARG(p_evt, ptr, arg1);				\
+    GET_ARG(p_evt, ptr, arg2);				\
+    GET_ARG(p_evt, ptr, arg3);				\
+    GET_ARG(p_evt, ptr, arg4);				\
+  } while(0)
+
+#define evnt_get_param_5(p_evt, arg1, arg2, arg3, arg4, arg5)	\
+  do {								\
+    void* ptr;							\
+    INIT_PTR(p_evt, ptr);					\
+    GET_ARG(p_evt, ptr, arg1);					\
+    GET_ARG(p_evt, ptr, arg2);					\
+    GET_ARG(p_evt, ptr, arg3);					\
+    GET_ARG(p_evt, ptr, arg4);					\
+    GET_ARG(p_evt, ptr, arg5);					\
+  } while(0)
+
+#define evnt_get_param_6(p_evt, arg1, arg2, arg3, arg4, arg5, arg6)	\
+  do {									\
+    void* ptr;								\
+    INIT_PTR(p_evt, ptr);						\
+    GET_ARG(p_evt, ptr, arg1);						\
+    GET_ARG(p_evt, ptr, arg2);						\
+    GET_ARG(p_evt, ptr, arg3);						\
+    GET_ARG(p_evt, ptr, arg4);						\
+    GET_ARG(p_evt, ptr, arg5);						\
+    GET_ARG(p_evt, ptr, arg6);						\
+  } while(0)
+
+#define evnt_get_param_7(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+  do {									\
+    void* ptr;								\
+    INIT_PTR(p_evt, ptr);						\
+    GET_ARG(p_evt, ptr, arg1);						\
+    GET_ARG(p_evt, ptr, arg2);						\
+    GET_ARG(p_evt, ptr, arg3);						\
+    GET_ARG(p_evt, ptr, arg4);						\
+    GET_ARG(p_evt, ptr, arg5);						\
+    GET_ARG(p_evt, ptr, arg6);						\
+    GET_ARG(p_evt, ptr, arg7);						\
+  } while(0)
+
+#define evnt_get_param_8(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+  do {									\
+    void* ptr;								\
+    INIT_PTR(p_evt, ptr);						\
+    GET_ARG(p_evt, ptr, arg1);						\
+    GET_ARG(p_evt, ptr, arg2);						\
+    GET_ARG(p_evt, ptr, arg3);						\
+    GET_ARG(p_evt, ptr, arg4);						\
+    GET_ARG(p_evt, ptr, arg5);						\
+    GET_ARG(p_evt, ptr, arg6);						\
+    GET_ARG(p_evt, ptr, arg7);						\
+    GET_ARG(p_evt, ptr, arg8);						\
+  } while(0)
+
+#define evnt_get_param_9(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+  do {									\
+    void* ptr;								\
+    INIT_PTR(p_evt, ptr);						\
+    GET_ARG(p_evt, ptr, arg1);						\
+    GET_ARG(p_evt, ptr, arg2);						\
+    GET_ARG(p_evt, ptr, arg3);						\
+    GET_ARG(p_evt, ptr, arg4);						\
+    GET_ARG(p_evt, ptr, arg5);						\
+    GET_ARG(p_evt, ptr, arg6);						\
+    GET_ARG(p_evt, ptr, arg7);						\
+    GET_ARG(p_evt, ptr, arg8);						\
+    GET_ARG(p_evt, ptr, arg9);						\
+  } while(0)
+
+#define evnt_get_param_10(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) \
+  do {									\
+    void* ptr;								\
+    INIT_PTR(p_evt, ptr);						\
+    GET_ARG(p_evt, ptr, arg1);						\
+    GET_ARG(p_evt, ptr, arg2);						\
+    GET_ARG(p_evt, ptr, arg3);						\
+    GET_ARG(p_evt, ptr, arg4);						\
+    GET_ARG(p_evt, ptr, arg5);						\
+    GET_ARG(p_evt, ptr, arg6);						\
+    GET_ARG(p_evt, ptr, arg7);						\
+    GET_ARG(p_evt, ptr, arg8);						\
+    GET_ARG(p_evt, ptr, arg9);						\
+    GET_ARG(p_evt, ptr, arg10);						\
+  } while(0)
+
 #endif /* EVNT_READ_H_ */

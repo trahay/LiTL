@@ -17,17 +17,26 @@
 #include "evnt_write.h"
 
 //#define evnt_cmpxchg(ptr, obj1, obj2) __sync_bool_compare_and_swap((ptr), (obj1), (obj2))
+
+/*
+ * Implementation of thread safety through atomic compare and swap operation
+ */
+static uint8_t* evnt_cmpxchg_exact_size(uint8_t** buf, int size) {
+  uint8_t* cur_ptr, *next_ptr;
+  do {
+    cur_ptr = *buf;
+    next_ptr = (*buf) + size;
+  } while (!__sync_bool_compare_and_swap(buf, cur_ptr, next_ptr));
+  return cur_ptr;
+}
+
+
 /*
  * Implementation of thread safety through atomic compare and swap operation
  */
 static evnt_buffer_t evnt_cmpxchg(evnt_buffer_t* buf, evnt_size_t nb_params) {
-    evnt_buffer_t cur_ptr, next_ptr;
-    do {
-        cur_ptr = *buf;
-        next_ptr = *buf + get_event_components(nb_params);
-    } while (!__sync_bool_compare_and_swap(buf, cur_ptr, next_ptr));
-
-    return cur_ptr;
+  return (evnt_buffer_t) evnt_cmpxchg_exact_size((uint8_t**)buf,
+						 sizeof(evnt_buffer_t)*get_event_components(nb_params));
 }
 
 /*
@@ -113,7 +122,8 @@ evnt_trace_t evnt_init_trace(const uint32_t buf_size) {
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size(evnt_trace_t* trace) {
-    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) trace->buffer_cur - (evnt_buffer_t) trace->buffer_ptr);
+  //    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) trace->buffer_cur - (evnt_buffer_t) trace->buffer_ptr);
+    return ((uint8_t*) trace->buffer_cur - (uint8_t*) trace->buffer_ptr);
 }
 
 /*
@@ -207,6 +217,7 @@ void evnt_flush_buffer(evnt_trace_t* trace) {
 
     if (fwrite(trace->buffer_ptr, __get_buffer_size(trace), 1, trace->ftrace) != 1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
+	abort();
         exit(EXIT_FAILURE);
     }
 
@@ -216,6 +227,35 @@ void evnt_flush_buffer(evnt_trace_t* trace) {
     trace->buffer_cur = trace->buffer_ptr;
     trace->already_flushed = 1;
 }
+
+evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int size)
+{
+    if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
+      return NULL;
+
+ retry:
+
+    if (__get_buffer_size(trace) < trace->buffer_size) {
+      // thread safety through atomic compare and swap operation
+      evnt_t* cur_ptr = (evnt_t*) evnt_cmpxchg_exact_size((uint8_t**)&trace->buffer_cur, size);
+      cur_ptr->tid = CUR_TID;
+      cur_ptr->time = evnt_get_time();
+      cur_ptr->code = code;
+      cur_ptr->nb_params = size;
+      cur_ptr->type = type;
+
+	return cur_ptr;
+    } else if (trace->allow_buffer_flush) {
+        evnt_flush_buffer(trace);
+        //evnt_probe0(trace, code);
+	goto retry;
+    } else {
+        // this applies only when the flushing is off
+        trace->is_buffer_full = 1;
+	return NULL;
+    }
+}
+
 
 /*
  * This function records an event without any arguments
@@ -231,6 +271,7 @@ void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 0;
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace);
@@ -254,6 +295,7 @@ void evnt_probe1(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1) {
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 1;
         ((evnt_t *) cur_ptr)->param[0] = param1;
     } else if (trace->allow_buffer_flush) {
@@ -278,6 +320,7 @@ void evnt_probe2(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 2;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -303,6 +346,7 @@ void evnt_probe3(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 3;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -330,6 +374,7 @@ void evnt_probe4(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 4;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -358,6 +403,7 @@ void evnt_probe5(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 5;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -387,6 +433,7 @@ void evnt_probe6(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 6;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -417,6 +464,7 @@ void evnt_probe7(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 7;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -448,6 +496,7 @@ void evnt_probe8(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 8;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -481,6 +530,7 @@ void evnt_probe9(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, evn
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 9;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -515,6 +565,7 @@ void evnt_probe10(evnt_trace_t* trace, evnt_code_t code, evnt_param_t param1, ev
         ((evnt_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_t *) cur_ptr)->time = evnt_get_time();
         ((evnt_t *) cur_ptr)->code = code;
+        ((evnt_t *) cur_ptr)->type = EVENT_TYPE_REGULAR;
         ((evnt_t *) cur_ptr)->nb_params = 10;
         ((evnt_t *) cur_ptr)->param[0] = param1;
         ((evnt_t *) cur_ptr)->param[1] = param2;
@@ -543,24 +594,23 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
         return;
 
     evnt_size_t i;
-
     // thread safety through atomic compare and swap operation
     // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
-    evnt_buffer_t cur_ptr = evnt_cmpxchg(&trace->buffer_cur, (evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
+    evnt_buffer_t cur_ptr = evnt_cmpxchg_exact_size(&trace->buffer_cur, EVNT_BASE_SIZE + size);
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         ((evnt_raw_t *) cur_ptr)->tid = CUR_TID;
         ((evnt_raw_t *) cur_ptr)->time = evnt_get_time();
         code = set_bit(code);
         ((evnt_raw_t *) cur_ptr)->code = code;
+        ((evnt_raw_t *) cur_ptr)->type = EVENT_TYPE_RAW;
         ((evnt_raw_t *) cur_ptr)->size = size;
         if (size > 0)
             for (i = 0; i < size; i++)
                 ((evnt_raw_t *) cur_ptr)->raw[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffer_cur = trace->buffer_cur
-                - get_event_components((evnt_size_t) ceil((double) size / sizeof(evnt_param_t)));
+        trace->buffer_cur = (uint8_t*)trace->buffer_cur - (EVNT_BASE_SIZE + size);
         evnt_flush_buffer(trace);
         evnt_raw_probe(trace, code, size, data);
     } else

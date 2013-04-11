@@ -134,15 +134,17 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
      Check whether the main four components (tid, time, code, nb_params) are loaded.
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
-    // regular event
-    if ((block->tracker - block->offset < get_event_size(0))
-            || ((get_bit(event->code) == 0) && (block->tracker - block->offset < get_event_size(event->nb_params))))
-        to_be_loaded = 1;
-    // raw event
-    else if ((get_bit(event->code) == 1)
-            && (block->tracker - block->offset
-                    < get_event_size((evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t)))))
-        to_be_loaded = 1;
+
+    unsigned remaining_size = block->tracker - block->offset;
+    if(remaining_size < get_event_size(0)) {
+      /* this event is truncated. We can't even read the nb_param field */
+      to_be_loaded= 1;
+    } else {
+      /* The nb_param (or size) field is available. Let's see if the event is truncated */
+      unsigned event_size = get_event_size_type(event);
+      if(remaining_size < event_size)
+	to_be_loaded = 1;
+    }
 
     // fetch the next block of data from the trace
     if (to_be_loaded) {
@@ -160,15 +162,9 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
     }
 
     // move pointer to the next event and update __offset
-    if (get_bit(event->code) == 1)
-        // raw event
-        size = (evnt_size_t) ceil((double) event->nb_params / sizeof(evnt_param_t));
-    else
-        // regular event
-        size = event->nb_params;
-
-    *buffer += get_event_components(size);
-    block->offset += get_event_size(size);
+    unsigned evt_size = get_event_size_type(event);
+    block->buffer = (evnt_buffer_t) (((uint8_t*)block->buffer) + evt_size);
+    block->offset = (((uint8_t*)block->offset) + get_event_size_type(event));
 
     return event;
 }
@@ -219,24 +215,46 @@ int main(int argc, const char **argv) {
     while (block.buffer != NULL ) {
         event = evnt_read_event(&block);
 
-        if (event == NULL )
+        if (event == NULL ) {
             break;
+	}
 
-        if (get_bit(event->code) == 0) {
-            // regular event
-            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
+	switch(event->type) {
+	case EVENT_TYPE_REGULAR:
+	  { // regular event
+            printf("Reg\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
                     event->nb_params);
 
             for (i = 0; i < event->nb_params; i++)
                 printf("\t %"PRTIx64, event->param[i]);
-        } else {
-            // raw event
+	    break;
+	  }
+	case EVENT_TYPE_RAW:
+	  { // raw event
+	    evnt_raw_t* p_evt = event;
+            p_evt->code = clear_bit(p_evt->code);
+            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, p_evt->code, p_evt->tid, p_evt->time,
+                    p_evt->size);
+            printf("\t %s", (evnt_data_t *) p_evt->raw);
+	    break;
+	  }
+	case EVENT_TYPE_PACKED:
+	  { // packed event
+	    evnt_packed_t* p_evt = event;
             event->code = clear_bit(event->code);
-
-            printf("%"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
-                    event->nb_params);
-            printf("\t %s", (evnt_data_t *) event->param);
-        }
+            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, p_evt->code, p_evt->tid, p_evt->time,
+		   p_evt->size);
+	    for(i=0; i<((evnt_packed_t*)event)->size; i++) {
+	      printf("\t%x",((uint8_t*)p_evt->param)[i]);
+	    }
+	    break;
+	  }
+	default:
+	  {
+	    fprintf(stderr, "Unknown event type %d\n", event->type);
+	    *(int*)0=0;
+	  }
+	}
 
         printf("\n");
     }

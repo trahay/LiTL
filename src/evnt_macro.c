@@ -8,6 +8,7 @@
 #include <inttypes.h>
 
 #include "evnt_macro.h"
+#include "evnt_write.h"
 
 #define BITS_IN_BITE 8
 
@@ -16,11 +17,8 @@
  */
 evnt_size_t get_event_components(evnt_size_t nb_params) {
     // ceil(...) corresponds to the memory slot occupied by tid (evnt_tid_t), time (evnt_time_t), code (evnt_code_t),
-    // and nb_params (evnt_size_t). And, it equals to n * sizeof(evnt_param_t)
-    return nb_params
-            + (evnt_size_t) ceil(
-                    (sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
-                            / (double) sizeof(evnt_param_t));
+    // type (evnt_type_t) and nb_params (evnt_size_t). And, it equals to n * sizeof(evnt_param_t)
+    return nb_params + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t));
 }
 
 /*
@@ -28,9 +26,33 @@ evnt_size_t get_event_components(evnt_size_t nb_params) {
  */
 evnt_size_t get_event_size(evnt_size_t nb_params) {
     return nb_params * sizeof(evnt_param_t)
-            + (evnt_size_t) ceil((sizeof(evnt_tid_t) + sizeof(evnt_time_t) + sizeof(evnt_code_t) + sizeof(evnt_size_t))
-                            / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
+            + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
 }
+
+
+/*
+ * This function returns the size of a particular event in bytes depending on the number of arguments
+ */
+evnt_size_t get_event_size_type(evnt_t *p_evt) {
+  switch(p_evt->type) {
+  case EVENT_TYPE_REGULAR:
+    return p_evt->nb_params * sizeof(evnt_param_t)
+            + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
+  case EVENT_TYPE_RAW:
+
+    return ((evnt_raw_t*)p_evt)->size + EVNT_BASE_SIZE;
+
+  case EVENT_TYPE_PACKED:
+    return ((evnt_packed_t*)p_evt)->size + EVNT_BASE_SIZE;
+  default:
+    fprintf(stderr, "Unknown event type %d!\n", p_evt->type);
+    abort();
+  }
+
+  return 0;
+}
+
+
 
 /*
  * This function converts evnt's parameters to string. As a separator, space is used
