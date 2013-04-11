@@ -21,22 +21,23 @@
 /*
  * Implementation of thread safety through atomic compare and swap operation
  */
-static uint8_t* evnt_cmpxchg_exact_size(uint8_t** buf, int size) {
+static evnt_t* evnt_cmpxchg_exact_size(uint8_t** buf, int size) {
   uint8_t* cur_ptr, *next_ptr;
   do {
     cur_ptr = *buf;
     next_ptr = (*buf) + size;
   } while (!__sync_bool_compare_and_swap(buf, cur_ptr, next_ptr));
-  return cur_ptr;
+
+  return (evnt_t*) cur_ptr;
 }
 
 
 /*
  * Implementation of thread safety through atomic compare and swap operation
  */
-static evnt_buffer_t evnt_cmpxchg(evnt_buffer_t* buf, evnt_size_t nb_params) {
-  return (evnt_buffer_t) evnt_cmpxchg_exact_size((uint8_t**)buf,
-						 sizeof(evnt_buffer_t)*get_event_components(nb_params));
+static evnt_t* evnt_cmpxchg(evnt_buffer_t* buf, evnt_size_t nb_params) {
+  return evnt_cmpxchg_exact_size((uint8_t**)buf,
+				 sizeof(evnt_buffer_t)*get_event_components(nb_params));
 }
 
 /*
@@ -53,13 +54,14 @@ static void add_trace_header(evnt_trace_t* trace) {
         perror("Could not use uname()!");
 
     // get the number of symbols for libevnt_ver
-    n = sprintf(((evnt_info_t *) trace->buffer_cur)->libevnt_ver, "%s", VERSION);
+    n = sprintf((char*) ((evnt_info_t *) trace->buffer_cur)->libevnt_ver, "%s", VERSION);
     // +1 corresponds to the '\0' symbol
     size = n + 1;
 
     // get the number of symbols for sysinfo
-    n = sprintf(((evnt_info_t *) trace->buffer_cur)->sysinfo, "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
-            uts.version, uts.machine);
+    n = sprintf((char*) ((evnt_info_t *) trace->buffer_cur)->sysinfo,
+		"%s %s %s %s %s",
+		uts.sysname, uts.nodename, uts.release, uts.version, uts.machine);
     // +1 corresponds to the '\0' symbol
     size += n + 1;
 
@@ -278,7 +280,7 @@ void evnt_probe0(evnt_trace_t* trace, evnt_code_t code) {
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg(&trace->buffer_cur, 0);
+      evnt_t* cur_ptr = evnt_cmpxchg(&trace->buffer_cur, 0);
 
         cur_ptr->tid = CUR_TID;
         cur_ptr->time = evnt_get_time();
@@ -608,7 +610,7 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
     evnt_size_t i;
     // thread safety through atomic compare and swap operation
     // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
-    evnt_t* cur_ptr = evnt_cmpxchg_exact_size(&trace->buffer_cur, EVNT_BASE_SIZE + size);
+    evnt_t* cur_ptr = evnt_cmpxchg_exact_size((uint8_t**)&trace->buffer_cur, EVNT_BASE_SIZE + size);
 
     if (__get_buffer_size(trace) < trace->buffer_size) {
         cur_ptr->tid = CUR_TID;
@@ -622,7 +624,8 @@ void evnt_raw_probe(evnt_trace_t* trace, evnt_code_t code, evnt_size_t size, evn
                 cur_ptr->parameters.raw.data[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffer_cur = (uint8_t*)trace->buffer_cur - (EVNT_BASE_SIZE + size);
+      trace->buffer_cur = (evnt_buffer_t)((trace->buffer_cur) - (EVNT_BASE_SIZE + size));
+
         evnt_flush_buffer(trace);
         evnt_raw_probe(trace, code, size, data);
     } else

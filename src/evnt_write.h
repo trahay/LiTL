@@ -99,7 +99,9 @@ void evnt_raw_probe(evnt_trace_t*, evnt_code_t, evnt_size_t, evnt_data_t[]);
 
 evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int size);
 
-#define EVNT_BASE_SIZE ((int)(&(((evnt_t*)0)->parameters.regular.param)))
+#define offset_of(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
+
+#define EVNT_BASE_SIZE offset_of(evnt_t, parameters.regular.param)
 
 #define ADD_ARG(ptr, arg) do {			\
     typeof(arg) _arg = arg;			\

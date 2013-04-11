@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include "evnt_macro.h"
 #include "evnt_write.h"
