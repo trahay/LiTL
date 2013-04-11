@@ -99,7 +99,7 @@ void evnt_raw_probe(evnt_trace_t*, evnt_code_t, evnt_size_t, evnt_data_t[]);
 
 evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int size);
 
-#define EVNT_BASE_SIZE ((int)(&(((evnt_t*)0)->param)))
+#define EVNT_BASE_SIZE ((int)(&(((evnt_t*)0)->parameters.regular.param)))
 
 #define ADD_ARG(ptr, arg) do {			\
     typeof(arg) _arg = arg;			\
@@ -110,28 +110,28 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 
 #define evnt_probe_pack_0(trace, code) do {		\
     int total_size = EVNT_BASE_SIZE;			\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size); \
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size); \
     if(p_evt){						\
-      p_evt->size = total_size - EVNT_BASE_SIZE;	\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;	\
     }							\
   } while(0)
 
 #define evnt_probe_pack_1(trace, code, arg1) do {	\
     int total_size = EVNT_BASE_SIZE + sizeof(arg1);	\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size); \
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size); \
     if(p_evt){						\
-      p_evt->size = total_size - EVNT_BASE_SIZE;	\
-      void*ptr = &p_evt->param[0];			\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;	\
+      void*ptr = &p_evt->parameters.packed.param[0];			\
       ADD_ARG(ptr, arg1);				\
     }							\
   } while(0)
 
 #define evnt_probe_pack_2(trace, code, arg1, arg2) do {			\
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2);	\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
     }									\
@@ -139,10 +139,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 
 #define evnt_probe_pack_3(trace, code, arg1, arg2, arg3) do {		\
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3); \
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -151,11 +151,11 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 
 #define evnt_probe_pack_4(trace, code, arg1, arg2, arg3, arg4) do {	\
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       fprintf(stderr, "base = %p\n", p_evt);				\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -166,10 +166,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_5(trace, code, arg1, arg2, arg3, arg4, arg5) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5);						\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -181,10 +181,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_6(trace, code, arg1, arg2, arg3, arg4, arg5, arg6) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6);				\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -197,10 +197,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_7(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7);		\
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -214,10 +214,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_8(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8); \
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -232,10 +232,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_9(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8) + sizeof(arg9); \
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\
@@ -251,10 +251,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 #define evnt_probe_pack_10(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) do { \
     int total_size = EVNT_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8) + sizeof(arg9) + sizeof(arg10); \
-    evnt_packed_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
+    evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
-      p_evt->size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->param[0];					\
+      p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
+      void*ptr = &p_evt->parameters.packed.param[0];					\
       ADD_ARG(ptr, arg1);						\
       ADD_ARG(ptr, arg2);						\
       ADD_ARG(ptr, arg3);						\

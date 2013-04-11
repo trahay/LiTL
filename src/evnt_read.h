@@ -74,9 +74,9 @@ void evnt_close_trace(evnt_block_t*);
 #define INIT_PTR(evt, ptr)				\
   do {							\
     if(evt->type == EVENT_TYPE_REGULAR)			\
-      ptr = &evt->param[0];				\
+      ptr = &evt->parameters.regular.param[0];		\
     else						\
-      ptr =  &((evnt_packed_t*)evt)->param[0];	\
+      ptr = &evt->parameters.packed.param[0];			\
   } while(0)
 
 #define evnt_get_param_1(p_evt, arg1)		\

@@ -36,14 +36,14 @@ evnt_size_t get_event_size(evnt_size_t nb_params) {
 evnt_size_t get_event_size_type(evnt_t *p_evt) {
   switch(p_evt->type) {
   case EVENT_TYPE_REGULAR:
-    return p_evt->nb_params * sizeof(evnt_param_t)
+    return p_evt->parameters.regular.nb_params * sizeof(evnt_param_t)
             + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
   case EVENT_TYPE_RAW:
 
-    return ((evnt_raw_t*)p_evt)->size + EVNT_BASE_SIZE;
+    return p_evt->parameters.raw.size + EVNT_BASE_SIZE;
 
   case EVENT_TYPE_PACKED:
-    return ((evnt_packed_t*)p_evt)->size + EVNT_BASE_SIZE;
+    return p_evt->parameters.packed.size + EVNT_BASE_SIZE;
   default:
     fprintf(stderr, "Unknown event type %d!\n", p_evt->type);
     abort();
@@ -65,11 +65,11 @@ char* params_to_string(evnt_t* ev) {
     str = malloc(sizeof(evnt_param_t) * EVNT_MAX_PARAMS);
     len = 0;
 
-    for (i = 0; i < ev->nb_params; i++)
+    for (i = 0; i < ev->parameters.regular.nb_params; i++)
         if (i == 0)
-            len += sprintf(str + len, "%"PRIu64, ev->param[i]);
+            len += sprintf(str + len, "%"PRIu64, ev->parameters.regular.param[i]);
         else
-            len += sprintf(str + len, "%"PRIu64, ev->param[i]);
+            len += sprintf(str + len, "%"PRIu64, ev->parameters.regular.param[i]);
 
     return str;
 }

@@ -90,7 +90,7 @@ evnt_block_t evnt_get_block(evnt_buffer_t buffer) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static __next_trace(evnt_block_t* block) {
+static void __next_trace(evnt_block_t* block) {
     fseek(block->fp, block->offset, SEEK_SET);
 
     int res = fread(block->buffer_ptr, __buffer_size, 1, block->fp);
@@ -223,29 +223,26 @@ int main(int argc, const char **argv) {
 	case EVENT_TYPE_REGULAR:
 	  { // regular event
             printf("Reg\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
-                    event->nb_params);
+                    event->parameters.regular.nb_params);
 
-            for (i = 0; i < event->nb_params; i++)
-                printf("\t %"PRTIx64, event->param[i]);
+            for (i = 0; i < event->parameters.regular.nb_params; i++)
+                printf("\t %"PRTIx64, event->parameters.regular.param[i]);
 	    break;
 	  }
 	case EVENT_TYPE_RAW:
 	  { // raw event
-	    evnt_raw_t* p_evt = event;
-            p_evt->code = clear_bit(p_evt->code);
-            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, p_evt->code, p_evt->tid, p_evt->time,
-                    p_evt->size);
-            printf("\t %s", (evnt_data_t *) p_evt->raw);
+            event->code = clear_bit(event->code);
+            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
+                    event->parameters.raw.size);
+            printf("\t %s", (evnt_data_t *) event->parameters.raw.data);
 	    break;
 	  }
 	case EVENT_TYPE_PACKED:
 	  { // packed event
-	    evnt_packed_t* p_evt = event;
-            event->code = clear_bit(event->code);
-            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, p_evt->code, p_evt->tid, p_evt->time,
-		   p_evt->size);
-	    for(i=0; i<((evnt_packed_t*)event)->size; i++) {
-	      printf("\t%x",((uint8_t*)p_evt->param)[i]);
+            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
+		   event->parameters.packed.size);
+	    for(i=0; i<event->parameters.packed.size; i++) {
+	      printf("\t%x",event->parameters.packed.param[i]);
 	    }
 	    break;
 	  }
