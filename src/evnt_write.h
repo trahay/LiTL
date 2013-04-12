@@ -103,10 +103,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
 
 #define EVNT_BASE_SIZE offset_of(evnt_t, parameters.regular.param)
 
-#define ADD_ARG(ptr, arg) do {			\
+#define ADD_ARG(_ptr_, arg) do {			\
     typeof(arg) _arg = arg;			\
-    memcpy(ptr, &_arg, sizeof(_arg));		\
-    ptr = ((char*)ptr)+sizeof(_arg);		\
+    memcpy(_ptr_, &_arg, sizeof(_arg));		\
+    _ptr_ = ((char*)_ptr_)+sizeof(_arg);		\
   } while(0)
 
 #define evnt_probe_pack_0(trace, code) do {		\
@@ -122,8 +122,8 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size); \
     if(p_evt){						\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;	\
-      void*ptr = &p_evt->parameters.packed.param[0];			\
-      ADD_ARG(ptr, arg1);				\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      ADD_ARG(_ptr_, arg1);				\
     }							\
   } while(0)
 
@@ -132,9 +132,9 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
     }									\
   } while(0)
 
@@ -143,10 +143,10 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
     }									\
   } while(0)
 
@@ -155,11 +155,11 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
     }									\
   } while(0)
 
@@ -169,12 +169,12 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
     }									\
   } while(0)
 
@@ -184,13 +184,13 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
-      ADD_ARG(ptr, arg6);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
+      ADD_ARG(_ptr_, arg6);						\
     }									\
   } while(0)
 
@@ -200,14 +200,14 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
-      ADD_ARG(ptr, arg6);						\
-      ADD_ARG(ptr, arg7);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
+      ADD_ARG(_ptr_, arg6);						\
+      ADD_ARG(_ptr_, arg7);						\
     }									\
   } while(0)
 
@@ -217,15 +217,15 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
-      ADD_ARG(ptr, arg6);						\
-      ADD_ARG(ptr, arg7);						\
-      ADD_ARG(ptr, arg8);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
+      ADD_ARG(_ptr_, arg6);						\
+      ADD_ARG(_ptr_, arg7);						\
+      ADD_ARG(_ptr_, arg8);						\
     }									\
   } while(0)
 
@@ -235,16 +235,16 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
-      ADD_ARG(ptr, arg6);						\
-      ADD_ARG(ptr, arg7);						\
-      ADD_ARG(ptr, arg8);						\
-      ADD_ARG(ptr, arg9);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
+      ADD_ARG(_ptr_, arg6);						\
+      ADD_ARG(_ptr_, arg7);						\
+      ADD_ARG(_ptr_, arg8);						\
+      ADD_ARG(_ptr_, arg9);						\
     }									\
   } while(0)
 
@@ -254,17 +254,17 @@ evnt_t* get_event(evnt_trace_t* trace, evnt_type_t type, evnt_code_t code, int s
     evnt_t* p_evt = get_event(trace, EVENT_TYPE_PACKED, code, total_size);			\
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - EVNT_BASE_SIZE;			\
-      void*ptr = &p_evt->parameters.packed.param[0];					\
-      ADD_ARG(ptr, arg1);						\
-      ADD_ARG(ptr, arg2);						\
-      ADD_ARG(ptr, arg3);						\
-      ADD_ARG(ptr, arg4);						\
-      ADD_ARG(ptr, arg5);						\
-      ADD_ARG(ptr, arg6);						\
-      ADD_ARG(ptr, arg7);						\
-      ADD_ARG(ptr, arg8);						\
-      ADD_ARG(ptr, arg9);						\
-      ADD_ARG(ptr, arg10);						\
+      void*_ptr_ = &p_evt->parameters.packed.param[0];					\
+      ADD_ARG(_ptr_, arg1);						\
+      ADD_ARG(_ptr_, arg2);						\
+      ADD_ARG(_ptr_, arg3);						\
+      ADD_ARG(_ptr_, arg4);						\
+      ADD_ARG(_ptr_, arg5);						\
+      ADD_ARG(_ptr_, arg6);						\
+      ADD_ARG(_ptr_, arg7);						\
+      ADD_ARG(_ptr_, arg8);						\
+      ADD_ARG(_ptr_, arg9);						\
+      ADD_ARG(_ptr_, arg10);						\
     }									\
   } while(0)
 
