@@ -142,14 +142,14 @@ evnt_trace_write_t evnt_init_trace(const uint32_t buf_size) {
  * This function computes the size of data in the trace header
  */
 static uint32_t __get_header_size(evnt_trace_write_t* trace) {
-    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) trace->header_cur - (evnt_buffer_t) trace->header_ptr);
+    return ((uint8_t *) trace->header_cur - (uint8_t *) trace->header_ptr);
 }
 
 /*
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size(evnt_trace_write_t* trace, evnt_size_t pos) {
-    return sizeof(evnt_buffer_t) * ((evnt_buffer_t) trace->buffer_cur[pos] - (evnt_buffer_t) trace->buffer_ptr[pos]);
+    return ((uint8_t *) trace->buffer_cur[pos] - (uint8_t *) trace->buffer_ptr[pos]);
 }
 
 /*
@@ -275,8 +275,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
 
         trace->already_flushed = 1;
     }
-
-    // update the previous offset of the current thread, meaning write to the location in the file
+    // update the previous offset of the current thread, updating the location in the file
     fseek(trace->ftrace, trace->offsets[index], SEEK_SET);
     fwrite(&trace->general_offset, sizeof(evnt_offset_t), 1, trace->ftrace);
     fseek(trace->ftrace, trace->general_offset, SEEK_SET);
@@ -333,13 +332,10 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
     if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return NULL ;
 
-    if ((pthread_getspecific(trace->index) == NULL )&& (code != EVNT_TRACE_END))__allocate_buffer(trace);
+    if (pthread_getspecific(trace->index) == NULL )
+        __allocate_buffer(trace);
 
-    evnt_size_t index;
-    if (code == EVNT_TRACE_END)
-        index = 0;
-    else
-        index = *(evnt_size_t *) pthread_getspecific(trace->index);
+    evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
 
     retry: if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
@@ -404,13 +400,10 @@ void evnt_probe0(evnt_trace_write_t* trace, evnt_code_t code) {
     if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return;
 
-    if ((pthread_getspecific(trace->index) == NULL )&& (code != EVNT_TRACE_END))__allocate_buffer(trace);
+    if (pthread_getspecific(trace->index) == NULL )
+        __allocate_buffer(trace);
 
-    evnt_size_t index;
-    if (code == EVNT_TRACE_END)
-        index = 0;
-    else
-        index = *(evnt_size_t *) pthread_getspecific(trace->index);
+    evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
         evnt_t* cur_ptr = evnt_cmpxchg(&trace->buffer_cur[index], 0);
@@ -791,7 +784,7 @@ void evnt_raw_probe(evnt_trace_write_t* trace, evnt_code_t code, evnt_size_t siz
                 cur_ptr->parameters.raw.data[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t *) trace->buffer_cur[index] - (EVNT_BASE_SIZE + size));
+        trace->buffer_cur[index] = (evnt_buffer_t) (((uint8_t *) trace->buffer_cur[index]) - (EVNT_BASE_SIZE + size));
 
         evnt_flush_buffer(trace, index);
         evnt_raw_probe(trace, code, size, data);
@@ -807,7 +800,6 @@ void evnt_fin_trace(evnt_trace_write_t* trace) {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     evnt_size_t i;
 
-    evnt_probe0(trace, EVNT_TRACE_END);
     for (i = 1; i <= trace->nb_threads; i++)
         evnt_flush_buffer(trace, i);
     // because the EVNT_TRACE_END was written to the trace buffer #0

@@ -192,13 +192,16 @@ evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
 
     // event that stores tid and offset
     if (event->code == EVNT_OFFSET) {
-        if (event->time != 0) {
-            trace->tids[index]->offset = event->time;
+        if (event->parameters.offset.offset != 0) {
+            trace->tids[index]->offset = event->parameters.offset.offset;
             /**buffer += get_event_offset_components();
              -trace->offset += get_event_offset_size();*/
             to_be_loaded = 1;
-        } else
-            event->code = EVNT_TRACE_END;
+        } else {
+            trace->buffer[index] = NULL;
+            *buffer = NULL;
+            return NULL ;
+        }
     }
 
     // fetch the next block of data from the trace
@@ -206,13 +209,6 @@ evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
         __next_trace(trace, index);
         buffer = &trace->buffer[index];
         event = (evnt_t *) *buffer;
-    }
-
-    // skip the EVNT_TRACE_END event
-    if (event->code == EVNT_TRACE_END) {
-        trace->buffer[index] = NULL;
-        *buffer = NULL;
-        return NULL ;
     }
 
     // move pointer to the next event and update __offset
@@ -319,7 +315,7 @@ int main(int argc, const char **argv) {
 
         switch (event->type) {
         case EVNT_TYPE_REGULAR: { // regular event
-            printf("Reg\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
+            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, trace.tids[trace_ind]->tid, event->code,
                     event->time, event->parameters.regular.nb_params);
 
             for (i = 0; i < event->parameters.regular.nb_params; i++)
@@ -328,14 +324,14 @@ int main(int argc, const char **argv) {
         }
         case EVNT_TYPE_RAW: { // raw event
             event->code = clear_bit(event->code);
-            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
+            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, trace.tids[trace_ind]->tid, event->code,
                     event->time, event->parameters.raw.size);
             printf("\t %s", (evnt_data_t *) event->parameters.raw.data);
             break;
         }
         case EVNT_TYPE_PACKED: { // packed event
-            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
-                    event->time, event->parameters.packed.size);
+            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, trace.tids[trace_ind]->tid,
+                    event->code, event->time, event->parameters.packed.size);
             for (i = 0; i < event->parameters.packed.size; i++) {
                 printf("\t%x", event->parameters.packed.param[i]);
             }

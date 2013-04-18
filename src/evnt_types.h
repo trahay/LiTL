@@ -51,7 +51,6 @@ typedef uint32_t evnt_offset_t;
 #endif
 typedef uint8_t evnt_data_t;
 
-#define EVNT_TRACE_END 0
 #define EVNT_OFFSET 13
 
 #define EVNT_MAX_PARAMS 10

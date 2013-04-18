@@ -17,7 +17,7 @@ int main(int argc, const char **argv) {
 
     evnt_trace_write_t trace;
     const char* filename = "trace";
-    const uint32_t buffer_size = 1024; // 32KB
+    const uint32_t buffer_size = 32 * 1024; // 32KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
