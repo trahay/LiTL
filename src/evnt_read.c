@@ -12,115 +12,160 @@
 #include "evnt_macro.h"
 #include "evnt_read.h"
 
-static FILE* __ftrace;
-static uint32_t __buffer_size = 16 * 1024 * 1024; // 16MB is the optimal size on Intel Core 2
-
-/*
- * This function sets the buffer size
- */
-void set_read_buffer_size(const uint32_t buf_size) {
-    __buffer_size = buf_size;
-}
+// an array of events. Each one from a different thread
+static evnt_t** arr_ev;
+static int16_t trace_ind;
+static uint8_t init_trace = 0;
 
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-evnt_buffer_t evnt_open_trace(const char* filename) {
-    struct stat st;
+evnt_trace_read_t evnt_open_trace(const char* filename) {
+    evnt_trace_read_t trace;
 
-    if (!(__ftrace = fopen(filename, "r"))) {
+    // open the trace file
+    if (!(trace.fp = fopen(filename, "r"))) {
         perror("Could not open the trace file for reading!");
         exit(EXIT_FAILURE);
     }
 
-    if (stat(filename, &st) != 0)
-        perror("Could not get the attributes of the trace file!");
-
-    if (__buffer_size > st.st_size)
-        __buffer_size = st.st_size;
-
-    evnt_buffer_t buffer = (evnt_buffer_t) malloc(__buffer_size);
-
-    int res = fread(buffer, __buffer_size, 1, __ftrace);
-    // If the end of file is reached, then all data are read. So, res is 0.
-    // Otherwise, res is either an error or the number of elements, which is 1.
-    if ((res != 0) && (res != 1)) {
-        perror("Could not copy the top of the trace file to a buffer!");
+    // init the header structure
+    trace.header_size = 1536; // 1.5KB
+    trace.header_buffer_ptr = (evnt_buffer_t) malloc(trace.header_size);
+    if (!trace.header_buffer_ptr) {
+        perror("Could not allocate memory for the trace header!");
         exit(EXIT_FAILURE);
     }
 
-    return buffer;
+    // read the header
+    int res = fread(trace.header_buffer_ptr, trace.header_size, 1, trace.fp);
+    // If the end of file is reached, then all data are read. So, res is 0.
+    //      Otherwise, res is either an error or the number of elements, which is 1.
+    if ((res != 0) && (res != 1)) {
+        perror("Could not read the trace header!");
+        exit(EXIT_FAILURE);
+    }
+    trace.header_buffer = trace.header_buffer_ptr;
+
+    evnt_init_trace_header(&trace);
+
+    // increase a bit the buffer size 'cause of the possible event's tail and the offset
+    trace.buffer_size = trace.header->buffer_size + get_event_size(EVNT_MAX_PARAMS) + get_event_size(0);
+    evnt_init_buffers(&trace);
+
+    // allocate memory for a list of events;
+    arr_ev = (evnt_t **) malloc(trace.buffer_size * sizeof(evnt_t *));
+
+    return trace;
 }
 
 /*
- * This function reads information contained in the trace header
+ * This function sets the buffer size
  */
-evnt_info_t* evnt_get_trace_header(evnt_block_t* block) {
-    evnt_size_t size;
-    evnt_info_t* header;
-    evnt_buffer_t* buffer;
-    buffer = &block->buffer;
+void evnt_set_buffer_size(evnt_trace_read_t* trace, const evnt_size_t buf_size) {
+    trace->buffer_size = buf_size;
+}
 
-    header = (evnt_info_t *) *buffer;
-    // +2 corresponds for the '\0' symbol after each string
-    size = strlen(header->libevnt_ver) + strlen(header->sysinfo) + 2;
+/*
+ * This function returns the buffer size
+ */
+evnt_size_t evnt_get_buffer_size(evnt_trace_read_t* trace) {
+    return trace->buffer_size;
+}
 
+/*
+ * This function initializes the trace header
+ */
+void evnt_init_trace_header(evnt_trace_read_t* trace) {
+    evnt_size_t i, size;
+
+    trace->header = (evnt_header_t *) trace->header_buffer;
+    size = sizeof(evnt_header_t);
     size = (evnt_size_t) ceil((double) size / sizeof(evnt_param_t));
-    *buffer += size;
-    block->offset += size * sizeof(evnt_param_t);
+    trace->header_buffer += size;
 
-    return header;
+    // init nb_buffers
+    trace->nb_buffers = trace->header->nb_threads;
+
+    // set pairs (tid, offset)
+    trace->tids = (evnt_header_tids_t **) malloc(trace->nb_buffers * sizeof(evnt_header_tids_t));
+    size = (evnt_size_t) ceil((double) sizeof(evnt_header_tids_t) / sizeof(evnt_param_t));
+    for (i = 0; i < trace->nb_buffers; i++) {
+        trace->tids[i] = (evnt_header_tids_t *) trace->header_buffer;
+        trace->header_buffer += size;
+    }
 }
 
 /*
- * This function returns the current buffer, FILE pointer, and the current position in the file
+ * This function return a pointer to the trace header
  */
-evnt_block_t evnt_get_block(evnt_buffer_t buffer) {
-    evnt_block_t block;
+evnt_header_t* evnt_get_trace_header(evnt_trace_read_t* trace) {
+    return trace->header;
+}
 
-    block.fp = __ftrace;
-    block.buffer_ptr = buffer;
-    block.buffer = buffer;
-    block.offset = 0;
-    block.tracker = __buffer_size;
+/*
+ * This function initializes buffer of each recorded thread. A buffer per thread.
+ */
+void evnt_init_buffers(evnt_trace_read_t* trace) {
+    trace->buffer_ptr = (evnt_buffer_t *) malloc(trace->nb_buffers * sizeof(evnt_buffer_t));
+    trace->buffer = (evnt_buffer_t *) malloc(trace->nb_buffers * sizeof(evnt_buffer_t));
+    trace->offset = (evnt_offset_t *) malloc(trace->nb_buffers * sizeof(evnt_offset_t));
+    trace->tracker = (evnt_offset_t *) malloc(trace->nb_buffers * sizeof(evnt_offset_t));
 
-    return block;
+    evnt_size_t i;
+    for (i = 0; i < trace->nb_buffers; i++) {
+        // use offsets in order to access a chuck of data that corresponds to each thread
+        fseek(trace->fp, trace->tids[i]->offset, SEEK_SET);
+
+        trace->buffer_ptr[i] = (evnt_buffer_t) malloc(trace->buffer_size);
+        int res = fread(trace->buffer_ptr[i], trace->buffer_size, 1, trace->fp);
+        // If the end of file is reached, then all data are read. So, res is 0.
+        // Otherwise, res is either an error or the number of elements, which is 1.
+        if ((res != 0) && (res != 1)) {
+            perror("Could read the first partition of data from the trace file!");
+            exit(EXIT_FAILURE);
+        }
+        trace->buffer[i] = trace->buffer_ptr[i];
+        trace->tracker[i] = trace->buffer_size;
+        trace->offset[i] = 0;
+    }
 }
 
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static void __next_trace(evnt_block_t* block) {
-    fseek(block->fp, block->offset, SEEK_SET);
+static void __next_trace(evnt_trace_read_t* trace, evnt_size_t index) {
+    fseek(trace->fp, trace->tids[index]->offset, SEEK_SET);
+    trace->offset[index] = 0;
 
-    int res = fread(block->buffer_ptr, __buffer_size, 1, block->fp);
+    int res = fread(trace->buffer_ptr[index], trace->buffer_size, 1, trace->fp);
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
     if ((res != 0) && (res != 1)) {
-        perror("Could not copy the next part of the trace file to a buffer!");
+        perror("Could not read the next part of the trace file!");
         exit(EXIT_FAILURE);
     }
 
-    block->buffer = block->buffer_ptr;
-    block->tracker = block->offset + __buffer_size;
+    trace->buffer[index] = trace->buffer_ptr[index];
+    trace->tracker[index] = trace->offset[index] + trace->buffer_size;
 }
 
 /*
  * This function resets the trace
  */
-void evnt_reset_trace(evnt_block_t* block) {
-    block->buffer = block->buffer_ptr;
+void evnt_reset_trace(evnt_trace_read_t* trace, evnt_size_t index) {
+    trace->buffer[index] = trace->buffer_ptr[index];
 }
 
 /*
  * This function reads an event
  */
-evnt_t* evnt_read_event(evnt_block_t* block) {
+evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
     uint8_t to_be_loaded;
     evnt_size_t size;
     evnt_t* event;
     evnt_buffer_t* buffer;
-    buffer = &block->buffer;
+    buffer = &trace->buffer[index];
     to_be_loaded = 0;
 
     if (!*buffer)
@@ -134,68 +179,121 @@ evnt_t* evnt_read_event(evnt_block_t* block) {
      Check whether the main four components (tid, time, code, nb_params) are loaded.
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
-
-    unsigned remaining_size = block->tracker - block->offset;
-    if(remaining_size < get_event_size(0)) {
-      /* this event is truncated. We can't even read the nb_param field */
-      to_be_loaded= 1;
+    unsigned remaining_size = trace->tracker[index] - trace->offset[index];
+    if (remaining_size < get_event_size(0)) {
+        /* this event is truncated. We can't even read the nb_param field */
+        to_be_loaded = 1;
     } else {
-      /* The nb_param (or size) field is available. Let's see if the event is truncated */
-      unsigned event_size = get_event_size_type(event);
-      if(remaining_size < event_size)
-	to_be_loaded = 1;
+        /* The nb_param (or size) field is available. Let's see if the event is truncated */
+        unsigned event_size = get_event_size_type(event);
+        if (remaining_size < event_size)
+            to_be_loaded = 1;
+    }
+
+    // event that stores tid and offset
+    if (event->code == EVNT_OFFSET) {
+        if (event->time != 0) {
+            trace->tids[index]->offset = event->time;
+            /**buffer += get_event_offset_components();
+             -trace->offset += get_event_offset_size();*/
+            to_be_loaded = 1;
+        } else
+            event->code = EVNT_TRACE_END;
     }
 
     // fetch the next block of data from the trace
     if (to_be_loaded) {
-        __next_trace(block);
-        buffer = &block->buffer;
+        __next_trace(trace, index);
+        buffer = &trace->buffer[index];
         event = (evnt_t *) *buffer;
-        to_be_loaded = 0;
     }
 
     // skip the EVNT_TRACE_END event
     if (event->code == EVNT_TRACE_END) {
-        block->buffer = NULL;
+        trace->buffer[index] = NULL;
         *buffer = NULL;
         return NULL ;
     }
 
     // move pointer to the next event and update __offset
     unsigned evt_size = get_event_size_type(event);
-    block->buffer = (evnt_buffer_t) (((uint8_t*)block->buffer) + evt_size);
-    block->offset = (((uint8_t*)block->offset) + get_event_size_type(event));
+    trace->buffer[index] = (evnt_buffer_t) (((uint8_t*) trace->buffer[index]) + evt_size);
+    trace->offset[index] = (((uint8_t*) trace->offset[index]) + get_event_size_type(event));
 
     return event;
 }
 
 /*
- * This function reads the next event from the buffer
+ * This function searches for the next event inside each buffer
  */
-evnt_t* evnt_next_event(evnt_block_t* block) {
-    return evnt_read_event(block);
+evnt_t* evnt_next_buffer_event(evnt_trace_read_t* trace, evnt_size_t index) {
+    return evnt_read_event(trace, index);
+}
+
+/*
+ * This function searches for the next event inside the trace
+ */
+evnt_t* evnt_next_trace_event(evnt_trace_read_t* trace) {
+    evnt_size_t i;
+    evnt_time_t min_time = -1;
+
+    if (!init_trace) {
+        for (i = 0; i < trace->nb_buffers; i++)
+            arr_ev[i] = evnt_next_buffer_event(trace, i);
+
+        trace_ind = -1;
+        init_trace = 1;
+    }
+
+    // read the next event from the buffer
+    if (trace_ind != -1)
+        arr_ev[trace_ind] = evnt_next_buffer_event(trace, trace_ind);
+
+    for (i = 0; i < trace->nb_buffers; i++)
+        if ((arr_ev[i]) && (arr_ev[i]->time < min_time)) {
+            min_time = arr_ev[i]->time;
+            trace_ind = i;
+        }
+
+    return arr_ev[trace_ind];
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void evnt_close_trace(evnt_block_t* block) {
-    fclose(block->fp);
-    free(block->buffer_ptr);
+void evnt_close_trace(evnt_trace_read_t* trace) {
+    evnt_size_t i;
+
+    free(arr_ev);
+    // close the file
+    fclose(trace->fp);
+
+    // free buffers
+    free(trace->header_buffer_ptr);
+    for (i = 0; i < trace->nb_buffers; i++)
+        free(trace->buffer_ptr[i]);
+    free(trace->buffer_ptr);
+    free(trace->buffer);
+    free(trace->tids);
+    free(trace->tracker);
+    free(trace->offset);
 
     // set pointers to NULL
-    block->fp = NULL;
-    block->buffer = NULL;
-    block->buffer_ptr = NULL;
+    trace->fp = NULL;
+    trace->header_buffer_ptr = NULL;
+    trace->buffer_ptr = NULL;
+    trace->buffer = NULL;
+    trace->tids = NULL;
+    trace->tracker = NULL;
+    trace->offset = NULL;
 }
 
 int main(int argc, const char **argv) {
     evnt_size_t i;
     const char* filename = "trace";
     evnt_t* event;
-    evnt_buffer_t buffer;
-    evnt_block_t block;
-    evnt_info_t* header;
+    evnt_trace_read_t trace;
+    evnt_header_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -204,59 +302,58 @@ int main(int argc, const char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    buffer = evnt_open_trace(filename);
-    block = evnt_get_block(buffer);
-    header = evnt_get_trace_header(&block);
+    trace = evnt_open_trace(filename);
+    header = evnt_get_trace_header(&trace);
 
     // print the header
     printf(" libevnt v.%s\n", header->libevnt_ver);
     printf(" %s\n", header->sysinfo);
+    printf(" nb_threads \t %d\n", header->nb_threads);
+    printf(" buffer_size \t %d\n", header->buffer_size);
 
-    while (block.buffer != NULL ) {
-        event = evnt_read_event(&block);
+    while (1) {
+        event = evnt_next_trace_event(&trace);
 
-        if (event == NULL ) {
+        if (event == NULL )
             break;
-	}
 
-	switch(event->type) {
-	case EVENT_TYPE_REGULAR:
-	  { // regular event
-            printf("Reg\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
-                    event->parameters.regular.nb_params);
+        switch (event->type) {
+        case EVNT_TYPE_REGULAR: { // regular event
+            printf("Reg\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
+                    event->time, event->parameters.regular.nb_params);
 
             for (i = 0; i < event->parameters.regular.nb_params; i++)
                 printf("\t %"PRTIx64, event->parameters.regular.param[i]);
-	    break;
-	  }
-	case EVENT_TYPE_RAW:
-	  { // raw event
+            break;
+        }
+        case EVNT_TYPE_RAW: { // raw event
             event->code = clear_bit(event->code);
-            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
-                    event->parameters.raw.size);
+            printf("Raw\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
+                    event->time, event->parameters.raw.size);
             printf("\t %s", (evnt_data_t *) event->parameters.raw.data);
-	    break;
-	  }
-	case EVENT_TYPE_PACKED:
-	  { // packed event
-            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, event->tid, event->time,
-		   event->parameters.packed.size);
-	    for(i=0; i<event->parameters.packed.size; i++) {
-	      printf("\t%x",event->parameters.packed.param[i]);
-	    }
-	    break;
-	  }
-	default:
-	  {
-	    fprintf(stderr, "Unknown event type %d\n", event->type);
-	    *(int*)0=0;
-	  }
-	}
+            break;
+        }
+        case EVNT_TYPE_PACKED: { // packed event
+            printf("Packed\t %"PRTIx32" \t %"PRTIu64" \t %"PRTIu64" \t %"PRTIu32, event->code, trace.tids[trace_ind]->tid,
+                    event->time, event->parameters.packed.size);
+            for (i = 0; i < event->parameters.packed.size; i++) {
+                printf("\t%x", event->parameters.packed.param[i]);
+            }
+            break;
+        }
+        case EVNT_TYPE_OFFSET: { // offset event
+            continue;
+        }
+        default: {
+            fprintf(stderr, "Unknown event type %d\n", event->type);
+            *(int*) 0 = 0;
+        }
+        }
 
         printf("\n");
     }
 
-    evnt_close_trace(&block);
+    evnt_close_trace(&trace);
 
     return EXIT_SUCCESS;
 }

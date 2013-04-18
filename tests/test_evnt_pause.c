@@ -16,7 +16,7 @@
 void write_trace(char* filename, int nb_iter, int skipped_iter) {
     int i;
 
-    evnt_trace_t trace;
+    evnt_trace_write_t trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB
 
     trace = evnt_init_trace(buffer_size);
@@ -25,43 +25,44 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
     evnt_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     for (i = 0; i < nb_iter; i++) {
-        if (i == skipped_iter) {
+        if (i == skipped_iter - 1) {
             printf("Loop %d: stop recording\n", i);
             evnt_pause_recording(&trace);
         }
 
-        evnt_probe0(&trace, 0x100 * i + 1);
+        evnt_probe0(&trace, 0x100 * (i + 1) + 1);
         usleep(100);
-        evnt_probe1(&trace, 0x100 * i + 2, 1);
+        evnt_probe1(&trace, 0x100 * (i + 1) + 2, 1);
         usleep(100);
-        evnt_probe2(&trace, 0x100 * i + 3, 1, 3);
+        evnt_probe2(&trace, 0x100 * (i + 1) + 3, 1, 3);
         usleep(100);
-        evnt_probe3(&trace, 0x100 * i + 4, 1, 3, 5);
+        evnt_probe3(&trace, 0x100 * (i + 1) + 4, 1, 3, 5);
         usleep(100);
-        evnt_probe4(&trace, 0x100 * i + 5, 1, 3, 5, 7);
+        evnt_probe4(&trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
         usleep(100);
-        evnt_probe5(&trace, 0x100 * i + 6, 1, 3, 5, 7, 11);
+        evnt_probe5(&trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
         usleep(100);
-        evnt_probe6(&trace, 0x100 * i + 7, 1, 3, 5, 7, 11, 13);
+        evnt_probe6(&trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
         usleep(100);
-        evnt_probe7(&trace, 0x100 * i + 8, 1, 3, 5, 7, 11, 13, 17);
+        evnt_probe7(&trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
         usleep(100);
-        evnt_probe8(&trace, 0x100 * i + 9, 1, 3, 5, 7, 11, 13, 17, 19);
+        evnt_probe8(&trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17, 19);
         usleep(100);
-        evnt_probe9(&trace, 0x100 * i + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+        evnt_probe9(&trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
         usleep(100);
-        evnt_probe10(&trace, 0x100 * i + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
+        evnt_probe10(&trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
         usleep(100);
-        evnt_raw_probe(&trace, 0x100 * i + 12, sizeof(val) - 1, val);
+        evnt_raw_probe(&trace, 0x100 * (i + 1) + 12, sizeof(val) - 1, val);
         usleep(100);
 
-        if (i == skipped_iter) {
+        if (i == skipped_iter - 1) {
             printf("Loop %d: resume recording\n", i);
             evnt_resume_recording(&trace);
         }
     }
 
-    printf("\nEvents with code between %x and %x were not recorded\n", 0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
+    printf("\nEvents with code between %x and %x were not recorded\n", 0x100 * skipped_iter + 1,
+            0x100 * skipped_iter + 12);
 
     evnt_fin_trace(&trace);
 }
@@ -69,21 +70,15 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
 void read_trace(char* filename, int left_bound, int right_bound) {
     int nbevents = 0;
 
-    const evnt_size_t buffer_size = 16 * 1024 * 1024; // 16MB
+    evnt_size_t index;
     evnt_t* event;
-    evnt_buffer_t buffer;
-    evnt_block_t block;
+    evnt_trace_read_t trace;
 
-    set_read_buffer_size(buffer_size);
-    buffer = evnt_open_trace(filename);
-    block = evnt_get_block(buffer);
+    trace = evnt_open_trace(filename);
 
-    // the header
-    evnt_info_t* header;
-    header = evnt_get_trace_header(&block);
-
-    while (block.buffer != NULL ) {
-        event = evnt_read_event(&block);
+    index = 0;
+    while (trace.buffer[index] != NULL ) {
+        event = evnt_next_buffer_event(&trace, index);
 
         if (event == NULL )
             break;
@@ -94,12 +89,14 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
         // check whether some events were skipped
         if ((left_bound < event->code) && (event->code < right_bound)) {
+            printf("\n%"PRTIu64"\t %"PRTIu64"\t %"PRTIx32"\t %"PRTIu32"\n", trace.tids[index]->tid, event->time,
+                    event->code, event->nb_params);
             nbevents++;
             break;
         }
     }
 
-    evnt_close_trace(&block);
+    evnt_close_trace(&trace);
 
     if (nbevents > 0) {
         fprintf(stderr, "Some events were recorded when they supposed to be skipped");

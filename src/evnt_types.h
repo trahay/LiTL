@@ -35,8 +35,8 @@ typedef uint32_t evnt_code_t;
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
 typedef uint32_t evnt_size_t;
 typedef uint64_t evnt_param_t;
-// data structure for holding a set of events
-typedef uint64_t* evnt_buffer_t;
+typedef uint64_t* evnt_buffer_t; // data structure for holding a set of events
+typedef uint64_t evnt_offset_t;
 
 #elif defined __arm__
 typedef uint32_t evnt_tid_t;
@@ -46,42 +46,44 @@ typedef uint32_t evnt_code_t;
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
 typedef uint32_t evnt_size_t;
 typedef uint32_t evnt_param_t;
-// data structure for holding a set of events
-typedef uint32_t* evnt_buffer_t;
+typedef uint32_t* evnt_buffer_t;// data structure for holding a set of events
+typedef uint32_t evnt_offset_t;
 #endif
 typedef uint8_t evnt_data_t;
 
 #define EVNT_TRACE_END 0
+#define EVNT_OFFSET 13
 
 #define EVNT_MAX_PARAMS 10
 #define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(evnt_param_t))
 
 typedef enum {
-  EVENT_TYPE_REGULAR,
-  EVENT_TYPE_RAW,
-  EVENT_TYPE_PACKED,
+    EVNT_TYPE_REGULAR, EVNT_TYPE_RAW, EVNT_TYPE_PACKED, EVNT_TYPE_OFFSET
 } evnt_type_t;
 
 // regular event
 typedef struct {
-  evnt_tid_t tid; // thread ID
-  evnt_time_t time; // time of the measurement
-  evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
-  evnt_type_t type;
-  union{
-    struct{
-      evnt_size_t nb_params; // number of arguments
-      evnt_param_t param[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 10
-    } regular;
-    struct{
-      evnt_size_t size; // size of data in bytes
-      evnt_data_t data[EVNT_MAX_DATA]; // raw data
-    } raw;
-    struct{
-      evnt_size_t size; // size of data in bytes
-      evnt_data_t param[EVNT_MAX_DATA]; // raw data
-    } packed;
-  } parameters;
+    evnt_time_t time; // time of the measurement
+    evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
+    evnt_type_t type;
+    union {
+        struct {
+            evnt_size_t nb_params; // number of arguments
+            evnt_param_t param[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 10
+        } regular;
+        struct {
+            evnt_size_t size; // size of data in bytes
+            evnt_data_t data[EVNT_MAX_DATA]; // raw data
+        } raw;
+        struct {
+            evnt_size_t size; // size of data in bytes
+            evnt_data_t param[EVNT_MAX_DATA]; // raw data
+        } packed;
+        struct {
+            evnt_size_t nb_params; // =1
+            evnt_param_t offset; // an offset to the next chunk of events
+        } offset;
+    } parameters;
 } evnt_t;
 
 // data structure for reading events from a trace file
@@ -96,35 +98,74 @@ typedef struct {
 // data structure that corresponds to the header of a trace file
 typedef struct {
     evnt_data_t libevnt_ver[8];
-    evnt_data_t sysinfo[100];
-} evnt_info_t;
+    evnt_data_t sysinfo[128];
+    evnt_size_t nb_threads;
+    evnt_size_t buffer_size;
+} evnt_header_t;
+
+// data structure for the pairs (tid, offset) stored in the trace header
+typedef struct {
+    evnt_tid_t tid;
+    evnt_offset_t offset;
+} evnt_header_tids_t;
+
+#define NBBUFFER 1000
 
 typedef struct {
     FILE* ftrace;
     char* evnt_filename;
 
-    evnt_buffer_t buffer_ptr;
-    evnt_buffer_t buffer_cur;
+    evnt_offset_t general_offset; // offset from the beginning of the trace file until the current position
 
-    uint32_t buffer_size; // the buffer size for recording events on Intel Core2
+    evnt_buffer_t header_ptr;
+    evnt_buffer_t header_cur;
+    evnt_size_t header_size;
+
+    evnt_buffer_t buffer_ptr[NBBUFFER];
+    evnt_buffer_t buffer_cur[NBBUFFER];
+    evnt_size_t buffer_size; // a buffer size
     uint8_t allow_buffer_flush; // buffer_flush indicates whether buffer flush is enabled (1) or not (0)
     uint8_t is_buffer_full; // in case when the flushing is disabled, the recording of events should be skipped
 
+    evnt_tid_t tids[NBBUFFER]; // tids of the working threads
+    evnt_offset_t offsets[NBBUFFER]; // offsets to find the next buffer in the trace file for a particular thread
+    pthread_once_t index_once;
+    pthread_key_t index; // private thread variable holds its index in tids, buffer_ptr/buffer_cur, and offsets
+    evnt_size_t nb_threads; // points to the next free slot in the arrays above; (nb_threads+1) is the number of threads
+
     pthread_mutex_t lock_evnt_flush; // to handle write conflicts while using pthread
+    pthread_mutex_t lock_buffer_init; // to handle race conditions while initializing tids and buffer_ptrs/buffer_curs
     uint8_t allow_thread_safety; // allow_thread_safety indicates whether libevnt uses thread-safety (1) or not (0)
 
     uint8_t record_tid_activated; // record_tid_activated indicates whether libevnt records tid (1) or not (0)
-
     // evnt_initialized is used to ensure that EZTrace does not start recording events before the initialization is
     //      finished
     uint8_t evnt_initialized;
-    volatile uint8_t evnt_paused; // evnt_paused indicates whether libevnt stops recording events (1) for a while or
-    //      not (0)
-
+    // evnt_paused indicates whether libevnt stops recording events (1) for a while or not (0)
+    volatile uint8_t evnt_paused;
     // already_flushed is used to check whether the buffer was flushed as well as
     //      to ensure that the correct and unique trace file was opened
     uint8_t already_flushed;
-} evnt_trace_t;
+} evnt_trace_write_t;
+
+// data structure for reading events from a trace file
+typedef struct {
+    FILE* fp; // pointer to the trace file
+
+    evnt_buffer_t header_buffer_ptr;
+    evnt_buffer_t header_buffer;
+    evnt_size_t header_size;
+    evnt_header_t* header;
+    evnt_header_tids_t** tids;
+
+    evnt_buffer_t* buffer_ptr; // an array of pointers to the beginning of each buffer
+    evnt_buffer_t* buffer; // an array of pointers to a current position in each buffer
+    evnt_size_t buffer_size;
+    evnt_size_t nb_buffers;
+
+    evnt_offset_t* offset; // an array of offsets from the beginning of each buffer
+    evnt_offset_t* tracker; // indicator of the end of the buffer = offset + buffer_size
+} evnt_trace_read_t;
 
 // defining the printing formats
 #ifdef __x86_64__

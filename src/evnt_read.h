@@ -10,44 +10,59 @@
 #include "evnt_types.h"
 
 /*
- * This function sets the buffer size for reading the trace file
- */
-void set_read_buffer_size(const uint32_t);
-
-/*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-evnt_buffer_t evnt_open_trace(const char*);
+evnt_trace_read_t evnt_open_trace(const char*);
 
 /*
- * This function reads information contained in the trace header
+ * This function sets the buffer size
  */
-evnt_info_t* evnt_get_trace_header(evnt_block_t*);
+void evnt_set_buffer_size(evnt_trace_read_t*, const evnt_size_t);
 
 /*
- * This function returns the current trace, FILE pointer, and the current position in the file
+ * This function returns the buffer size
  */
-evnt_block_t evnt_get_block(evnt_buffer_t);
+evnt_size_t evnt_get_buffer_size(evnt_trace_read_t*);
+
+/*
+ * This function initializes the header structure
+ */
+void evnt_init_trace_header(evnt_trace_read_t*);
+
+/*
+ * This function return a pointer to the header
+ */
+evnt_header_t* evnt_get_trace_header(evnt_trace_read_t*);
+
+/*
+ * This function initializes buffer of each recorded thread. A buffer per thread.
+ */
+void evnt_init_buffers(evnt_trace_read_t*);
 
 /*
  * This function resets the trace
  */
-void evnt_reset_trace(evnt_block_t*);
+void evnt_reset_trace(evnt_trace_read_t*, evnt_size_t);
 
 /*
  * This function reads an event
  */
-evnt_t* evnt_read_event(evnt_block_t*);
+evnt_t* evnt_read_event(evnt_trace_read_t*, evnt_size_t);
 
 /*
- * This function searches for the next event
+ * This function searches for the next event inside the buffer
  */
-evnt_t* evnt_next_event(evnt_block_t*);
+evnt_t* evnt_next_buffer_event(evnt_trace_read_t*, evnt_size_t);
 
 /*
- * This function closes the trace and frees the buffer
+ * This function searches for the next event inside the trace
  */
-void evnt_close_trace(evnt_block_t*);
+evnt_t* evnt_next_trace_event(evnt_trace_read_t*);
+
+/*
+ * This function closes the trace and frees the allocated memory
+ */
+void evnt_close_trace(evnt_trace_read_t*);
 
 
 
@@ -64,7 +79,7 @@ void evnt_close_trace(evnt_block_t*);
 
 #define GET_ARG(evt, _ptr_, arg)			\
   do {						\
-    if(evt->type == EVENT_TYPE_REGULAR)		\
+    if(evt->type == EVNT_TYPE_REGULAR)		\
       GET_ARG_REGULAR(_ptr_, arg);		\
     else					\
       GET_ARG_PACKED(_ptr_, arg);			\
@@ -73,7 +88,7 @@ void evnt_close_trace(evnt_block_t*);
 
 #define INIT_PTR(evt, _ptr_)				\
   do {							\
-    if(evt->type == EVENT_TYPE_REGULAR)			\
+    if(evt->type == EVNT_TYPE_REGULAR)			\
       _ptr_ = &evt->parameters.regular.param[0];		\
     else						\
       _ptr_ = &evt->parameters.packed.param[0];			\
