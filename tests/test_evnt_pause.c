@@ -89,8 +89,6 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
         // check whether some events were skipped
         if ((left_bound < event->code) && (event->code < right_bound)) {
-            printf("\n%"PRTIu64"\t %"PRTIu64"\t %"PRTIx32"\t %"PRTIu32"\n", trace.tids[index]->tid, event->time,
-                    event->code, event->nb_params);
             nbevents++;
             break;
         }
