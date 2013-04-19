@@ -442,7 +442,8 @@ void evnt_probe2(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 2 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 2 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -472,7 +473,8 @@ void evnt_probe3(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 3 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 3 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -503,7 +505,8 @@ void evnt_probe4(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 4 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 4 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -535,7 +538,8 @@ void evnt_probe5(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 5 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 5 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -568,7 +572,8 @@ void evnt_probe6(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 6 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 6 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -602,7 +607,8 @@ void evnt_probe7(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 7 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 7 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -638,7 +644,8 @@ void evnt_probe8(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 8 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 8 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -675,7 +682,8 @@ void evnt_probe9(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 9 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 9 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -713,7 +721,8 @@ void evnt_probe10(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t para
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         // thread safety through atomic compare and swap operation
-        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + 10 * sizeof(evnt_param_t));
+        evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+                EVNT_BASE_SIZE + 10 * sizeof(evnt_param_t));
 
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;

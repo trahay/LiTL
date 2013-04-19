@@ -20,7 +20,7 @@
 #include "evnt_write.h"
 #include "evnt_read.h"
 
-#define NBTHREAD 1
+#define NBTHREAD 4
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
