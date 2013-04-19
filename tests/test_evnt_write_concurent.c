@@ -82,12 +82,12 @@ void read_trace(char* filename) {
     int nb_events = 0;
 
     evnt_t* event;
-    evnt_trace_read_t trace;
+    evnt_trace_read_t *trace;
 
     trace = evnt_open_trace(filename);
 
     while (1) {
-        event = evnt_next_trace_event(&trace);
+        event = evnt_next_trace_event(trace);
 
         if (event == NULL )
             break;
@@ -95,7 +95,7 @@ void read_trace(char* filename) {
         nb_events++;
     }
 
-    evnt_close_trace(&trace);
+    evnt_close_trace(trace);
 
     if (nb_events != NBEVENT * NBTHREAD) {
         fprintf(stderr, "Some events were NOT recorded!\n Expected nb_events = %d \t Recorded nb_events = %d\n",

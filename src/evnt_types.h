@@ -147,6 +147,42 @@ typedef struct {
     uint8_t already_flushed;
 } evnt_trace_write_t;
 
+
+#define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
+#define GET_CUR_EVENT(_trace_) GET_CUR_EVENT_PER_THREAD(_trace_, (trace)->cur_index)
+
+#define EVENT_GET_TID(_read_event_) (_read_event_)->tid
+#define EVENT_GET_TIME(_read_event_) (_read_event_)->event->time
+#define EVENT_GET_TYPE(_read_event_) (_read_event_)->event->type
+#define EVENT_GET_CODE(_read_event_) (_read_event_)->event->code
+
+#define EVENT_RAW(_read_event_) (&(_read_event_)->event->parameters.raw)
+#define EVENT_REGULAR(_read_event_) (&(_read_event_)->event->parameters.regular)
+#define EVENT_PACKED(_read_event_) (&(_read_event_)->event->parameters.packed)
+#define EVENT_OFFSET(_read_event_) (&(_read_event_)->event->parameters.offset)
+
+typedef struct {
+  evnt_tid_t tid;		/* thread id */
+  evnt_t *event;		/* pointer to the event */
+} read_evnt_t;
+
+
+typedef struct {
+  evnt_header_tids_t* tids;
+
+  evnt_buffer_t buffer_ptr; // pointer to the beginning of the buffer
+  evnt_buffer_t buffer; // pointer to the current position in the buffer
+  evnt_size_t buffer_size;
+
+  evnt_offset_t offset; // offset from the beginning of the buffer
+  evnt_offset_t tracker; // indicator of the end of the buffer = offset + buffer_size
+
+  evnt_offset_t file_offset; // offset from the beginning of the file
+
+  read_evnt_t cur_event;	/* current event */
+
+} evnt_trace_read_thread_t;
+
 // data structure for reading events from a trace file
 typedef struct {
     FILE* fp; // pointer to the trace file
@@ -155,15 +191,13 @@ typedef struct {
     evnt_buffer_t header_buffer;
     evnt_size_t header_size;
     evnt_header_t* header;
-    evnt_header_tids_t** tids;
-
-    evnt_buffer_t* buffer_ptr; // an array of pointers to the beginning of each buffer
-    evnt_buffer_t* buffer; // an array of pointers to a current position in each buffer
     evnt_size_t buffer_size;
-    evnt_size_t nb_buffers;
 
-    evnt_offset_t* offset; // an array of offsets from the beginning of each buffer
-    evnt_offset_t* tracker; // indicator of the end of the buffer = offset + buffer_size
+    evnt_size_t nb_buffers;
+    evnt_trace_read_thread_t *buffers;
+    int cur_index;		/* index of the thread of the current event */
+    int initialized;		/* set to 1 when initialized */
+
 } evnt_trace_read_t;
 
 // defining the printing formats

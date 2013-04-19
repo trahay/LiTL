@@ -71,30 +71,30 @@ void read_trace(char* filename, int left_bound, int right_bound) {
     int nbevents = 0;
 
     evnt_size_t index;
-    evnt_t* event;
-    evnt_trace_read_t trace;
+    read_evnt_t* event;
+    evnt_trace_read_t *trace;
 
     trace = evnt_open_trace(filename);
 
     index = 0;
-    while (trace.buffer[index] != NULL ) {
-        event = evnt_next_buffer_event(&trace, index);
+    while (trace->buffers[index].buffer != NULL ) {
+      event = evnt_next_buffer_event(trace, index);
 
         if (event == NULL )
             break;
 
-        if (get_bit(event->code) == 1)
+        if (get_bit(EVENT_GET_CODE(event)) == 1)
             // raw event
-            event->code = clear_bit(event->code);
+            EVENT_GET_CODE(event) = clear_bit(EVENT_GET_CODE(event));
 
         // check whether some events were skipped
-        if ((left_bound < event->code) && (event->code < right_bound)) {
+        if ((left_bound < EVENT_GET_CODE(event)) && (EVENT_GET_CODE(event) < right_bound)) {
             nbevents++;
             break;
         }
     }
 
-    evnt_close_trace(&trace);
+    evnt_close_trace(trace);
 
     if (nbevents > 0) {
         fprintf(stderr, "Some events were recorded when they supposed to be skipped");
