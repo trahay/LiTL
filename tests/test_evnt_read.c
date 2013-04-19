@@ -15,7 +15,7 @@
 int main(int argc, const char **argv) {
     evnt_size_t i, index;
     const char* filename = "trace";
-    read_evnt_t* event;
+    evnt_read_t* event;
     evnt_trace_read_t *trace;
     evnt_header_t* header;
 
@@ -40,27 +40,27 @@ int main(int argc, const char **argv) {
         if (event == NULL )
             break;
 
-        switch (EVENT_GET_TYPE(event)) {
+        switch (EVNT_GET_TYPE(event)) {
         case EVNT_TYPE_REGULAR: { // regular event
-	  printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event), EVENT_GET_CODE(event),
-		 EVENT_GET_TIME(event), EVENT_REGULAR(event)->nb_params);
+	  printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event), EVNT_GET_CODE(event),
+		 EVNT_GET_TIME(event), EVNT_REGULAR(event)->nb_params);
 
-            for (i = 0; i < EVENT_REGULAR(event)->nb_params; i++)
-                printf("\t %"PRTIx64, EVENT_REGULAR(event)->param[i]);
+            for (i = 0; i < EVNT_REGULAR(event)->nb_params; i++)
+                printf("\t %"PRTIx64, EVNT_REGULAR(event)->param[i]);
             break;
         }
         case EVNT_TYPE_RAW: { // raw event
-	    EVENT_GET_CODE(event) = clear_bit(EVENT_GET_CODE(event));
-            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event), EVENT_GET_CODE(event),
-		   EVENT_GET_TIME(event), EVENT_RAW(event)->size);
-            printf("\t %s", (evnt_data_t *) EVENT_RAW(event)->data);
+	    EVNT_GET_CODE(event) = clear_bit(EVNT_GET_CODE(event));
+            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event), EVNT_GET_CODE(event),
+		   EVNT_GET_TIME(event), EVNT_RAW(event)->size);
+            printf("\t %s", (evnt_data_t *) EVNT_RAW(event)->data);
             break;
         }
         case EVNT_TYPE_PACKED: { // packed event
-	  printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event),
-		 EVENT_GET_CODE(event), EVENT_GET_TIME(event), EVENT_PACKED(event)->size);
-            for (i = 0; i < EVENT_PACKED(event)->size; i++) {
-                printf(" %x", EVENT_PACKED(event)->param[i]);
+	  printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
+		 EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_PACKED(event)->size);
+            for (i = 0; i < EVNT_PACKED(event)->size; i++) {
+                printf(" %x", EVNT_PACKED(event)->param[i]);
             }
             break;
         }
@@ -68,7 +68,7 @@ int main(int argc, const char **argv) {
             continue;
         }
         default: {
-            fprintf(stderr, "Unknown event type %d\n", EVENT_GET_TYPE(event));
+            fprintf(stderr, "Unknown event type %d\n", EVNT_GET_TYPE(event));
             *(int*) 0 = 0;
         }
         }

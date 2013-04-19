@@ -368,7 +368,7 @@ void evnt_probe_offset(evnt_trace_write_t* trace, int16_t index) {
     evnt_t* cur_ptr = evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], EVNT_BASE_SIZE + sizeof(evnt_param_t));
 
     cur_ptr->time = 0;
-    cur_ptr->code = EVNT_OFFSET;
+    cur_ptr->code = EVNT_OFFSET_CODE;
     cur_ptr->type = EVNT_TYPE_REGULAR;
     cur_ptr->parameters.offset.nb_params = 1;
     cur_ptr->parameters.offset.offset = 0;

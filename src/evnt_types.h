@@ -51,7 +51,7 @@ typedef uint32_t evnt_offset_t;
 #endif
 typedef uint8_t evnt_data_t;
 
-#define EVNT_OFFSET 13
+#define EVNT_OFFSET_CODE 13
 
 #define EVNT_MAX_PARAMS 10
 #define EVNT_MAX_DATA (EVNT_MAX_PARAMS * sizeof(evnt_param_t))
@@ -147,39 +147,37 @@ typedef struct {
     uint8_t already_flushed;
 } evnt_trace_write_t;
 
-
 #define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
 #define GET_CUR_EVENT(_trace_) GET_CUR_EVENT_PER_THREAD(_trace_, (trace)->cur_index)
 
-#define EVENT_GET_TID(_read_event_) (_read_event_)->tid
-#define EVENT_GET_TIME(_read_event_) (_read_event_)->event->time
-#define EVENT_GET_TYPE(_read_event_) (_read_event_)->event->type
-#define EVENT_GET_CODE(_read_event_) (_read_event_)->event->code
+#define EVNT_GET_TID(_read_event_) (_read_event_)->tid
+#define EVNT_GET_TIME(_read_event_) (_read_event_)->event->time
+#define EVNT_GET_TYPE(_read_event_) (_read_event_)->event->type
+#define EVNT_GET_CODE(_read_event_) (_read_event_)->event->code
 
-#define EVENT_RAW(_read_event_) (&(_read_event_)->event->parameters.raw)
-#define EVENT_REGULAR(_read_event_) (&(_read_event_)->event->parameters.regular)
-#define EVENT_PACKED(_read_event_) (&(_read_event_)->event->parameters.packed)
-#define EVENT_OFFSET(_read_event_) (&(_read_event_)->event->parameters.offset)
-
-typedef struct {
-  evnt_tid_t tid;		/* thread id */
-  evnt_t *event;		/* pointer to the event */
-} read_evnt_t;
-
+#define EVNT_RAW(_read_event_) (&(_read_event_)->event->parameters.raw)
+#define EVNT_REGULAR(_read_event_) (&(_read_event_)->event->parameters.regular)
+#define EVNT_PACKED(_read_event_) (&(_read_event_)->event->parameters.packed)
+#define EVNT_OFFSET(_read_event_) (&(_read_event_)->event->parameters.offset)
 
 typedef struct {
-  evnt_header_tids_t* tids;
+    evnt_tid_t tid; /* thread id */
+    evnt_t *event; /* pointer to the event */
+} evnt_read_t;
 
-  evnt_buffer_t buffer_ptr; // pointer to the beginning of the buffer
-  evnt_buffer_t buffer; // pointer to the current position in the buffer
-  evnt_size_t buffer_size;
+typedef struct {
+    evnt_header_tids_t* tids;
 
-  evnt_offset_t offset; // offset from the beginning of the buffer
-  evnt_offset_t tracker; // indicator of the end of the buffer = offset + buffer_size
+    evnt_buffer_t buffer_ptr; // pointer to the beginning of the buffer
+    evnt_buffer_t buffer; // pointer to the current position in the buffer
+    evnt_size_t buffer_size;
 
-  evnt_offset_t file_offset; // offset from the beginning of the file
+    evnt_offset_t offset; // offset from the beginning of the buffer
+    evnt_offset_t tracker; // indicator of the end of the buffer = offset + buffer_size
 
-  read_evnt_t cur_event;	/* current event */
+    evnt_offset_t file_offset; // offset from the beginning of the file
+
+    evnt_read_t cur_event; /* current event */
 
 } evnt_trace_read_thread_t;
 
@@ -195,8 +193,8 @@ typedef struct {
 
     evnt_size_t nb_buffers;
     evnt_trace_read_thread_t *buffers;
-    int cur_index;		/* index of the thread of the current event */
-    int initialized;		/* set to 1 when initialized */
+    int cur_index; /* index of the thread of the current event */
+    int initialized; /* set to 1 when initialized */
 
 } evnt_trace_read_t;
 

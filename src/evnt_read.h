@@ -47,17 +47,17 @@ void evnt_reset_trace(evnt_trace_read_t*, evnt_size_t);
 /*
  * This function reads an event
  */
-read_evnt_t* evnt_read_event(evnt_trace_read_t*, evnt_size_t);
+evnt_read_t* evnt_read_event(evnt_trace_read_t*, evnt_size_t);
 
 /*
  * This function searches for the next event inside the buffer
  */
-read_evnt_t* evnt_next_buffer_event(evnt_trace_read_t*, evnt_size_t);
+evnt_read_t* evnt_next_buffer_event(evnt_trace_read_t*, evnt_size_t);
 
 /*
  * This function searches for the next event inside the trace
  */
-read_evnt_t* evnt_next_trace_event(evnt_trace_read_t*);
+evnt_read_t* evnt_next_trace_event(evnt_trace_read_t*);
 
 /*
  * This function closes the trace and frees the allocated memory
@@ -79,7 +79,7 @@ void evnt_close_trace(evnt_trace_read_t*);
 
 #define GET_ARG(evt, _ptr_, arg)			\
   do {						\
-    if(EVENT_GET_TYPE(evt) == EVNT_TYPE_REGULAR)	\
+    if(EVNT_GET_TYPE(evt) == EVNT_TYPE_REGULAR)	\
       GET_ARG_REGULAR(_ptr_, arg);		\
     else					\
       GET_ARG_PACKED(_ptr_, arg);			\
@@ -88,10 +88,10 @@ void evnt_close_trace(evnt_trace_read_t*);
 
 #define INIT_PTR(evt, _ptr_)				\
   do {							\
-    if(EVENT_GET_TYPE(evt) == EVNT_TYPE_REGULAR)		\
-      _ptr_ = &EVENT_REGULAR(evt)->param[0];	\
+    if(EVNT_GET_TYPE(evt) == EVNT_TYPE_REGULAR)		\
+      _ptr_ = &EVNT_REGULAR(evt)->param[0];	\
     else						\
-      _ptr_ = &EVENT_PACKED(evt)->param[0];			\
+      _ptr_ = &EVNT_PACKED(evt)->param[0];			\
   } while(0)
 
 #define evnt_get_param_1(p_evt, arg1)		\

@@ -71,7 +71,7 @@ void read_trace(char* filename, int left_bound, int right_bound) {
     int nbevents = 0;
 
     evnt_size_t index;
-    read_evnt_t* event;
+    evnt_read_t* event;
     evnt_trace_read_t *trace;
 
     trace = evnt_open_trace(filename);
@@ -83,12 +83,12 @@ void read_trace(char* filename, int left_bound, int right_bound) {
         if (event == NULL )
             break;
 
-        if (get_bit(EVENT_GET_CODE(event)) == 1)
+        if (get_bit(EVNT_GET_CODE(event)) == 1)
             // raw event
-            EVENT_GET_CODE(event) = clear_bit(EVENT_GET_CODE(event));
+            EVNT_GET_CODE(event) = clear_bit(EVNT_GET_CODE(event));
 
         // check whether some events were skipped
-        if ((left_bound < EVENT_GET_CODE(event)) && (EVENT_GET_CODE(event) < right_bound)) {
+        if ((left_bound < EVNT_GET_CODE(event)) && (EVNT_GET_CODE(event) < right_bound)) {
             nbevents++;
             break;
         }

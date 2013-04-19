@@ -16,7 +16,7 @@
  * This function opens a trace and reads the first portion of data to the buffer
  */
 evnt_trace_read_t *evnt_open_trace(const char* filename) {
-  evnt_trace_read_t *trace = malloc(sizeof(evnt_trace_read_t));
+    evnt_trace_read_t *trace = malloc(sizeof(evnt_trace_read_t));
 
     // open the trace file
     if (!(trace->fp = fopen(filename, "r"))) {
@@ -108,7 +108,7 @@ void evnt_init_buffers(evnt_trace_read_t* trace) {
         // use offsets in order to access a chuck of data that corresponds to each thread
         fseek(trace->fp, trace->buffers[i].tids->offset, SEEK_SET);
 
-	trace->buffers[i].buffer_size = trace->buffer_size;
+        trace->buffers[i].buffer_size = trace->buffer_size;
         trace->buffers[i].buffer_ptr = (evnt_buffer_t) malloc(trace->buffer_size);
 
         int res = fread(trace->buffers[i].buffer_ptr, trace->buffer_size, 1, trace->fp);
@@ -153,7 +153,7 @@ void evnt_reset_trace(evnt_trace_read_t* trace, evnt_size_t index) {
 /*
  * This function reads an event
  */
-read_evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
+evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
     uint8_t to_be_loaded;
     evnt_size_t size;
     evnt_t* event;
@@ -161,9 +161,9 @@ read_evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
     buffer = trace->buffers[index].buffer;
     to_be_loaded = 0;
 
-    if (! buffer) {
-      trace->buffers[index].cur_event.event = NULL;
-      return NULL;
+    if (!buffer) {
+        trace->buffers[index].cur_event.event = NULL;
+        return NULL ;
     }
 
     event = (evnt_t *) buffer;
@@ -180,23 +180,21 @@ read_evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
         to_be_loaded = 1;
     } else {
         /* The nb_param (or size) field is available. Let's see if the event is truncated */
-      unsigned event_size = get_event_size_type(event);
+        unsigned event_size = get_event_size_type(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }
 
     // event that stores tid and offset
-    if (event->code == EVNT_OFFSET) {
+    if (event->code == EVNT_OFFSET_CODE) {
         if (event->parameters.offset.offset != 0) {
             trace->buffers[index].tids->offset = event->parameters.offset.offset;
-            /**buffer += get_event_offset_components();
-             -trace->offset += get_event_offset_size();*/
             to_be_loaded = 1;
         } else {
             trace->buffers[index].buffer = NULL;
             *buffer = NULL;
-	    trace->buffers[index].cur_event.event = NULL;
-	    return NULL;
+            trace->buffers[index].cur_event.event = NULL;
+            return NULL ;
         }
     }
 
@@ -213,47 +211,48 @@ read_evnt_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
     trace->buffers[index].offset = (((uint8_t*) trace->buffers[index].offset) + get_event_size_type(event));
 
     trace->buffers[index].cur_event.event = event;
+    trace->buffers[index].cur_event.tid = trace->buffers[index].tids->tid;
     return &trace->buffers[index].cur_event;
 }
 
 /*
  * This function searches for the next event inside each buffer
  */
-read_evnt_t* evnt_next_buffer_event(evnt_trace_read_t* trace, evnt_size_t index) {
+evnt_read_t* evnt_next_buffer_event(evnt_trace_read_t* trace, evnt_size_t index) {
     return evnt_read_event(trace, index);
 }
 
 /*
  * This function searches for the next event inside the trace
  */
-read_evnt_t* evnt_next_trace_event(evnt_trace_read_t* trace) {
+evnt_read_t* evnt_next_trace_event(evnt_trace_read_t* trace) {
     evnt_size_t i;
     evnt_time_t min_time = -1;
 
     if (!trace->initialized) {
         for (i = 0; i < trace->nb_buffers; i++)
-	  evnt_next_buffer_event(trace, i);
+            evnt_next_buffer_event(trace, i);
 
-	trace->cur_index = -1;
+        trace->cur_index = -1;
         trace->initialized = 1;
     }
 
     // read the next event from the buffer
     if (trace->cur_index != -1)
-      evnt_next_buffer_event(trace, trace->cur_index);
+        evnt_next_buffer_event(trace, trace->cur_index);
 
     int found = 0;
     for (i = 0; i < trace->nb_buffers; i++) {
-      read_evnt_t *evt = GET_CUR_EVENT_PER_THREAD(trace, i);
-      if (  evt && evt->event && (EVENT_GET_TIME(evt) < min_time)) {
-	found = 1;
-	min_time = EVENT_GET_TIME(evt);
-	trace->cur_index = i;
-      }
+        evnt_read_t *evt = GET_CUR_EVENT_PER_THREAD(trace, i);
+        if ( evt && evt->event && (EVNT_GET_TIME(evt) < min_time)) {
+            found = 1;
+            min_time = EVNT_GET_TIME(evt);
+            trace->cur_index = i;
+        }
     }
-    if(found)
-      return GET_CUR_EVENT(trace);
-    return NULL;
+    if (found)
+        return GET_CUR_EVENT(trace);
+    return NULL ;
 }
 
 /*
@@ -268,7 +267,7 @@ void evnt_close_trace(evnt_trace_read_t* trace) {
     // free buffers
     free(trace->header_buffer_ptr);
     for (i = 0; i < trace->nb_buffers; i++) {
-      free(trace->buffers[i].buffer_ptr);
+        free(trace->buffers[i].buffer_ptr);
     }
     free(trace->buffers);
 
@@ -281,7 +280,7 @@ void evnt_close_trace(evnt_trace_read_t* trace) {
 int main(int argc, const char **argv) {
     evnt_size_t i;
     const char* filename = "trace";
-    read_evnt_t* event;
+    evnt_read_t* event;
     evnt_trace_read_t *trace;
     evnt_header_t* header;
 
@@ -307,26 +306,27 @@ int main(int argc, const char **argv) {
         if (event == NULL )
             break;
 
-        switch (EVENT_GET_TYPE(event)) {
+        switch (EVNT_GET_TYPE(event)) {
         case EVNT_TYPE_REGULAR: { // regular event
-	  printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event), EVENT_GET_CODE(event),EVENT_GET_TIME(event), EVENT_REGULAR(event)->nb_params);
+            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
+                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_REGULAR(event)->nb_params);
 
-            for (i = 0; i < EVENT_REGULAR(event)->nb_params; i++)
-                printf("\t %"PRTIx64, EVENT_REGULAR(event)->param[i]);
+            for (i = 0; i < EVNT_REGULAR(event)->nb_params; i++)
+                printf("\t %"PRTIx64, EVNT_REGULAR(event)->param[i]);
             break;
         }
         case EVNT_TYPE_RAW: { // raw event
-	    EVENT_GET_CODE(event) = clear_bit(EVENT_GET_CODE(event));
-            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event), EVENT_GET_CODE(event),
-		   EVENT_GET_TIME(event), EVENT_RAW(event)->size);
-            printf("\t %s", (evnt_data_t *) EVENT_RAW(event)->data);
+            EVNT_GET_CODE(event) = clear_bit(EVNT_GET_CODE(event));
+            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
+                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_RAW(event)->size);
+            printf("\t %s", (evnt_data_t *) EVNT_RAW(event)->data);
             break;
         }
         case EVNT_TYPE_PACKED: { // packed event
-	  printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVENT_GET_TID(event),
-		 EVENT_GET_CODE(event), EVENT_GET_TIME(event), EVENT_PACKED(event)->size);
-            for (i = 0; i < EVENT_PACKED(event)->size; i++) {
-                printf(" %x", EVENT_PACKED(event)->param[i]);
+            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
+                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_PACKED(event)->size);
+            for (i = 0; i < EVNT_PACKED(event)->size; i++) {
+                printf(" %x", EVNT_PACKED(event)->param[i]);
             }
             break;
         }
@@ -334,7 +334,7 @@ int main(int argc, const char **argv) {
             continue;
         }
         default: {
-            fprintf(stderr, "Unknown event type %d\n", EVENT_GET_TYPE(event));
+            fprintf(stderr, "Unknown event type %d\n", EVNT_GET_TYPE(event));
             abort();
         }
         }
