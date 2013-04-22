@@ -34,6 +34,7 @@ typedef uint32_t evnt_code_t;
 // TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
 typedef uint32_t evnt_size_t;
+typedef uint8_t evnt_tiny_size_t;
 typedef uint64_t evnt_param_t;
 typedef uint64_t* evnt_buffer_t; // data structure for holding a set of events
 typedef uint64_t evnt_offset_t;
@@ -60,10 +61,9 @@ typedef enum {
     EVNT_TYPE_REGULAR, EVNT_TYPE_RAW, EVNT_TYPE_PACKED, EVNT_TYPE_OFFSET
 } evnt_type_t;
 
-// regular event
 typedef struct {
     evnt_time_t time; // time of the measurement
-    evnt_code_t code; // code of the event. Code contains, in the highest bit, info about raw (1) or regular (0) event
+    evnt_code_t code; // code of the event
     evnt_type_t type;
     union {
         struct {

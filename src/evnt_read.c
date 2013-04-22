@@ -180,7 +180,7 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
         to_be_loaded = 1;
     } else {
         /* The nb_param (or size) field is available. Let's see if the event is truncated */
-        unsigned event_size = get_event_size_type(event);
+        evnt_size_t event_size = get_event_size_type(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }

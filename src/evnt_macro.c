@@ -34,25 +34,21 @@ evnt_size_t get_event_size(evnt_size_t nb_params) {
  * This function returns the size of a particular event in bytes depending on the number of arguments
  */
 evnt_size_t get_event_size_type(evnt_t *p_evt) {
-  switch(p_evt->type) {
-  case EVNT_TYPE_REGULAR:
-    return p_evt->parameters.regular.nb_params * sizeof(evnt_param_t)
-            + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
-  case EVNT_TYPE_RAW:
+    switch (p_evt->type) {
+    case EVNT_TYPE_REGULAR:
+        return p_evt->parameters.regular.nb_params * sizeof(evnt_param_t)
+                + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
+    case EVNT_TYPE_RAW:
+        return p_evt->parameters.raw.size + EVNT_BASE_SIZE ;
+    case EVNT_TYPE_PACKED:
+        return p_evt->parameters.packed.size + EVNT_BASE_SIZE ;
+    default:
+        fprintf(stderr, "Unknown event type %d!\n", p_evt->type);
+        abort();
+    }
 
-    return p_evt->parameters.raw.size + EVNT_BASE_SIZE;
-
-  case EVNT_TYPE_PACKED:
-    return p_evt->parameters.packed.size + EVNT_BASE_SIZE;
-  default:
-    fprintf(stderr, "Unknown event type %d!\n", p_evt->type);
-    abort();
-  }
-
-  return 0;
+    return 0;
 }
-
-
 
 /*
  * This function converts evnt's parameters to string. As a separator, space is used

@@ -69,11 +69,6 @@ void* write_trace(void* arg) {
         evnt_raw_probe(&trace, 0x100 * (i + 1) + 12, sizeof(val), val);
         usleep(100);
     }
-    /*uint32_t size = sizeof(evnt_buffer_t)
-     * ((evnt_buffer_t) trace.buffer_cur[*(uint16_t *) pthread_getspecific(trace.index)]
-     - (evnt_buffer_t) trace.buffer_ptr[*(uint16_t *) pthread_getspecific(trace.index)]);
-     if (size != 240000)
-     printf("index = %d \t size = %d\n", *(uint16_t *) pthread_getspecific(trace.index), size);*/
 
     return NULL ;
 }
@@ -108,7 +103,7 @@ int main(int argc, const char **argv) {
     int i;
     char* filename;
     pthread_t tid[NBTHREAD];
-    const uint32_t buffer_size = 1024; // 512KB
+    const uint32_t buffer_size = 1024; // 1KB
 
     printf("Recording events by %d threads\n\n", NBTHREAD);
     asprintf(&filename, "/tmp/test_evnt_write_concurent.trace");
