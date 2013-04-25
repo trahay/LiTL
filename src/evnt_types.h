@@ -119,6 +119,7 @@ typedef struct {
     evnt_buffer_t header_ptr;
     evnt_buffer_t header_cur;
     evnt_size_t header_size;
+    evnt_size_t header_offset;
 
     evnt_buffer_t buffer_ptr[NBBUFFER];
     evnt_buffer_t buffer_cur[NBBUFFER];
