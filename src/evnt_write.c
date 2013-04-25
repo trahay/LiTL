@@ -62,6 +62,7 @@ static void __init_var(evnt_trace_write_t* trace) {
  * This function initializes the trace
  */
 evnt_trace_write_t evnt_init_trace(const uint32_t buf_size) {
+    evnt_size_t i;
     evnt_trace_write_t trace;
 
     trace.buffer_size = buf_size;
@@ -69,15 +70,18 @@ evnt_trace_write_t evnt_init_trace(const uint32_t buf_size) {
     // set variables
     trace.header_size = 1536; // 1.5Kb
     trace.evnt_filename = NULL;
-    trace.already_flushed = 0;
+    trace.is_header_flushed = 0;
     trace.is_buffer_full = 0;
     evnt_tid_recording_on(&trace);
 
+    // initialize the array already_flushed
+    for (i = 0; i < NBBUFFER; i++)
+        trace.already_flushed[i] = 0;
+
     // initialize tids by zeros; this is needed for __is_tid and __find_slot
-    evnt_size_t i;
     for (i = 0; i < NBBUFFER; i++)
         trace.tids[i] = 0;
-    trace.nb_threads = -1;
+    trace.nb_threads = 0;
 
     // a jump function is needed 'cause it is not possible to pass args to the calling function through pthread_once
     void __init() {
@@ -183,7 +187,7 @@ void evnt_resume_recording(evnt_trace_write_t* trace) {
  */
 void evnt_set_filename(evnt_trace_write_t* trace, char* filename) {
     if (trace->evnt_filename) {
-        if (trace->already_flushed)
+        if (trace->is_header_flushed)
             fprintf(stderr,
                     "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
                     filename, trace->evnt_filename);
@@ -210,35 +214,49 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
     if (trace->allow_thread_safety)
         pthread_mutex_lock(&trace->lock_evnt_flush);
 
-    if (!trace->already_flushed) {
+    if (!trace->is_header_flushed) {
         // check whether the trace file can be opened
         if (!(trace->ftrace = fopen(trace->evnt_filename, "w+"))) {
             perror("Could not open the trace file for writing!");
             exit(EXIT_FAILURE);
         }
 
-        // update nb_threads
-        *(evnt_size_t *) (trace->header_cur - 1) = trace->nb_threads + 1;
+        /*
+         TODO: handling more than 64 threads
+         if (__get_header_size(trace) < trace->header_size)
+         // relocate memory
+         */
 
-        // add information about each working thread: (tid, offset)
+        // update nb_threads
+        *(evnt_size_t *) (trace->header_cur - 1) = trace->nb_threads;
+        // header_size stores the position of nb_threads in the trace file
+        trace->header_size = __get_header_size(trace) - 2 * sizeof(evnt_size_t);
+
         evnt_size_t i;
-        /*if (__get_header_size(trace) < trace->header_size)
-         // relocate memory*/
+        // add information about each working thread: (tid, offset)
+        // put first the information regarding the current thread
         ((evnt_header_tids_t *) trace->header_cur)->tid = trace->tids[index];
         trace->header_cur += 1;
         // save the position of offset inside the trace file
         trace->offsets[index] = __get_header_size(trace);
         ((evnt_header_tids_t *) trace->header_cur)->offset = 0;
         trace->header_cur += 1;
+        trace->already_flushed[index] = 1;
 
-        for (i = 0; i <= trace->nb_threads; i++)
+        for (i = 0; i < trace->nb_threads; i++)
             if (i != index) {
                 ((evnt_header_tids_t *) trace->header_cur)->tid = trace->tids[i];
                 trace->header_cur += 1;
                 trace->offsets[i] = __get_header_size(trace);
                 ((evnt_header_tids_t *) trace->header_cur)->offset = 0;
                 trace->header_cur += 1;
+                trace->already_flushed[i] = 1;
             }
+
+        // increase the size of header to be able to hold exactly 64 pairs of tid and offset.
+        // TODO: if the previous todo changes, this also needs to be modified
+        if (trace->nb_threads < 64)
+            trace->header_cur += 2 * (64 - trace->nb_threads);
 
         // write the trace header to the trace file
         if (fwrite(trace->header_ptr, __get_header_size(trace), 1, trace->ftrace) != 1) {
@@ -246,15 +264,37 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
             exit(EXIT_FAILURE);
         }
 
+        // move the pointer to the end of an array of pairs (tid, offset)
+        if (trace->nb_threads < 64)
+            trace->header_cur -= 2 * (64 - trace->nb_threads);
+
         // set the general_offset
         trace->general_offset = __get_header_size(trace);
 
-        trace->already_flushed = 1;
+        trace->is_header_flushed = 1;
     }
-    // update the previous offset of the current thread, updating the location in the file
-    fseek(trace->ftrace, trace->offsets[index], SEEK_SET);
-    fwrite(&trace->general_offset, sizeof(evnt_offset_t), 1, trace->ftrace);
-    fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+
+    // handle the situation when some threads start after the header was flushed
+    if (!trace->already_flushed[index]) {
+        // add the pair tid and add & update offset at once
+        fseek(trace->ftrace, __get_header_size(trace), SEEK_SET);
+        fwrite(&trace->tids[index], sizeof(evnt_tid_t), 1, trace->ftrace);
+        fwrite(&trace->general_offset, sizeof(evnt_offset_t), 1, trace->ftrace);
+        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+
+        trace->header_cur += 2; // 1 for each tid and offset
+        trace->already_flushed[index] = 1;
+
+        // updated the number of threads
+        fseek(trace->ftrace, trace->header_size, SEEK_SET);
+        fwrite(&trace->nb_threads, sizeof(evnt_offset_t), 1, trace->ftrace);
+        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+    } else {
+        // update the previous offset of the current thread, updating the location in the file
+        fseek(trace->ftrace, trace->offsets[index], SEEK_SET);
+        fwrite(&trace->general_offset, sizeof(evnt_offset_t), 1, trace->ftrace);
+        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+    }
 
     // update the current offset of the thread: general_offset + size of chunk of events + EVNT_BASE_SIZE
     //      (offset is the first parameter of that event)
@@ -287,10 +327,10 @@ static void __allocate_buffer(evnt_trace_write_t* trace) {
     // thread safe region
     pthread_mutex_lock(&trace->lock_buffer_init);
 
-    trace->nb_threads++;
     pos = malloc(sizeof(evnt_size_t));
     *pos = trace->nb_threads;
     pthread_setspecific(trace->index, pos);
+    trace->nb_threads++;
 
     trace->tids[*pos] = CUR_TID;
 
@@ -360,8 +400,8 @@ void evnt_probe_offset(evnt_trace_write_t* trace, int16_t index) {
     cur_ptr->type = EVNT_TYPE_REGULAR;
     cur_ptr->parameters.offset.nb_params = 1;
     cur_ptr->parameters.offset.offset = 0;
-    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + (EVNT_BASE_SIZE
-            + sizeof(evnt_param_t)));
+    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
+            + (EVNT_BASE_SIZE + sizeof(evnt_param_t)));
 }
 
 /*
@@ -782,10 +822,10 @@ void evnt_fin_trace(evnt_trace_write_t* trace) {
     // write an event with the EVNT_TRACE_END (= 0) code in order to indicate the end of tracing
     evnt_size_t i;
 
-    for (i = 1; i <= trace->nb_threads; i++)
+    for (i = 0; i < trace->nb_threads; i++)
         evnt_flush_buffer(trace, i);
     // because the EVNT_TRACE_END was written to the trace buffer #0
-    evnt_flush_buffer(trace, 0);
+    //    evnt_flush_buffer(trace, 0);
 
     fclose(trace->ftrace);
 
@@ -803,5 +843,5 @@ void evnt_fin_trace(evnt_trace_write_t* trace) {
     free(trace->evnt_filename);
     trace->evnt_filename = NULL;
     trace->evnt_initialized = 0;
-    trace->already_flushed = 0;
+    trace->is_header_flushed = 0;
 }

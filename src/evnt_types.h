@@ -130,7 +130,7 @@ typedef struct {
     evnt_offset_t offsets[NBBUFFER]; // offsets to find the next buffer in the trace file for a particular thread
     pthread_once_t index_once;
     pthread_key_t index; // private thread variable holds its index in tids, buffer_ptr/buffer_cur, and offsets
-    evnt_size_t nb_threads; // points to the next free slot in the arrays above; (nb_threads+1) is the number of threads
+    evnt_size_t nb_threads; // is the number of threads
 
     pthread_mutex_t lock_evnt_flush; // to handle write conflicts while using pthread
     pthread_mutex_t lock_buffer_init; // to handle race conditions while initializing tids and buffer_ptrs/buffer_curs
@@ -142,9 +142,12 @@ typedef struct {
     uint8_t evnt_initialized;
     // evnt_paused indicates whether libevnt stops recording events (1) for a while or not (0)
     volatile uint8_t evnt_paused;
-    // already_flushed is used to check whether the buffer was flushed as well as
-    //      to ensure that the correct and unique trace file was opened
-    uint8_t already_flushed;
+
+    // is_header_flushed is used to check whether the header with tids and offsets has been flushed
+    uint8_t is_header_flushed;
+    // an array of already_flushed flags is used to handle the situation when some threads start after the header was flushed,
+    //      i.e. their tids and offsets were not included into the header
+    uint8_t already_flushed[NBBUFFER];
 } evnt_trace_write_t;
 
 #define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
