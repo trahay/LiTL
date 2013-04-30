@@ -24,19 +24,14 @@ int main(int argc, const char **argv) {
     else
         filename = "/tmp/test_trace_size.trace";
 
-    printf("Recording events with five arguments of type uint8_t\n\n");
+    printf("Recording events with six arguments of type uint8_t\n\n");
 
     trace = evnt_init_trace(buffer_size);
     evnt_set_filename(&trace, filename);
 
     nb_iter = 10000;
     for (i = 0; i < nb_iter; i++) {
-        // event0
-        //        evnt_probe_pack_0(&trace, 0x100 * (i + 1) + 6);
-
         // event6
-        /*        evnt_probe6(&trace, 0x100 * (i + 1) + 6, (uint8_t) 1, (uint8_t) 3, (uint8_t) 5, (uint8_t) 7, (uint8_t) 11,
-         (uint8_t) 13);*/
         evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
                 (uint8_t ) 11, (uint8_t ) 13);
         usleep(100);
@@ -45,6 +40,14 @@ int main(int argc, const char **argv) {
     evnt_fin_trace(&trace);
 
     printf("Events are recorded and written in the %s file\n", filename);
+
+    evnt_param_t size;
+    FILE* fp = fopen(filename, "r");
+    fseek(fp, 0L, SEEK_END);
+    size = ftell(fp);
+    fclose(fp);
+
+    printf("\nThe size of the trace file with %d packed event6 is %d bytes \n", nb_iter, size);
 
     return EXIT_SUCCESS;
 }
