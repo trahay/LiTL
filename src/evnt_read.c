@@ -76,18 +76,17 @@ void evnt_init_trace_header(evnt_trace_read_t* trace) {
 
     trace->header = (evnt_header_t *) trace->header_buffer;
     size = sizeof(evnt_header_t);
-    size = (evnt_size_t) ceil((double) size / sizeof(evnt_param_t));
-    trace->header_buffer += size;
+    trace->header_buffer = (evnt_buffer_t) ((uint8_t *) trace->header_buffer + size);
 
     // init nb_buffers
     trace->nb_buffers = trace->header->nb_threads;
 
     trace->buffers = (evnt_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(evnt_trace_read_thread_t));
-    size = (evnt_size_t) ceil((double) sizeof(evnt_header_tids_t) / sizeof(evnt_param_t));
+    size = sizeof(evnt_header_tids_t);
 
     for (i = 0; i < trace->nb_buffers; i++) {
         trace->buffers[i].tids = (evnt_header_tids_t *) trace->header_buffer;
-        trace->header_buffer += size;
+        trace->header_buffer = (evnt_buffer_t) ((uint8_t *) trace->header_buffer + size);
     }
 }
 
@@ -207,8 +206,8 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
 
     // move pointer to the next event and update __offset
     unsigned evt_size = get_event_size_type(event);
-    trace->buffers[index].buffer = (evnt_buffer_t) (((uint8_t*) trace->buffers[index].buffer) + evt_size);
-    trace->buffers[index].offset = (((uint8_t*) trace->buffers[index].offset) + get_event_size_type(event));
+    trace->buffers[index].buffer = (evnt_buffer_t) ((uint8_t*) trace->buffers[index].buffer + evt_size);
+    trace->buffers[index].offset = ((uint8_t*) trace->buffers[index].offset + get_event_size_type(event));
 
     trace->buffers[index].cur_event.event = event;
     trace->buffers[index].cur_event.tid = trace->buffers[index].tids->tid;

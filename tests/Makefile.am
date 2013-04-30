@@ -9,12 +9,13 @@ AM_LDFLAGS = $(top_builddir)/src/libevnt.la
 
 EVNTDEPENDENCIES = $(AM_LDFLAGS)
 
-CTESTS = test_evnt_write \
-         test_evnt_read \
-         test_evnt_write_concurent \
-         test_evnt_pause \
-         test_evnt_write_multiple \
-         test_evnt_buffer 
+CTESTS = test_trace_size
+#CTESTS = test_evnt_write \
+#         test_evnt_read \
+#         test_evnt_write_concurent \
+#         test_evnt_pause \
+#         test_evnt_write_multiple \
+#         test_evnt_buffer 
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)

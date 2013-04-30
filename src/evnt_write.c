@@ -48,7 +48,7 @@ static void __add_trace_header(evnt_trace_write_t* trace) {
     ((evnt_header_t *) trace->header_cur)->buffer_size = trace->buffer_size;
 
     // size of two strings (libevnt, OS), nb_threads, and buffer_size
-    trace->header_cur += (evnt_size_t) ceil((double) sizeof(evnt_header_t) / sizeof(evnt_param_t));
+    trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur + sizeof(evnt_header_t));
 }
 
 /*
@@ -228,7 +228,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
          */
 
         // update nb_threads
-        *(evnt_size_t *) (trace->header_cur - 1) = trace->nb_threads;
+        *(evnt_size_t *) ((uint8_t *) trace->header_cur - sizeof(evnt_offset_t)) = trace->nb_threads;
         // header_size stores the position of nb_threads in the trace file
         trace->header_size = __get_header_size(trace) - 2 * sizeof(evnt_size_t);
 
@@ -239,7 +239,8 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
             ((evnt_header_tids_t *) trace->header_cur)->tid = trace->tids[i];
             ((evnt_header_tids_t *) trace->header_cur)->offset = 0;
 
-            trace->header_cur += 2;
+            trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur + (sizeof(evnt_tid_t)
+                    + sizeof(evnt_offset_t)));
             // save the position of offset inside the trace file
             trace->offsets[i] = __get_header_size(trace) - sizeof(evnt_offset_t);
             trace->already_flushed[i] = 1;
@@ -251,7 +252,8 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
             // offset from the top of the trace to the next free position for a pair (tid, offset)
             trace->header_offset = __get_header_size(trace);
             // the header should hold information about all 64 threads
-            trace->header_cur += 2 * (64 - trace->nb_threads);
+            trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur
+                    + (64 - trace->nb_threads) * (sizeof(evnt_tid_t) + sizeof(evnt_offset_t)));
         }
 
         // write the trace header to the trace file

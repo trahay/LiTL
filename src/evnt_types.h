@@ -36,7 +36,7 @@ typedef uint32_t evnt_code_t;
 typedef uint32_t evnt_size_t;
 typedef uint8_t evnt_tiny_size_t;
 typedef uint64_t evnt_param_t;
-typedef uint64_t* evnt_buffer_t; // data structure for holding a set of events
+typedef uint8_t* evnt_buffer_t; // data structure for holding a set of events
 typedef uint64_t evnt_offset_t;
 
 #elif defined __arm__
@@ -67,23 +67,23 @@ typedef struct {
     evnt_type_t type;
     union {
         struct {
-            evnt_size_t nb_params; // number of arguments
+            evnt_tiny_size_t nb_params; // number of arguments
             evnt_param_t param[EVNT_MAX_PARAMS]; // array of arguments; the array is of lengths from 0 to 10
-        } regular;
+        }__attribute__((packed)) regular;
         struct {
             evnt_size_t size; // size of data in bytes
             evnt_data_t data[EVNT_MAX_DATA]; // raw data
-        } raw;
+        }__attribute__((packed)) raw;
         struct {
-            evnt_size_t size; // size of data in bytes
+            evnt_tiny_size_t size; // size of data in bytes
             evnt_data_t param[EVNT_MAX_DATA]; // raw data
-        } packed;
+        }__attribute__((packed)) packed;
         struct {
-            evnt_size_t nb_params; // =1
+            evnt_tiny_size_t nb_params; // =1
             evnt_param_t offset; // an offset to the next chunk of events
-        } offset;
+        }__attribute__((packed)) offset;
     } parameters;
-} evnt_t;
+}__attribute__((packed)) evnt_t;
 
 // data structure for reading events from a trace file
 typedef struct {

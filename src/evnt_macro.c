@@ -36,8 +36,7 @@ evnt_size_t get_event_size(evnt_size_t nb_params) {
 evnt_size_t get_event_size_type(evnt_t *p_evt) {
     switch (p_evt->type) {
     case EVNT_TYPE_REGULAR:
-        return p_evt->parameters.regular.nb_params * sizeof(evnt_param_t)
-                + (evnt_size_t) ceil(EVNT_BASE_SIZE / (double) sizeof(evnt_param_t)) * sizeof(evnt_param_t);
+        return p_evt->parameters.regular.nb_params * sizeof(evnt_param_t) + EVNT_BASE_SIZE ;
     case EVNT_TYPE_RAW:
         return p_evt->parameters.raw.size + EVNT_BASE_SIZE ;
     case EVNT_TYPE_PACKED:
