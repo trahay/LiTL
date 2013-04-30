@@ -346,7 +346,6 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
     evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
 
     retry: if (__get_buffer_size(trace, index) < trace->buffer_size) {
-//        evnt_t* cur_ptr = (evnt_t*) evnt_cmpxchg((uint8_t**) &trace->buffer_cur[index], size);
         evnt_t* cur_ptr = (evnt_t*) trace->buffer_cur[index];
         cur_ptr->time = evnt_get_time();
         cur_ptr->code = code;
@@ -369,7 +368,6 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
         return cur_ptr;
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
-        //evnt_probe0(trace, code);
         goto retry;
     } else {
         // this applies only when the flushing is off

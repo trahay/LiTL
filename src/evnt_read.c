@@ -322,7 +322,7 @@ int main(int argc, const char **argv) {
             break;
         }
         case EVNT_TYPE_PACKED: { // packed event
-            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
+            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64"   %"PRTIu32"\t", EVNT_GET_TID(event),
                     EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_PACKED(event)->size);
             for (i = 0; i < EVNT_PACKED(event)->size; i++) {
                 printf(" %x", EVNT_PACKED(event)->param[i]);
