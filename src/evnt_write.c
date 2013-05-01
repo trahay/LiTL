@@ -783,7 +783,7 @@ void evnt_raw_probe(evnt_trace_write_t* trace, evnt_code_t code, evnt_size_t siz
 
     evnt_t* cur_ptr = (evnt_t *) trace->buffer_cur[index];
     // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
-    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + (EVNT_BASE_SIZE + size));
+    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + (EVNT_BASE_SIZE + size + 7));
 
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         cur_ptr->time = evnt_get_time();
@@ -796,7 +796,7 @@ void evnt_raw_probe(evnt_trace_write_t* trace, evnt_code_t code, evnt_size_t siz
                 cur_ptr->parameters.raw.data[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t *) trace->buffer_cur[index] - (EVNT_BASE_SIZE + size));
+        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t *) trace->buffer_cur[index] - (EVNT_BASE_SIZE + size + 7));
 
         evnt_flush_buffer(trace, index);
         evnt_raw_probe(trace, code, size, data);

@@ -29,11 +29,13 @@ int main(int argc, const char **argv) {
     trace = evnt_init_trace(buffer_size);
     evnt_set_filename(&trace, filename);
 
-    nb_iter = 10000;
+    nb_iter = 1000;
     for (i = 0; i < nb_iter; i++) {
         // event6
-        evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
-                (uint8_t ) 11, (uint8_t ) 13);
+        /*        evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
+         (uint8_t ) 11, (uint8_t ) 13);*/
+        evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t ) 1, (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
+                (int32_t ) 11, (int32_t ) 13);
         usleep(100);
     }
 

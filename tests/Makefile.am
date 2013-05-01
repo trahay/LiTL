@@ -15,7 +15,7 @@ CTESTS = test_evnt_write \
          test_evnt_pause \
          test_evnt_write_multiple \
          test_evnt_buffer \
-		 test_trace_size
+         test_trace_size
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
