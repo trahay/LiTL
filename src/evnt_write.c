@@ -48,7 +48,7 @@ static void __add_trace_header(evnt_trace_write_t* trace) {
     ((evnt_header_t *) trace->header_cur)->buffer_size = trace->buffer_size;
 
     // size of two strings (libevnt, OS), nb_threads, and buffer_size
-    trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur + sizeof(evnt_header_t));
+    trace->header_cur += sizeof(evnt_header_t);
 }
 
 /*
@@ -122,14 +122,14 @@ evnt_trace_write_t evnt_init_trace(const uint32_t buf_size) {
  * This function computes the size of data in the trace header
  */
 static uint32_t __get_header_size(evnt_trace_write_t* trace) {
-    return ((uint8_t *) trace->header_cur - (uint8_t *) trace->header_ptr);
+    return (trace->header_cur - trace->header_ptr);
 }
 
 /*
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size(evnt_trace_write_t* trace, evnt_size_t pos) {
-    return ((uint8_t *) trace->buffer_cur[pos] - (uint8_t *) trace->buffer_ptr[pos]);
+    return (trace->buffer_cur[pos] - trace->buffer_ptr[pos]);
 }
 
 /*
@@ -228,7 +228,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
          */
 
         // update nb_threads
-        *(evnt_size_t *) ((uint8_t *) trace->header_cur - sizeof(evnt_offset_t)) = trace->nb_threads;
+        *(evnt_size_t *) (trace->header_cur - sizeof(evnt_offset_t)) = trace->nb_threads;
         // header_size stores the position of nb_threads in the trace file
         trace->header_size = __get_header_size(trace) - 2 * sizeof(evnt_size_t);
 
@@ -239,8 +239,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
             ((evnt_header_tids_t *) trace->header_cur)->tid = trace->tids[i];
             ((evnt_header_tids_t *) trace->header_cur)->offset = 0;
 
-            trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur + (sizeof(evnt_tid_t)
-                    + sizeof(evnt_offset_t)));
+            trace->header_cur += sizeof(evnt_tid_t) + sizeof(evnt_offset_t);
             // save the position of offset inside the trace file
             trace->offsets[i] = __get_header_size(trace) - sizeof(evnt_offset_t);
             trace->already_flushed[i] = 1;
@@ -252,8 +251,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
             // offset from the top of the trace to the next free position for a pair (tid, offset)
             trace->header_offset = __get_header_size(trace);
             // the header should hold information about all 64 threads
-            trace->header_cur = (evnt_buffer_t) ((uint8_t *) trace->header_cur
-                    + (64 - trace->nb_threads) * (sizeof(evnt_tid_t) + sizeof(evnt_offset_t)));
+            trace->header_cur += (64 - trace->nb_threads) * (sizeof(evnt_tid_t) + sizeof(evnt_offset_t));
         }
 
         // write the trace header to the trace file
@@ -364,7 +362,7 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
             fprintf(stderr, "Unknown event type %d\n", type);
             abort();
         }
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + size);
+        trace->buffer_cur[index] += size;
         return cur_ptr;
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
@@ -390,8 +388,7 @@ void evnt_probe_offset(evnt_trace_write_t* trace, int16_t index) {
     cur_ptr->type = EVNT_TYPE_REGULAR;
     cur_ptr->parameters.offset.nb_params = 1;
     cur_ptr->parameters.offset.offset = 0;
-    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-            + (EVNT_BASE_SIZE + sizeof(evnt_param_t)));
+    trace->buffer_cur[index] += EVNT_BASE_SIZE + sizeof(evnt_param_t);
 }
 
 /*
@@ -412,7 +409,7 @@ void evnt_probe0(evnt_trace_write_t* trace, evnt_code_t code) {
         cur_ptr->code = code;
         cur_ptr->type = EVNT_TYPE_REGULAR;
         cur_ptr->parameters.regular.nb_params = 0;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + EVNT_BASE_SIZE );
+        trace->buffer_cur[index] += EVNT_BASE_SIZE;
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe0(trace, code);
@@ -440,8 +437,7 @@ void evnt_probe1(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->type = EVNT_TYPE_REGULAR;
         cur_ptr->parameters.regular.nb_params = 1;
         cur_ptr->parameters.regular.param[0] = param1;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe1(trace, code, param1);
@@ -470,8 +466,7 @@ void evnt_probe2(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.nb_params = 2;
         cur_ptr->parameters.regular.param[0] = param1;
         cur_ptr->parameters.regular.param[1] = param2;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 2 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 2 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe2(trace, code, param1, param2);
@@ -502,8 +497,7 @@ void evnt_probe3(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[0] = param1;
         cur_ptr->parameters.regular.param[1] = param2;
         cur_ptr->parameters.regular.param[2] = param3;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 3 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 3 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe3(trace, code, param1, param2, param3);
@@ -535,8 +529,7 @@ void evnt_probe4(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[1] = param2;
         cur_ptr->parameters.regular.param[2] = param3;
         cur_ptr->parameters.regular.param[3] = param4;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 4 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 4 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe4(trace, code, param1, param2, param3, param4);
@@ -569,8 +562,7 @@ void evnt_probe5(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[2] = param3;
         cur_ptr->parameters.regular.param[3] = param4;
         cur_ptr->parameters.regular.param[4] = param5;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 5 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 5 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe5(trace, code, param1, param2, param3, param4, param5);
@@ -604,8 +596,7 @@ void evnt_probe6(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[3] = param4;
         cur_ptr->parameters.regular.param[4] = param5;
         cur_ptr->parameters.regular.param[5] = param6;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 6 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 6 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe6(trace, code, param1, param2, param3, param4, param5, param6);
@@ -640,8 +631,7 @@ void evnt_probe7(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[4] = param5;
         cur_ptr->parameters.regular.param[5] = param6;
         cur_ptr->parameters.regular.param[6] = param7;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 7 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 7 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe7(trace, code, param1, param2, param3, param4, param5, param6, param7);
@@ -678,8 +668,7 @@ void evnt_probe8(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[5] = param6;
         cur_ptr->parameters.regular.param[6] = param7;
         cur_ptr->parameters.regular.param[7] = param8;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 8 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 8 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe8(trace, code, param1, param2, param3, param4, param5, param6, param7, param8);
@@ -717,8 +706,7 @@ void evnt_probe9(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t param
         cur_ptr->parameters.regular.param[6] = param7;
         cur_ptr->parameters.regular.param[7] = param8;
         cur_ptr->parameters.regular.param[8] = param9;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 9 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 9 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe9(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
@@ -757,8 +745,7 @@ void evnt_probe10(evnt_trace_write_t* trace, evnt_code_t code, evnt_param_t para
         cur_ptr->parameters.regular.param[7] = param8;
         cur_ptr->parameters.regular.param[8] = param9;
         cur_ptr->parameters.regular.param[9] = param10;
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index]
-                + (EVNT_BASE_SIZE + 10 * sizeof(evnt_param_t)));
+        trace->buffer_cur[index] += EVNT_BASE_SIZE + 10 * sizeof(evnt_param_t);
     } else if (trace->allow_buffer_flush) {
         evnt_flush_buffer(trace, index);
         evnt_probe10(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
@@ -783,7 +770,7 @@ void evnt_raw_probe(evnt_trace_write_t* trace, evnt_code_t code, evnt_size_t siz
 
     evnt_t* cur_ptr = (evnt_t *) trace->buffer_cur[index];
     // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
-    trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t*) trace->buffer_cur[index] + (EVNT_BASE_SIZE + size + 7));
+    trace->buffer_cur[index] += EVNT_BASE_SIZE + 7 + size;
 
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         cur_ptr->time = evnt_get_time();
@@ -796,7 +783,7 @@ void evnt_raw_probe(evnt_trace_write_t* trace, evnt_code_t code, evnt_size_t siz
                 cur_ptr->parameters.raw.data[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffer_cur[index] = (evnt_buffer_t) ((uint8_t *) trace->buffer_cur[index] - (EVNT_BASE_SIZE + size + 7));
+        trace->buffer_cur[index] -= EVNT_BASE_SIZE + 7 + size;
 
         evnt_flush_buffer(trace, index);
         evnt_raw_probe(trace, code, size, data);
