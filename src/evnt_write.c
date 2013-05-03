@@ -338,10 +338,14 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
     if (!trace->evnt_initialized || trace->evnt_paused || trace->is_buffer_full)
         return NULL ;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    evnt_size_t *p_index = pthread_getspecific(trace->index);
+    if(!p_index) {
         __allocate_buffer(trace);
+	p_index = pthread_getspecific(trace->index);
+    }
 
-    evnt_size_t index = *(evnt_size_t *) pthread_getspecific(trace->index);
+    evnt_size_t index = *(evnt_size_t *) p_index;
+
 
     retry: if (__get_buffer_size(trace, index) < trace->buffer_size) {
         evnt_t* cur_ptr = (evnt_t*) trace->buffer_cur[index];
