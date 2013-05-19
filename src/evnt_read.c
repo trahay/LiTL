@@ -101,8 +101,8 @@ evnt_header_t* evnt_get_trace_header(evnt_trace_read_t* trace) {
  * This function initializes buffer of each recorded thread. A buffer per thread.
  */
 void evnt_init_buffers(evnt_trace_read_t* trace) {
-
     evnt_size_t i;
+
     for (i = 0; i < trace->nb_buffers; i++) {
         // use offsets in order to access a chuck of data that corresponds to each thread
         fseek(trace->fp, trace->buffers[i].tids->offset, SEEK_SET);
@@ -114,7 +114,7 @@ void evnt_init_buffers(evnt_trace_read_t* trace) {
         // If the end of file is reached, then all data are read. So, res is 0.
         // Otherwise, res is either an error or the number of elements, which is 1.
         if ((res != 0) && (res != 1)) {
-            perror("Could read the first partition of data from the trace file!");
+            perror("Could not read the first partition of data from the trace file!");
             exit(EXIT_FAILURE);
         }
         trace->buffers[i].buffer = trace->buffers[i].buffer_ptr;
