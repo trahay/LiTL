@@ -78,7 +78,7 @@ evnt_trace_write_t evnt_init_trace(const uint32_t buf_size) {
         // initialize the array already_flushed
         trace.buffers[i].already_flushed = 0;
 
-	// initialize tids by zeros; this is needed for __is_tid and __find_slot
+        // initialize tids by zeros; this is needed for __is_tid and __find_slot
         trace.buffers[i].tid = 0;
     }
     trace.nb_threads = 0;
@@ -128,7 +128,7 @@ static uint32_t __get_header_size(evnt_trace_write_t* trace) {
 /*
  * This function computes the size of data in buffer
  */
-static  uint32_t __get_buffer_size(evnt_trace_write_t* trace, evnt_size_t pos) {
+static uint32_t __get_buffer_size(evnt_trace_write_t* trace, evnt_size_t pos) {
     return (trace->buffers[pos].buffer_cur - trace->buffers[pos].buffer_ptr);
 }
 
@@ -175,13 +175,13 @@ void evnt_tid_recording_off(evnt_trace_write_t* trace) {
 }
 
 void evnt_pause_recording(evnt_trace_write_t* trace) {
-  if(trace)
-    trace->evnt_paused = 1;
+    if (trace)
+        trace->evnt_paused = 1;
 }
 
 void evnt_resume_recording(evnt_trace_write_t* trace) {
-  if(trace)
-    trace->evnt_paused = 0;
+    if (trace)
+        trace->evnt_paused = 0;
 }
 
 /*
@@ -238,7 +238,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
         // put first the information regarding the current thread
         evnt_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
-  	    ((evnt_header_tids_t *) trace->header_cur)->tid = trace->buffers[i].tid;
+            ((evnt_header_tids_t *) trace->header_cur)->tid = trace->buffers[i].tid;
             ((evnt_header_tids_t *) trace->header_cur)->offset = 0;
 
             trace->header_cur += sizeof(evnt_tid_t) + sizeof(evnt_offset_t);
@@ -341,58 +341,58 @@ static void __allocate_buffer(evnt_trace_write_t* trace) {
 
 evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code, int size) {
 
-  if(trace->evnt_initialized && !trace->evnt_paused && ! trace->is_buffer_full) {
+    if (trace->evnt_initialized && !trace->evnt_paused && !trace->is_buffer_full) {
 
-    /* find the thead index */
-    evnt_size_t *p_index = pthread_getspecific(trace->index);
-    if(!p_index) {
-        __allocate_buffer(trace);
-	p_index = pthread_getspecific(trace->index);
-    }
-    evnt_size_t index = *(evnt_size_t *) p_index;
-
-    write_buffer_t *p_buffer = &trace->buffers[index];
-
-    /* is there enough space in the buffer ? */
-    if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        /* There is enough space for this event */
-        evnt_t* cur_ptr = (evnt_t*) p_buffer->buffer_cur;
-	p_buffer->buffer_cur += size;
-
-	/* fill the event */
-	cur_ptr->time = evnt_get_time();
-        cur_ptr->code = code;
-        cur_ptr->type = type;
-
-        switch (type) {
-        case EVNT_TYPE_REGULAR:
-            cur_ptr->parameters.regular.nb_params = size;
-            break;
-        case EVNT_TYPE_RAW:
-            cur_ptr->parameters.raw.size = size;
-            break;
-        case EVNT_TYPE_PACKED:
-            cur_ptr->parameters.packed.size = size;
-            break;
-        default:
-            fprintf(stderr, "Unknown event type %d\n", type);
-            abort();
+        /* find the thead index */
+        evnt_size_t *p_index = pthread_getspecific(trace->index);
+        if (!p_index) {
+            __allocate_buffer(trace);
+            p_index = pthread_getspecific(trace->index);
         }
-	return cur_ptr;
-    } else if (trace->allow_buffer_flush) {
+        evnt_size_t index = *(evnt_size_t *) p_index;
 
-      /* not enough space. flush the buffer and retry */
-      evnt_flush_buffer(trace, index);
-      return get_event(trace, type, code, size);
+        write_buffer_t *p_buffer = &trace->buffers[index];
 
-    } else {
+        /* is there enough space in the buffer ? */
+        if (__get_buffer_size(trace, index) < trace->buffer_size) {
+            /* There is enough space for this event */
+            evnt_t* cur_ptr = (evnt_t*) p_buffer->buffer_cur;
+            p_buffer->buffer_cur += size;
 
-        /* not enough space, but flushing is disabled so just stop recording events */
-        trace->is_buffer_full = 1;
-	return NULL;
+            /* fill the event */
+            cur_ptr->time = evnt_get_time();
+            cur_ptr->code = code;
+            cur_ptr->type = type;
+
+            switch (type) {
+            case EVNT_TYPE_REGULAR:
+                cur_ptr->parameters.regular.nb_params = size;
+                break;
+            case EVNT_TYPE_RAW:
+                cur_ptr->parameters.raw.size = size;
+                break;
+            case EVNT_TYPE_PACKED:
+                cur_ptr->parameters.packed.size = size;
+                break;
+            default:
+                fprintf(stderr, "Unknown event type %d\n", type);
+                abort();
+            }
+            return cur_ptr;
+        } else if (trace->allow_buffer_flush) {
+
+            /* not enough space. flush the buffer and retry */
+            evnt_flush_buffer(trace, index);
+            return get_event(trace, type, code, size);
+
+        } else {
+
+            /* not enough space, but flushing is disabled so just stop recording events */
+            trace->is_buffer_full = 1;
+            return NULL ;
+        }
     }
-  }
-  return NULL;
+    return NULL ;
 }
 
 /*
