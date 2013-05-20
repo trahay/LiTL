@@ -33,7 +33,7 @@ typedef uint64_t evnt_time_t;
 typedef uint32_t evnt_code_t;
 // TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
-typedef uint64_t evnt_file_size_t;
+typedef uint64_t evnt_trace_size_t;
 typedef uint32_t evnt_size_t;
 typedef uint8_t evnt_tiny_size_t;
 typedef uint64_t evnt_param_t;
@@ -46,7 +46,7 @@ typedef uint32_t evnt_time_t;
 typedef uint32_t evnt_code_t;
 // TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
 //       function get_event_components() in evnt_macro.c should be changed accordingly.
-typedef uint32_t evnt_file_size_t;
+typedef uint32_t evnt_trace_size_t;
 typedef uint32_t evnt_size_t;
 typedef uint8_t evnt_tiny_size_t;
 typedef uint32_t evnt_param_t;
@@ -99,17 +99,25 @@ typedef struct {
 
 // data structure that corresponds to the header of a trace file
 typedef struct {
+    evnt_size_t nb_threads;
+    evnt_tiny_size_t is_trace_archive;
+    evnt_size_t buffer_size;
     evnt_data_t libevnt_ver[8];
     evnt_data_t sysinfo[128];
-    evnt_size_t nb_threads;
-    evnt_size_t buffer_size;
 } evnt_header_t;
 
-// data structure for the pairs (tid, offset) stored in the trace header
+// data structure for pairs (tid, offset) stored in the trace's header
 typedef struct {
     evnt_tid_t tid;
     evnt_offset_t offset;
 } evnt_header_tids_t;
+
+// data structure for triples (tid, trace_size, offset) stored in the archive's header
+typedef struct {
+    evnt_tid_t fid;
+    evnt_trace_size_t trace_size;
+    evnt_offset_t offset;
+} evnt_header_triples_t;
 
 #define NBBUFFER 1000
 
@@ -123,7 +131,7 @@ typedef struct{
     // used to handle the situation when some threads start after the header was flushed,
     //      i.e. their tids and offsets were not included into the header
     uint8_t already_flushed;
-} write_buffer_t;
+} evnt_write_buffer_t;
 
 typedef struct {
     FILE* ftrace;
@@ -159,7 +167,7 @@ typedef struct {
     uint8_t is_header_flushed;
 
     /* array of thread-specific buffers */
-    write_buffer_t buffers[NBBUFFER];
+    evnt_write_buffer_t buffers[NBBUFFER];
 } evnt_trace_write_t;
 
 #define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
@@ -212,6 +220,32 @@ typedef struct {
     int initialized; /* set to 1 when initialized */
 
 } evnt_trace_read_t;
+
+// data structure for merging traces in the archive
+typedef struct {
+    int f_arch;
+
+    evnt_buffer_t buffer;
+    evnt_size_t buffer_size;
+
+    evnt_offset_t header_offset; // offset from the beginning of the trace header
+    evnt_offset_t general_offset; // offset from the beginning of the trace file until the current position
+} evnt_trace_merge_t;
+
+// data structure for splitting an archive of traces
+typedef struct {
+    int f_arch;
+    char *f_arch_name;
+
+    evnt_buffer_t header_buffer;
+    evnt_size_t header_size;
+    evnt_header_t *header;
+    evnt_size_t nb_traces;
+    evnt_header_triples_t* triples;
+
+    evnt_buffer_t buffer;
+    evnt_size_t buffer_size;
+} evnt_trace_split_t;
 
 // defining the printing formats
 #ifdef __x86_64__

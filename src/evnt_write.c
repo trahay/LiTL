@@ -45,6 +45,7 @@ static void __add_trace_header(evnt_trace_write_t* trace) {
 
     // add nb_threads and buffer_size
     ((evnt_header_t *) trace->header_cur)->nb_threads = 0;
+    ((evnt_header_t *) trace->header_cur)->is_trace_archive = 0;
     ((evnt_header_t *) trace->header_cur)->buffer_size = trace->buffer_size;
 
     // size of two strings (libevnt, OS), nb_threads, and buffer_size
@@ -230,7 +231,7 @@ void evnt_flush_buffer(evnt_trace_write_t* trace, evnt_size_t index) {
          */
 
         // update nb_threads
-        *(evnt_size_t *) (trace->header_cur - 2 * sizeof(evnt_size_t)) = trace->nb_threads;
+        *(evnt_size_t *) trace->header_ptr = trace->nb_threads;
         // header_size stores the position of nb_threads in the trace file
         trace->header_size = __get_header_size(trace) - 2 * sizeof(evnt_size_t);
 
@@ -351,7 +352,7 @@ evnt_t* get_event(evnt_trace_write_t* trace, evnt_type_t type, evnt_code_t code,
         }
         evnt_size_t index = *(evnt_size_t *) p_index;
 
-        write_buffer_t *p_buffer = &trace->buffers[index];
+        evnt_write_buffer_t *p_buffer = &trace->buffers[index];
 
         /* is there enough space in the buffer ? */
         if (__get_buffer_size(trace, index) < trace->buffer_size) {
