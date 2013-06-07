@@ -20,11 +20,7 @@
 #include "evnt_write.h"
 #include "evnt_read.h"
 
-#ifdef __x86_64__
-#define NBTHREAD 64
-#elif defined __arm__
-#define NBTHREAD 16
-#endif
+#define NBTHREAD 24
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
