@@ -11,13 +11,13 @@
 
 #include "litl_split.h"
 
-static evnt_trace_split_t* __archive;
+static litl_trace_split_t* __archive;
 
 /*
  * Open an archive of traces
  */
 static void __open_archive(const char *archive_name) {
-    __archive = malloc(sizeof(evnt_trace_split_t));
+    __archive = malloc(sizeof(litl_trace_split_t));
 
     // open an archive of traces
     if ((__archive->f_arch = open(archive_name, O_RDONLY)) < 0) {
@@ -28,7 +28,7 @@ static void __open_archive(const char *archive_name) {
 
     // allocate buffer for read/write ops
     __archive->buffer_size = 16 * 1024 * 1024; // 16 MB
-    __archive->buffer = (evnt_buffer_t) malloc(__archive->buffer_size);
+    __archive->buffer = (litl_buffer_t) malloc(__archive->buffer_size);
 }
 
 /*
@@ -36,14 +36,14 @@ static void __open_archive(const char *archive_name) {
  */
 static void __read_archive_header() {
     // At first, the header is small 'cause it stores only nb_traces and is_trace_archive values
-    __archive->header_size = sizeof(evnt_size_t) + sizeof(evnt_tiny_size_t);
-    __archive->header_buffer = (evnt_buffer_t) malloc(__archive->header_size);
+    __archive->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
+    __archive->header_buffer = (litl_buffer_t) malloc(__archive->header_size);
 
     // read the archive's header
     read(__archive->f_arch, __archive->header_buffer, __archive->header_size);
 
     // get the number of traces
-    __archive->header = (evnt_header_t *) __archive->header_buffer;
+    __archive->header = (litl_header_t *) __archive->header_buffer;
     __archive->nb_traces = __archive->header->nb_threads;
 
     if (__archive->header->is_trace_archive == 0) {
@@ -52,8 +52,8 @@ static void __read_archive_header() {
     }
 
     // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
-    __archive->header_size = __archive->nb_traces * sizeof(evnt_header_triples_t); // +1 to allocate slightly more
-    __archive->header_buffer = (evnt_buffer_t) realloc(__archive->header_buffer, __archive->header_size);
+    __archive->header_size = __archive->nb_traces * sizeof(litl_header_triples_t); // +1 to allocate slightly more
+    __archive->header_buffer = (litl_buffer_t) realloc(__archive->header_buffer, __archive->header_size);
 
     // read all triples
     read(__archive->f_arch, __archive->header_buffer, __archive->header_size);
@@ -65,15 +65,15 @@ static void __read_archive_header() {
 void litl_split_archive(const char *dir) {
     int trace_out;
     char *trace_name = NULL;
-    evnt_size_t size;
-    evnt_offset_t trace_offset;
+    litl_size_t size;
+    litl_offset_t trace_offset;
 
-    size = sizeof(evnt_header_triples_t);
+    size = sizeof(litl_header_triples_t);
     trace_offset = 0;
 
     while (__archive->nb_traces-- != 0) {
         // get the triples
-        __archive->triples = (evnt_header_triples_t *) __archive->header_buffer;
+        __archive->triples = (litl_header_triples_t *) __archive->header_buffer;
         __archive->header_buffer += size;
 
         // set a file pointer to the position of the current trace

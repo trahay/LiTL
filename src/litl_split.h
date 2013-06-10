@@ -7,7 +7,7 @@
 #ifndef LITL_SPLIT_H_
 #define LITL_SPLIT_H_
 
-#include "evnt_types.h"
+#include "litl_types.h"
 
 /*
  * Write each trace from an archive into a separate trace file

@@ -9,14 +9,14 @@
 #include <math.h>
 #include <string.h>
 
-#include "evnt_macro.h"
-#include "evnt_read.h"
+#include "litl_macro.h"
+#include "litl_read.h"
 
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-evnt_trace_read_t *evnt_open_trace(const char* filename) {
-    evnt_trace_read_t *trace = malloc(sizeof(evnt_trace_read_t));
+litl_trace_read_t *litl_open_trace(const char* filename) {
+    litl_trace_read_t *trace = malloc(sizeof(litl_trace_read_t));
 
     // open the trace file
     if (!(trace->fp = fopen(filename, "r"))) {
@@ -29,7 +29,7 @@ evnt_trace_read_t *evnt_open_trace(const char* filename) {
 
     // init the header structure
     trace->header_size = 1536; // 1.5KB
-    trace->header_buffer_ptr = (evnt_buffer_t) malloc(trace->header_size);
+    trace->header_buffer_ptr = (litl_buffer_t) malloc(trace->header_size);
     if (!trace->header_buffer_ptr) {
         perror("Could not allocate memory for the trace header!");
         exit(EXIT_FAILURE);
@@ -45,11 +45,11 @@ evnt_trace_read_t *evnt_open_trace(const char* filename) {
     }
     trace->header_buffer = trace->header_buffer_ptr;
 
-    evnt_init_trace_header(trace);
+    litl_init_trace_header(trace);
 
     // increase a bit the buffer size 'cause of the possible event's tail and the offset
-    trace->buffer_size = trace->header->buffer_size + get_event_size(EVNT_MAX_PARAMS) + get_event_size(0);
-    evnt_init_buffers(trace);
+    trace->buffer_size = trace->header->buffer_size + get_event_size(LITL_MAX_PARAMS) + get_event_size(0);
+    litl_init_buffers(trace);
 
     return trace;
 }
@@ -57,35 +57,35 @@ evnt_trace_read_t *evnt_open_trace(const char* filename) {
 /*
  * This function sets the buffer size
  */
-void evnt_set_buffer_size(evnt_trace_read_t* trace, const evnt_size_t buf_size) {
+void litl_set_buffer_size(litl_trace_read_t* trace, const litl_size_t buf_size) {
     trace->buffer_size = buf_size;
 }
 
 /*
  * This function returns the buffer size
  */
-evnt_size_t evnt_get_buffer_size(evnt_trace_read_t* trace) {
+litl_size_t litl_get_buffer_size(litl_trace_read_t* trace) {
     return trace->buffer_size;
 }
 
 /*
  * This function initializes the trace header
  */
-void evnt_init_trace_header(evnt_trace_read_t* trace) {
-    evnt_size_t i, size;
+void litl_init_trace_header(litl_trace_read_t* trace) {
+    litl_size_t i, size;
 
-    trace->header = (evnt_header_t *) trace->header_buffer;
-    size = sizeof(evnt_header_t);
+    trace->header = (litl_header_t *) trace->header_buffer;
+    size = sizeof(litl_header_t);
     trace->header_buffer += size;
 
     // init nb_buffers
     trace->nb_buffers = trace->header->nb_threads;
 
-    trace->buffers = (evnt_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(evnt_trace_read_thread_t));
-    size = sizeof(evnt_header_tids_t);
+    trace->buffers = (litl_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(litl_trace_read_thread_t));
+    size = sizeof(litl_header_tids_t);
 
     for (i = 0; i < trace->nb_buffers; i++) {
-        trace->buffers[i].tids = (evnt_header_tids_t *) trace->header_buffer;
+        trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
         trace->header_buffer += size;
     }
 }
@@ -93,22 +93,22 @@ void evnt_init_trace_header(evnt_trace_read_t* trace) {
 /*
  * This function return a pointer to the trace header
  */
-evnt_header_t* evnt_get_trace_header(evnt_trace_read_t* trace) {
+litl_header_t* litl_get_trace_header(litl_trace_read_t* trace) {
     return trace->header;
 }
 
 /*
  * This function initializes buffer of each recorded thread. A buffer per thread.
  */
-void evnt_init_buffers(evnt_trace_read_t* trace) {
-    evnt_size_t i;
+void litl_init_buffers(litl_trace_read_t* trace) {
+    litl_size_t i;
 
     for (i = 0; i < trace->nb_buffers; i++) {
         // use offsets in order to access a chuck of data that corresponds to each thread
         fseek(trace->fp, trace->buffers[i].tids->offset, SEEK_SET);
 
         trace->buffers[i].buffer_size = trace->buffer_size;
-        trace->buffers[i].buffer_ptr = (evnt_buffer_t) malloc(trace->buffer_size);
+        trace->buffers[i].buffer_ptr = (litl_buffer_t) malloc(trace->buffer_size);
 
         int res = fread(trace->buffers[i].buffer_ptr, trace->buffer_size, 1, trace->fp);
         // If the end of file is reached, then all data are read. So, res is 0.
@@ -126,7 +126,7 @@ void evnt_init_buffers(evnt_trace_read_t* trace) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static void __next_trace(evnt_trace_read_t* trace, evnt_size_t index) {
+static void __next_trace(litl_trace_read_t* trace, litl_size_t index) {
     fseek(trace->fp, trace->buffers[index].tids->offset, SEEK_SET);
     trace->buffers[index].offset = 0;
 
@@ -145,27 +145,27 @@ static void __next_trace(evnt_trace_read_t* trace, evnt_size_t index) {
 /*
  * This function resets the trace
  */
-void evnt_reset_trace(evnt_trace_read_t* trace, evnt_size_t index) {
+void litl_reset_trace(litl_trace_read_t* trace, litl_size_t index) {
     trace->buffers[index].buffer = trace->buffers[index].buffer_ptr;
 }
 
 /*
  * This function reads an event
  */
-evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
+litl_read_t* litl_read_event(litl_trace_read_t* trace, litl_size_t index) {
     uint8_t to_be_loaded;
-    evnt_size_t size;
-    evnt_t* event;
-    evnt_buffer_t* buffer;
+    litl_size_t size;
+    litl_t* event;
+    litl_buffer_t* buffer;
     buffer = trace->buffers[index].buffer;
     to_be_loaded = 0;
 
     if (!buffer) {
         trace->buffers[index].cur_event.event = NULL;
-        return NULL ;
+        return NULL;
     }
 
-    event = (evnt_t *) buffer;
+    event = (litl_t *) buffer;
 
     /* While reading events from the buffer, there can be two situations:
      1. The situation when the buffer contains exact number of events;
@@ -179,13 +179,13 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
         to_be_loaded = 1;
     } else {
         /* The nb_param (or size) field is available. Let's see if the event is truncated */
-        evnt_size_t event_size = get_event_size_type(event);
+        litl_size_t event_size = get_event_size_type(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }
 
     // event that stores tid and offset
-    if (event->code == EVNT_OFFSET_CODE) {
+    if (event->code == LITL_OFFSET_CODE) {
         if (event->parameters.offset.offset != 0) {
             trace->buffers[index].tids->offset = event->parameters.offset.offset;
             to_be_loaded = 1;
@@ -193,7 +193,7 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
             trace->buffers[index].buffer = NULL;
             *buffer = NULL;
             trace->buffers[index].cur_event.event = NULL;
-            return NULL ;
+            return NULL;
         }
     }
 
@@ -201,7 +201,7 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
     if (to_be_loaded) {
         __next_trace(trace, index);
         buffer = &trace->buffers[index].buffer;
-        event = (evnt_t *) *buffer;
+        event = (litl_t *) *buffer;
     }
 
     // move pointer to the next event and update __offset
@@ -217,20 +217,20 @@ evnt_read_t* evnt_read_event(evnt_trace_read_t* trace, evnt_size_t index) {
 /*
  * This function searches for the next event inside each buffer
  */
-evnt_read_t* evnt_next_buffer_event(evnt_trace_read_t* trace, evnt_size_t index) {
-    return evnt_read_event(trace, index);
+litl_read_t* litl_next_buffer_event(litl_trace_read_t* trace, litl_size_t index) {
+    return litl_read_event(trace, index);
 }
 
 /*
  * This function searches for the next event inside the trace
  */
-evnt_read_t* evnt_next_trace_event(evnt_trace_read_t* trace) {
-    evnt_size_t i;
-    evnt_time_t min_time = -1;
+litl_read_t* litl_next_trace_event(litl_trace_read_t* trace) {
+    litl_size_t i;
+    litl_time_t min_time = -1;
 
     if (!trace->initialized) {
         for (i = 0; i < trace->nb_buffers; i++)
-            evnt_next_buffer_event(trace, i);
+            litl_next_buffer_event(trace, i);
 
         trace->cur_index = -1;
         trace->initialized = 1;
@@ -238,27 +238,27 @@ evnt_read_t* evnt_next_trace_event(evnt_trace_read_t* trace) {
 
     // read the next event from the buffer
     if (trace->cur_index != -1)
-        evnt_next_buffer_event(trace, trace->cur_index);
+        litl_next_buffer_event(trace, trace->cur_index);
 
     int found = 0;
     for (i = 0; i < trace->nb_buffers; i++) {
-        evnt_read_t *evt = GET_CUR_EVENT_PER_THREAD(trace, i);
-        if ( evt && evt->event && (EVNT_GET_TIME(evt) < min_time)) {
+        litl_read_t *evt = GET_CUR_EVENT_PER_THREAD(trace, i);
+        if ( evt && evt->event && (LITL_GET_TIME(evt) < min_time)) {
             found = 1;
-            min_time = EVNT_GET_TIME(evt);
+            min_time = LITL_GET_TIME(evt);
             trace->cur_index = i;
         }
     }
     if (found)
         return GET_CUR_EVENT(trace);
-    return NULL ;
+    return NULL;
 }
 
 /*
  * This function closes the trace and frees the buffer
  */
-void evnt_close_trace(evnt_trace_read_t* trace) {
-    evnt_size_t i;
+void litl_close_trace(litl_trace_read_t* trace) {
+    litl_size_t i;
 
     // close the file
     fclose(trace->fp);
@@ -277,11 +277,11 @@ void evnt_close_trace(evnt_trace_read_t* trace) {
 }
 
 int main(int argc, const char **argv) {
-    evnt_size_t i;
+    litl_size_t i;
     const char* filename = "trace";
-    evnt_read_t* event;
-    evnt_trace_read_t *trace;
-    evnt_header_t* header;
+    litl_read_t* event;
+    litl_trace_read_t *trace;
+    litl_header_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -290,50 +290,50 @@ int main(int argc, const char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    trace = evnt_open_trace(filename);
-    header = evnt_get_trace_header(trace);
+    trace = litl_open_trace(filename);
+    header = litl_get_trace_header(trace);
 
     // print the header
-    printf(" libevnt v.%s\n", header->libevnt_ver);
+    printf(" LiTL v.%s\n", header->liblitl_ver);
     printf(" %s\n", header->sysinfo);
     printf(" nb_threads \t %d\n", header->nb_threads);
     printf(" buffer_size \t %d\n", header->buffer_size);
 
     while (1) {
-        event = evnt_next_trace_event(trace);
+        event = litl_next_trace_event(trace);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
-        switch (EVNT_GET_TYPE(event)) {
-        case EVNT_TYPE_REGULAR: { // regular event
-            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
-                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_REGULAR(event)->nb_params);
+        switch (LITL_GET_TYPE(event)) {
+        case LITL_TYPE_REGULAR: { // regular event
+            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event),
+                    LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_REGULAR(event)->nb_params);
 
-            for (i = 0; i < EVNT_REGULAR(event)->nb_params; i++)
-                printf("\t %"PRTIx64, EVNT_REGULAR(event)->param[i]);
-            break;
-        }
-        case EVNT_TYPE_RAW: { // raw event
-            EVNT_GET_CODE(event) = clear_bit(EVNT_GET_CODE(event));
-            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, EVNT_GET_TID(event),
-                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_RAW(event)->size);
-            printf("\t %s", (evnt_data_t *) EVNT_RAW(event)->data);
+            for (i = 0; i < LITL_REGULAR(event)->nb_params; i++)
+            printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
             break;
         }
-        case EVNT_TYPE_PACKED: { // packed event
-            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64"   %"PRTIu32"\t", EVNT_GET_TID(event),
-                    EVNT_GET_CODE(event), EVNT_GET_TIME(event), EVNT_PACKED(event)->size);
-            for (i = 0; i < EVNT_PACKED(event)->size; i++) {
-                printf(" %x", EVNT_PACKED(event)->param[i]);
+        case LITL_TYPE_RAW: { // raw event
+            LITL_GET_CODE(event) = clear_bit(LITL_GET_CODE(event));
+            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event),
+                    LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_RAW(event)->size);
+            printf("\t %s", (litl_data_t *) LITL_RAW(event)->data);
+            break;
+        }
+        case LITL_TYPE_PACKED: { // packed event
+            printf("%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu64"   %"PRTIu32"\t", LITL_GET_TID(event),
+                    LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_PACKED(event)->size);
+            for (i = 0; i < LITL_PACKED(event)->size; i++) {
+                printf(" %x", LITL_PACKED(event)->param[i]);
             }
             break;
         }
-        case EVNT_TYPE_OFFSET: { // offset event
+        case LITL_TYPE_OFFSET: { // offset event
             continue;
         }
         default: {
-            fprintf(stderr, "Unknown event type %d\n", EVNT_GET_TYPE(event));
+            fprintf(stderr, "Unknown event type %d\n", LITL_GET_TYPE(event));
             abort();
         }
         }
@@ -341,7 +341,7 @@ int main(int argc, const char **argv) {
         printf("\n");
     }
 
-    evnt_close_trace(trace);
+    litl_close_trace(trace);
 
     return EXIT_SUCCESS;
 }

@@ -5,31 +5,32 @@
 AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src
 
 #AM_LDFLAGS = $(FXT_LDFLAGS)
-AM_LDFLAGS = $(top_builddir)/src/libevnt.la
+AM_LDFLAGS = $(top_builddir)/src/liblitl.la
 
 EVNTDEPENDENCIES = $(AM_LDFLAGS)
 
-CTESTS = test_evnt_write \
-         test_evnt_write_multiple \
-         test_evnt_read \
-         test_evnt_pause \
-         test_evnt_buffer \
-         test_trace_size \
-         test_evnt_write_concurent
+CTESTS = test_litl_write \
+         test_litl_write_multiple \
+         test_litl_write_concurent \
+         test_litl_read \
+         test_litl_pause \
+         test_litl_buffer \
+         test_litl_trace_size
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
 
-test_evnt_write_SOURCES = test_evnt_write.c
-test_evnt_write_multiple_SOURCES = test_evnt_write_multiple.c
-test_evnt_write_multiple_LDFLAGS = -lpthread -levnt
-test_evnt_write_concurent_SOURCES = test_evnt_write_concurent.c
-test_evnt_write_concurent_LDFLAGS = -lpthread -levnt
-test_evnt_read_SOURCES = test_evnt_read.c
-test_evnt_buffer_SOURCES = test_evnt_buffer_size.c
-test_evnt_pause_SOURCES = test_evnt_pause.c
+test_litl_write_SOURCES = test_litl_write.c
+test_litl_write_multiple_SOURCES = test_litl_write_multiple.c
+test_litl_write_multiple_LDFLAGS = -lpthread -llitl
+test_litl_write_concurent_SOURCES = test_litl_write_concurent.c
+test_litl_write_concurent_LDFLAGS = -lpthread -llitl
+test_litl_read_SOURCES = test_litl_read.c
+test_litl_buffer_SOURCES = test_litl_buffer_size.c
+test_litl_pause_SOURCES = test_litl_pause.c
+test_litl_trace_size_SOURCES = test_litl_trace_size.c 
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
-	rm -rf test_evnt_write test_evnt_read test_evnt_pause test_evnt_write_multiple test_evnt_buffer \
-	test_evnt_write_concurent
+	rm -rf test_litl_write test_litl_write_multiple test_litl_write_concurent test_litl_read test_litl_pause \
+	       test_litl_buffer test_litl_trace_size

@@ -8,10 +8,10 @@ SUBDIRS = src \
 	  	  tests
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = evnt.pc
+pkgconfig_DATA = litl.pc
 
 EXTRA_DIST = ChangeLog
 
 clean-local:
-	rm -rf aclocal.m4 autom4te.cache/ config.log evnt.pc libtool
+	rm -rf aclocal.m4 autom4te.cache/ config.log litl.pc libtool
 	

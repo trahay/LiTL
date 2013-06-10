@@ -9,13 +9,13 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "evnt_types.h"
-#include "evnt_write.h"
+#include "litl_types.h"
+#include "litl_write.h"
 
 int main(int argc, const char **argv) {
     int i, nb_iter;
 
-    evnt_trace_write_t trace;
+    litl_trace_write_t trace;
     const char* filename = "trace";
     const uint32_t buffer_size = 32 * 1024; // 32KB
 
@@ -26,24 +26,24 @@ int main(int argc, const char **argv) {
 
     printf("Recording events with six arguments of type uint8_t\n\n");
 
-    trace = evnt_init_trace(buffer_size);
-    evnt_set_filename(&trace, filename);
+    trace = litl_init_trace(buffer_size);
+    litl_set_filename(&trace, filename);
 
     nb_iter = 1000;
     for (i = 0; i < nb_iter; i++) {
         // event6
-        /*        evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
+        /*        litl_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
          (uint8_t ) 11, (uint8_t ) 13);*/
-        evnt_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t ) 1, (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
+        litl_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t ) 1, (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
                 (int32_t ) 11, (int32_t ) 13);
         usleep(100);
     }
 
-    evnt_fin_trace(&trace);
+    litl_fin_trace(&trace);
 
     printf("Events are recorded and written in the %s file\n", filename);
 
-    evnt_param_t size;
+    litl_param_t size;
     FILE* fp = fopen(filename, "r");
     fseek(fp, 0L, SEEK_END);
     size = ftell(fp);

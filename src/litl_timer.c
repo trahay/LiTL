@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "timer.h"
+#include "litl_timer.h"
 
 #define ERROR_TIMER_NOT_AVAILABLE() do {					\
     fprintf(stderr, "Trying to use timer function %s, but it is not available on this platform\n",__FUNCTION__); \
@@ -17,31 +17,31 @@
 // Choose the default timing method
 #ifdef CLOCK_GETTIME_AVAIL
 #ifdef CLOCK_MONOTONIC_RAW
-#define TIMER_DEFAULT evnt_get_time_monotonic_raw
+#define TIMER_DEFAULT litl_get_time_monotonic_raw
 #else
-#define TIMER_DEFAULT evnt_get_time_monotonic
+#define TIMER_DEFAULT litl_get_time_monotonic
 #endif	// CLOCK_MONOTONIC_RAW
 #else  // CLOCK_GETTIME_AVAIL
-#define TIMER_DEFAULT evnt_get_time_ticks
+#define TIMER_DEFAULT litl_get_time_ticks
 #endif // CLOCK_GETTIME_AVAIL
 
 /*
  * Selected timing method
  */
-evnt_timing_method_t evnt_get_time = TIMER_DEFAULT;
+litl_timing_method_t litl_get_time = TIMER_DEFAULT;
 
 /*
  * This function initializes the timing mechanism
  */
-void evnt_time_initialize() {
-    char* time_str = getenv("EVNT_TIMING_METHOD");
+void litl_time_initialize() {
+    char* time_str = getenv("LITL_TIMING_METHOD");
     if (time_str) {
         if (strcmp(time_str, "monotonic_raw") == 0)
-            evnt_set_timing_method(evnt_get_time_monotonic_raw);
+            litl_set_timing_method(litl_get_time_monotonic_raw);
         else if (strcmp(time_str, "monotonic") == 0)
-            evnt_set_timing_method(evnt_get_time_monotonic);
+            litl_set_timing_method(litl_get_time_monotonic);
         else if (strcmp(time_str, "ticks") == 0)
-            evnt_set_timing_method(evnt_get_time_ticks);
+            litl_set_timing_method(litl_get_time_ticks);
         else {
             fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
             abort();
@@ -52,20 +52,20 @@ void evnt_time_initialize() {
 /*
  * This function returns -1 if none of timings is available. Otherwise, it returns 0
  */
-int evnt_set_timing_method(evnt_timing_method_t callback) {
+int litl_set_timing_method(litl_timing_method_t callback) {
     if (!callback)
         return -1;
 
-    evnt_get_time = callback;
+    litl_get_time = callback;
     return 0;
 }
 
 /*
  * This function uses clock_gettime(CLOCK_MONOTONIC_RAW)
  */
-evnt_time_t evnt_get_time_monotonic_raw() {
+litl_time_t litl_get_time_monotonic_raw() {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC_RAW))
-    evnt_time_t time;
+    litl_time_t time;
     struct timespec tp;
     clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
     time = 1000000000 * tp.tv_sec + tp.tv_nsec;
@@ -79,9 +79,9 @@ evnt_time_t evnt_get_time_monotonic_raw() {
 /*
  * This function uses clock_gettime(CLOCK_MONOTONIC)
  */
-evnt_time_t evnt_get_time_monotonic() {
+litl_time_t litl_get_time_monotonic() {
 #ifdef CLOCK_GETTIME_AVAIL
-    evnt_time_t time;
+    litl_time_t time;
     struct timespec tp;
     clock_gettime(CLOCK_MONOTONIC, &tp);
     time = 1000000000 * tp.tv_sec + tp.tv_nsec;
@@ -95,13 +95,13 @@ evnt_time_t evnt_get_time_monotonic() {
 /*
  * This function uses CPU specific register (for instance, rdtsc for X86* processors)
  */
-evnt_time_t evnt_get_time_ticks() {
+litl_time_t litl_get_time_ticks() {
 #if HAVE_RDTSC
      // This is a copy of rdtscll function from asm/msr.h
 #define ticks(val) do {					\
     uint32_t __a,__d;						\
     asm volatile("rdtsc" : "=a" (__a), "=d" (__d));		\
-    (val) = ((evnt_time_t)__a) | (((evnt_time_t)__d)<<32);	\
+    (val) = ((litl_time_t)__a) | (((litl_time_t)__d)<<32);	\
   } while(0)
 
 #else
@@ -110,9 +110,9 @@ evnt_time_t evnt_get_time_ticks() {
 #endif
 
     static int ticks_initialized = 0;
-    static evnt_time_t __ticks_per_sec = -1;
+    static litl_time_t __ticks_per_sec = -1;
     if (!ticks_initialized) {
-        evnt_time_t init_start, init_end;
+        litl_time_t init_start, init_end;
         ticks(init_start);
         usleep(1000000);
         ticks(init_end);
@@ -121,7 +121,7 @@ evnt_time_t evnt_get_time_ticks() {
         ticks_initialized = 1;
     }
 
-    evnt_time_t time;
+    litl_time_t time;
     ticks(time);
 
     return time * 1e9 / __ticks_per_sec;

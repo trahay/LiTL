@@ -7,7 +7,7 @@
 #ifndef LITL_MERGE_H_
 #define LITL_MERGE_H_
 
-#include "evnt_types.h"
+#include "litl_types.h"
 
 /*
  * This function for merging trace files is a modified version of the cat implementation from the Kernighan & Ritchie book

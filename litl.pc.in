@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Evnt
-Description: Evnt -- lightweight events recorder.
+Name: LiTL
+Description: LiTL -- Lightweight Trace Library
 Version: @VERSION@
-Libs: -L${libdir} -levnt
+Libs: -L${libdir} -llitl
 Cflags: -I${includedir}
