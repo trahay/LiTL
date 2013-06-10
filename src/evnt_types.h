@@ -88,15 +88,6 @@ typedef struct {
     } parameters;
 }__attribute__((packed)) evnt_t;
 
-// data structure for reading events from a trace file
-typedef struct {
-    FILE* fp; // pointer to the trace file
-    evnt_buffer_t buffer_ptr; // pointer to the beginning of the buffer
-    evnt_buffer_t buffer; // pointer either to the next event or to the end of the trace
-    uint32_t offset; // offset from the beginning of the trace file
-    uint32_t tracker; // indicator of the end of the buffer = offset + buffer size
-} evnt_block_t;
-
 // data structure that corresponds to the header of a trace file
 typedef struct {
     evnt_size_t nb_threads;
