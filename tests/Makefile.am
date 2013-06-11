@@ -2,7 +2,7 @@
 # See COPYING in top-level directory.
 
 #AM_CFLAGS = $(FXT_CPPFLAGS)
-AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src
+AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src -L$(top_srcdir)/src
 
 #AM_LDFLAGS = $(FXT_LDFLAGS)
 AM_LDFLAGS = $(top_builddir)/src/liblitl.la
