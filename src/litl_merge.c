@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include "litl_queue.h"
 #include "litl_merge.h"
 
 static char* __archive_name = "archive";
@@ -24,6 +25,7 @@ static void __usage(int argc __attribute__((unused)), char **argv) {
 static void __parse_args(int argc, char **argv) {
     int i;
 
+    init_queue();
     for (i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-o") == 0)) {
             __archive_name = argv[++i];
@@ -34,6 +36,8 @@ static void __parse_args(int argc, char **argv) {
             fprintf(stderr, "Unknown option %s\n", argv[i]);
             __usage(argc, argv);
             exit(-1);
+        } else {
+            enqueue(argv[i]);
         }
     }
 
@@ -134,6 +138,8 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
 }
 
 static void __finalize_trace() {
+    // remove the queue consisting of trace file names
+    delqueue();
     free(__archive->buffer);
     close(__archive->f_arch);
     free(__archive);
@@ -151,11 +157,10 @@ int main(int argc, char **argv) {
     __add_trace_header(argc - 2);
 
     // merging the trace files
-    // TODO: 2 needs to be changed when the "-o trace_name_out" is right after "litl_merge"
-    // TODO: use more meaningful file_id
-
-    while (--argc > 2)
-        litl_merge_file(argc, *++argv);
+    int i = 0;
+    char *filename;
+    while ((filename = dequeue()) != NULL)
+        litl_merge_file(i++, filename);
 
     /*// error handling: valid ONLY for FILE*
      if (ferror(trace_out)) {
