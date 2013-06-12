@@ -13,7 +13,35 @@
 
 #include "litl_merge.h"
 
+static char* __archive_name = "archive";
 static litl_trace_merge_t* __archive;
+
+static void __usage(int argc __attribute__((unused)), char **argv) {
+    fprintf(stderr, "Usage: %s [-o archive_name] input_filename input_filename ... \n", argv[0]);
+    printf("       -?, -h:    Display this help and exit\n");
+}
+
+static void __parse_args(int argc, char **argv) {
+    int i;
+
+    for (i = 1; i < argc; i++) {
+        if ((strcmp(argv[i], "-o") == 0)) {
+            __archive_name = argv[++i];
+        } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
+            __usage(argc, argv);
+            exit(-1);
+        } else if (argv[i][0] == '-') {
+            fprintf(stderr, "Unknown option %s\n", argv[i]);
+            __usage(argc, argv);
+            exit(-1);
+        }
+    }
+
+    if (strcmp(__archive_name, "archive") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    }
+}
 
 /*
  * Create and open an archive for traces
@@ -79,9 +107,9 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
 
     // add triples (fid, file_size, offset)
     lseek(__archive->f_arch, __archive->header_offset, SEEK_SET);
-    write(__archive->f_arch, &file_id, sizeof(litl_tid_t));
-    write(__archive->f_arch, &file_size, sizeof(litl_trace_size_t));
-    write(__archive->f_arch, &__archive->general_offset, sizeof(litl_offset_t));
+    res = write(__archive->f_arch, &file_id, sizeof(litl_tid_t));
+    res = write(__archive->f_arch, &file_size, sizeof(litl_trace_size_t));
+    res = write(__archive->f_arch, &__archive->general_offset, sizeof(litl_offset_t));
     lseek(__archive->f_arch, __archive->general_offset, SEEK_SET);
     __archive->header_offset += sizeof(litl_header_triples_t);
 
@@ -93,7 +121,7 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
             exit(EXIT_FAILURE);
         }
 
-        write(__archive->f_arch, __archive->buffer, res);
+        res = write(__archive->f_arch, __archive->buffer, res);
         __archive->general_offset += res;
     }
 
@@ -111,32 +139,27 @@ static void __finalize_trace() {
     free(__archive);
 }
 
-int main(int argc, const char **argv) {
-    char *prog, *file_name_out;
+int main(int argc, char **argv) {
 
-    // TODO: check for the arguments
-    prog = argv[0];
-    file_name_out = argv[argc - 1];
-    /*if (strcmp(argv[argc - 2], ">")) {
-     perror("Specify an archive trace file leading by the '>' character!");
-     exit(EXIT_FAILURE);
-     }*/
+    // parse the arguments passed to this program
+    __parse_args(argc, argv);
 
     // init a buffer and an archive of traces
-    __init_trace(file_name_out);
+    __init_trace(__archive_name);
 
     // write header with #traces and reserved space for pairs (fid, offset)
-    __add_trace_header(argc - 3);
+    __add_trace_header(argc - 2);
 
     // merging the trace files
     // TODO: 2 needs to be changed when the "-o trace_name_out" is right after "litl_merge"
     // TODO: use more meaningful file_id
+
     while (--argc > 2)
         litl_merge_file(argc, *++argv);
 
     /*// error handling: valid ONLY for FILE*
      if (ferror(trace_out)) {
-     fprintf(stderr, "%s: error while merging trace files\n", prog);
+     fprintf(stderr, "%s: error while merging trace files\n", argv[0]);
      exit(EXIT_FAILURE);
      }*/
 

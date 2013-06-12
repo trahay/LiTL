@@ -12,6 +12,35 @@
 #include "litl_macro.h"
 #include "litl_read.h"
 
+static char* __input_filename = "trace";
+
+static void __usage(int argc __attribute__((unused)), char **argv) {
+    fprintf(stderr, "Usage: %s [-f input_filename] \n", argv[0]);
+    printf("       -?, -h:    Display this help and exit\n");
+}
+
+static void __parse_args(int argc, char **argv) {
+    int i;
+
+    for (i = 1; i < argc; i++) {
+        if ((strcmp(argv[i], "-f") == 0)) {
+            __input_filename = argv[++i];
+        } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
+            __usage(argc, argv);
+            exit(-1);
+        } else if (argv[i][0] == '-') {
+            fprintf(stderr, "Unknown option %s\n", argv[i]);
+            __usage(argc, argv);
+            exit(-1);
+        }
+    }
+
+    if (strcmp(__input_filename, "trace") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    }
+}
+
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
@@ -276,21 +305,16 @@ void litl_close_trace(litl_trace_read_t* trace) {
     trace->buffers = NULL;
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
     litl_size_t i;
-    const char* filename = "trace";
     litl_read_t* event;
     litl_trace_read_t *trace;
     litl_header_t* header;
 
-    if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
-        filename = argv[2];
-    else {
-        perror("Specify the name of the trace file using '-f'\n");
-        exit(EXIT_FAILURE);
-    }
+    // parse the arguments passed to this program
+    __parse_args(argc, argv);
 
-    trace = litl_open_trace(filename);
+    trace = litl_open_trace(__input_filename);
     header = litl_get_trace_header(trace);
 
     // print the header

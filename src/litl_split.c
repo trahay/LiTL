@@ -114,33 +114,56 @@ static void __close_archive() {
     free(__archive);
 }
 
+static char *__archive_name = "archive";
+static char *__output_dir = "dir";
+
+static void __usage(int argc __attribute__((unused)), char **argv) {
+    fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n", argv[0]);
+    printf("       -?, -h:    Display this help and exit\n");
+}
+
+static void __parse_args(int argc, char **argv) {
+    int i;
+
+    for (i = 1; i < argc; i++) {
+        if ((strcmp(argv[i], "-f") == 0)) {
+            __archive_name = argv[++i];
+        } else if ((strcmp(argv[i], "-d") == 0)) {
+            __output_dir = argv[++i];
+        } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
+            __usage(argc, argv);
+            exit(-1);
+        } else if (argv[i][0] == '-') {
+            fprintf(stderr, "Unknown option %s\n", argv[i]);
+            __usage(argc, argv);
+            exit(-1);
+        }
+    }
+
+    if (strcmp(__archive_name, "archive") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    } else if (strcmp(__output_dir, "dir") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    }
+
+}
+
 int main(int argc, const char **argv) {
-    char *archive_name, *dir;
 
-    // TODO: -f as well as -d can be in different order => handle this
-    if ((argc == 5) && (strcmp(argv[1], "-f") == 0))
-        archive_name = argv[2];
-    else {
-        perror(
-                "ERROR: Specify the name of the trace file and the output directory using '-f' and '-d', accordingly.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (strcmp(argv[3], "-d") == 0)
-        dir = argv[4];
-    else {
-        perror("ERROR: Specify the output directory with '-d'\n");
-        exit(EXIT_FAILURE);
-    }
+    // parse the arguments passed to this program
+    __parse_args(argc, argv);
+    exit(0);
 
     // open an archive of traces and allocate memory for a buffer
-    __open_archive(archive_name);
+    __open_archive(__archive_name);
 
     // get info from the archive's header
     __read_archive_header();
 
     // split the archive
-    litl_split_archive(dir);
+    litl_split_archive(__output_dir);
 
     // close the archive and free the allocated memory
     __close_archive();
