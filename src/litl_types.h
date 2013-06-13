@@ -226,7 +226,7 @@ typedef struct {
 // data structure for splitting an archive of traces
 typedef struct {
     int f_arch;
-    char *f_arch_name;
+    //    char *f_arch_name;
 
     litl_buffer_t header_buffer;
     litl_size_t header_size;

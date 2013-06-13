@@ -13,6 +13,41 @@
 
 static litl_trace_split_t* __archive;
 
+static char *__archive_name = "archive";
+static char *__output_dir = "dir";
+
+static void __usage(int argc __attribute__((unused)), char **argv) {
+    fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n", argv[0]);
+    printf("       -?, -h:    Display this help and exit\n");
+}
+
+static void __parse_args(int argc, char **argv) {
+    int i;
+
+    for (i = 1; i < argc; i++) {
+        if ((strcmp(argv[i], "-f") == 0)) {
+            __archive_name = argv[++i];
+        } else if ((strcmp(argv[i], "-d") == 0)) {
+            __output_dir = argv[++i];
+        } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
+            __usage(argc, argv);
+            exit(-1);
+        } else if (argv[i][0] == '-') {
+            fprintf(stderr, "Unknown option %s\n", argv[i]);
+            __usage(argc, argv);
+            exit(-1);
+        }
+    }
+
+    if (strcmp(__archive_name, "archive") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    } else if (strcmp(__output_dir, "dir") == 0) {
+        __usage(argc, argv);
+        exit(-1);
+    }
+}
+
 /*
  * Open an archive of traces
  */
@@ -24,7 +59,6 @@ static void __open_archive(const char *archive_name) {
         fprintf(stderr, "Cannot open %s\n", archive_name);
         exit(EXIT_FAILURE);
     }
-    __archive->f_arch_name = archive_name;
 
     // allocate buffer for read/write ops
     __archive->buffer_size = 16 * 1024 * 1024; // 16 MB
@@ -65,11 +99,14 @@ static void __read_archive_header() {
 void litl_split_archive(const char *dir) {
     int trace_out;
     char *trace_name = NULL;
+    char user[32];
     litl_size_t size;
     litl_offset_t trace_offset;
 
     size = sizeof(litl_header_triples_t);
     trace_offset = 0;
+
+    strcpy(user, getenv("USER"));
 
     while (__archive->nb_traces-- != 0) {
         // get the triples
@@ -80,7 +117,7 @@ void litl_split_archive(const char *dir) {
         lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
 
         // create and open a new trace file
-        asprintf(&trace_name, "%s%s_%d", dir, __archive->f_arch_name, __archive->triples->fid);
+        asprintf(&trace_name, "%s/%s_eztrace_log_rank_%d", dir, user, __archive->triples->fid);
         if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
             fprintf(stderr, "Cannot open %s\n", trace_name);
             exit(EXIT_FAILURE);
@@ -114,47 +151,10 @@ static void __close_archive() {
     free(__archive);
 }
 
-static char *__archive_name = "archive";
-static char *__output_dir = "dir";
-
-static void __usage(int argc __attribute__((unused)), char **argv) {
-    fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n", argv[0]);
-    printf("       -?, -h:    Display this help and exit\n");
-}
-
-static void __parse_args(int argc, char **argv) {
-    int i;
-
-    for (i = 1; i < argc; i++) {
-        if ((strcmp(argv[i], "-f") == 0)) {
-            __archive_name = argv[++i];
-        } else if ((strcmp(argv[i], "-d") == 0)) {
-            __output_dir = argv[++i];
-        } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
-            __usage(argc, argv);
-            exit(-1);
-        } else if (argv[i][0] == '-') {
-            fprintf(stderr, "Unknown option %s\n", argv[i]);
-            __usage(argc, argv);
-            exit(-1);
-        }
-    }
-
-    if (strcmp(__archive_name, "archive") == 0) {
-        __usage(argc, argv);
-        exit(-1);
-    } else if (strcmp(__output_dir, "dir") == 0) {
-        __usage(argc, argv);
-        exit(-1);
-    }
-
-}
-
 int main(int argc, const char **argv) {
 
     // parse the arguments passed to this program
     __parse_args(argc, argv);
-    exit(0);
 
     // open an archive of traces and allocate memory for a buffer
     __open_archive(__archive_name);
