@@ -76,7 +76,7 @@ void read_trace(char* filename) {
     int nb_events = 0;
 
     litl_t* event;
-    litl_trace_read_t *trace;
+    litl_trace_read_process_t *trace;
 
     trace = litl_open_trace(filename);
 

@@ -43,21 +43,13 @@ static void __parse_args(int argc, char **argv) {
 }
 
 /*
- * This function opens a trace and reads the first portion of data to the buffer
+ * This function initializes the trace header
  */
-litl_trace_read_t *litl_open_trace(const char* filename) {
-    litl_trace_read_t *trace = malloc(sizeof(litl_trace_read_t));
-
-    // open a trace file
-    if ((trace->f_handle = open(filename, O_RDONLY)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    trace->cur_index = -1;
-    trace->initialized = 0;
+static void __init_trace_header(litl_trace_read_process_t* trace) {
+    litl_size_t size;
 
     // init the header structure
+    // TODO: distinguish between archive and regular trace, perhaps we would need a larger buffer for archive
     trace->header_size = 1536; // 1.5KB
     trace->header_buffer_ptr = (litl_buffer_t) malloc(trace->header_size);
     if (!trace->header_buffer_ptr) {
@@ -76,38 +68,16 @@ litl_trace_read_t *litl_open_trace(const char* filename) {
     }
     trace->header_buffer = trace->header_buffer_ptr;
 
-    litl_init_trace_header(trace);
-
-    // increase a bit the buffer size 'cause of the possible event's tail and the offset
-    trace->buffer_size = trace->header->buffer_size + get_event_size(LITL_MAX_PARAMS) + get_event_size(0);
-    litl_init_buffers(trace);
-
-    return trace;
-}
-
-/*
- * This function sets the buffer size
- */
-void litl_set_buffer_size(litl_trace_read_t* trace, const litl_size_t buf_size) {
-    trace->buffer_size = buf_size;
-}
-
-/*
- * This function returns the buffer size
- */
-litl_size_t litl_get_buffer_size(litl_trace_read_t* trace) {
-    return trace->buffer_size;
-}
-
-/*
- * This function initializes the trace header
- */
-void litl_init_trace_header(litl_trace_read_t* trace) {
-    litl_size_t i, size;
-
     trace->header = (litl_header_t *) trace->header_buffer;
     size = sizeof(litl_header_t);
     trace->header_buffer += size;
+}
+
+/*
+ * This function initializes buffer of each recorded thread. A buffer per thread.
+ */
+static void __init_buffers(litl_trace_read_process_t* trace) {
+    litl_size_t i, size;
 
     // init nb_buffers
     trace->nb_buffers = trace->header->nb_threads;
@@ -119,20 +89,9 @@ void litl_init_trace_header(litl_trace_read_t* trace) {
         trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
         trace->header_buffer += size;
     }
-}
 
-/*
- * This function return a pointer to the trace header
- */
-litl_header_t* litl_get_trace_header(litl_trace_read_t* trace) {
-    return trace->header;
-}
-
-/*
- * This function initializes buffer of each recorded thread. A buffer per thread.
- */
-void litl_init_buffers(litl_trace_read_t* trace) {
-    litl_size_t i;
+    // increase a bit the buffer size 'cause of the possible event's tail and the offset
+    trace->buffer_size = trace->header->buffer_size + get_event_size(LITL_MAX_PARAMS) + get_event_size(0);
 
     for (i = 0; i < trace->nb_buffers; i++) {
         // use offsets in order to access a chuck of data that corresponds to each thread
@@ -156,9 +115,54 @@ void litl_init_buffers(litl_trace_read_t* trace) {
 }
 
 /*
+ * This function opens a trace and reads the first portion of data to the buffer
+ */
+litl_trace_read_process_t *litl_open_trace(const char* filename) {
+    litl_trace_read_process_t *trace = malloc(sizeof(litl_trace_read_process_t));
+
+    // open a trace file
+    if ((trace->f_handle = open(filename, O_RDONLY)) < 0) {
+        fprintf(stderr, "Cannot open %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    trace->cur_index = -1;
+    trace->initialized = 0;
+
+    // init the trace header
+    __init_trace_header(trace);
+
+    // init buffers of events: one buffer per thread
+    __init_buffers(trace);
+
+    return trace;
+}
+
+/*
+ * This function return a pointer to the trace header
+ */
+litl_header_t* litl_get_trace_header(litl_trace_read_process_t* trace) {
+    return trace->header;
+}
+
+/*
+ * This function sets the buffer size
+ */
+void litl_set_buffer_size(litl_trace_read_process_t* trace, const litl_size_t buf_size) {
+    trace->buffer_size = buf_size;
+}
+
+/*
+ * This function returns the buffer size
+ */
+litl_size_t litl_get_buffer_size(litl_trace_read_process_t* trace) {
+    return trace->buffer_size;
+}
+
+/*
  * This function reads another portion of data from the trace file to the buffer
  */
-static void __next_trace(litl_trace_read_t* trace, litl_size_t index) {
+static void __next_trace(litl_trace_read_process_t* trace, litl_size_t index) {
     lseek(trace->f_handle, trace->buffers[index].tids->offset, SEEK_SET);
     trace->buffers[index].offset = 0;
 
@@ -178,14 +182,14 @@ static void __next_trace(litl_trace_read_t* trace, litl_size_t index) {
 /*
  * This function resets the trace
  */
-void litl_reset_trace(litl_trace_read_t* trace, litl_size_t index) {
+void litl_reset_trace(litl_trace_read_process_t* trace, litl_size_t index) {
     trace->buffers[index].buffer = trace->buffers[index].buffer_ptr;
 }
 
 /*
  * This function reads an event
  */
-litl_read_t* litl_read_event(litl_trace_read_t* trace, litl_size_t index) {
+litl_read_t* litl_read_event(litl_trace_read_process_t* trace, litl_size_t index) {
     uint8_t to_be_loaded;
     litl_size_t size;
     litl_t* event;
@@ -250,14 +254,14 @@ litl_read_t* litl_read_event(litl_trace_read_t* trace, litl_size_t index) {
 /*
  * This function searches for the next event inside each buffer
  */
-litl_read_t* litl_next_buffer_event(litl_trace_read_t* trace, litl_size_t index) {
+litl_read_t* litl_next_buffer_event(litl_trace_read_process_t* trace, litl_size_t index) {
     return litl_read_event(trace, index);
 }
 
 /*
  * This function searches for the next event inside the trace
  */
-litl_read_t* litl_next_trace_event(litl_trace_read_t* trace) {
+litl_read_t* litl_next_trace_event(litl_trace_read_process_t* trace) {
     litl_size_t i;
     litl_time_t min_time = -1;
 
@@ -290,7 +294,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* trace) {
 /*
  * This function closes the trace and frees the buffer
  */
-void litl_close_trace(litl_trace_read_t* trace) {
+void litl_close_trace(litl_trace_read_process_t* trace) {
     litl_size_t i;
 
     // close the file
@@ -312,13 +316,14 @@ void litl_close_trace(litl_trace_read_t* trace) {
 int main(int argc, char **argv) {
     litl_size_t i;
     litl_read_t* event;
-    litl_trace_read_t *trace;
+    litl_trace_read_process_t *trace;
     litl_header_t* header;
 
     // parse the arguments passed to this program
     __parse_args(argc, argv);
 
     trace = litl_open_trace(__input_filename);
+
     header = litl_get_trace_header(trace);
 
     // print the header

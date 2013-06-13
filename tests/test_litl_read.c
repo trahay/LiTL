@@ -16,7 +16,7 @@ int main(int argc, const char **argv) {
     litl_size_t i, index;
     const char* filename = "trace";
     litl_read_t* event;
-    litl_trace_read_t *trace;
+    litl_trace_read_process_t *trace;
     litl_header_t* header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
@@ -25,6 +25,7 @@ int main(int argc, const char **argv) {
         filename = "/tmp/test_litl_write.trace";
 
     trace = litl_open_trace(filename);
+
     header = litl_get_trace_header(trace);
 
     // print the header

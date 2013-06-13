@@ -179,6 +179,7 @@ typedef struct {
     litl_t *event; /* pointer to the event */
 } litl_read_t;
 
+// data structure for reading thread related events
 typedef struct {
     litl_header_tids_t* tids;
 
@@ -195,9 +196,9 @@ typedef struct {
 
 } litl_trace_read_thread_t;
 
-// data structure for reading events from a trace file
+// data structure for reading process related events
 typedef struct {
-    int f_handle;
+    int f_handle; // TODO: remove since there is litl_trace_read_t
 
     litl_buffer_t header_buffer_ptr;
     litl_buffer_t header_buffer;
@@ -210,6 +211,21 @@ typedef struct {
     int cur_index; /* index of the thread of the current event */
     int initialized; /* set to 1 when initialized */
 
+} litl_trace_read_process_t;
+
+// data structure for reading events from either a trace or an archive of traces
+typedef struct {
+    int f_handle;
+
+    litl_buffer_t header_buffer;
+    litl_size_t header_size;
+    litl_header_t* header;
+
+    litl_size_t nb_traces;
+    litl_header_triples_t* triples;
+    litl_trace_read_process_t *processes;
+
+    int process_index; /* index of a process of the current event */
 } litl_trace_read_t;
 
 // data structure for merging traces in the archive
@@ -226,7 +242,6 @@ typedef struct {
 // data structure for splitting an archive of traces
 typedef struct {
     int f_arch;
-    //    char *f_arch_name;
 
     litl_buffer_t header_buffer;
     litl_size_t header_size;

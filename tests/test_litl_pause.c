@@ -72,7 +72,7 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
     litl_size_t index;
     litl_read_t* event;
-    litl_trace_read_t *trace;
+    litl_trace_read_process_t *trace;
 
     trace = litl_open_trace(filename);
 
