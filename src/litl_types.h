@@ -37,7 +37,7 @@ typedef uint64_t litl_trace_size_t;
 typedef uint32_t litl_size_t;
 typedef uint8_t litl_tiny_size_t;
 typedef uint64_t litl_param_t;
-typedef uint8_t* litl_buffer_t;// data structure for holding a set of events
+typedef uint8_t* litl_buffer_t; // data structure for holding a set of events
 typedef uint64_t litl_offset_t;
 
 #elif defined __arm__
@@ -125,8 +125,8 @@ typedef struct {
 } litl_write_buffer_t;
 
 typedef struct {
-    FILE* ftrace;
-    char* litl_filename;
+    int ftrace;
+    char* filename;
 
     litl_offset_t general_offset; // offset from the beginning of the trace file until the current position
 
@@ -197,7 +197,7 @@ typedef struct {
 
 // data structure for reading events from a trace file
 typedef struct {
-    FILE* fp; // pointer to the trace file
+    int f_handle;
 
     litl_buffer_t header_buffer_ptr;
     litl_buffer_t header_buffer;

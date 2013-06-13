@@ -76,7 +76,7 @@ void* write_trace(void* arg) {
         usleep(100);
     }
 
-    printf("Events for thread #%d are stored in %s\n", my_id, trace.litl_filename);
+    printf("Events for thread #%d are stored in %s\n", my_id, trace.filename);
 
     litl_fin_trace(&trace);
 

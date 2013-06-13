@@ -11,6 +11,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <sys/utsname.h>
+#include <fcntl.h>
 
 #include "litl_timer.h"
 #include "litl_macro.h"
@@ -70,7 +71,7 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
 
     // set variables
     trace.header_size = 1536; // 1.5Kb
-    trace.litl_filename = NULL;
+    trace.filename = NULL;
     trace.is_header_flushed = 0;
     trace.is_buffer_full = 0;
     litl_tid_recording_on(&trace);
@@ -189,19 +190,19 @@ void litl_resume_recording(litl_trace_write_t* trace) {
  * Set a new name for the trace file
  */
 void litl_set_filename(litl_trace_write_t* trace, char* filename) {
-    if (trace->litl_filename) {
+    if (trace->filename) {
         if (trace->is_header_flushed)
             fprintf(stderr,
                     "Warning: changing the trace file name to %s after some events have been saved in file %s\n",
-                    filename, trace->litl_filename);
-        free(trace->litl_filename);
+                    filename, trace->filename);
+        free(trace->filename);
     }
 
     // check whether the file name was set. If no, set it by default trace name.
     if (filename == NULL )
         sprintf(filename, "/tmp/%s_%s", getenv("USER"), "eztrace_log_rank_1");
 
-    if (asprintf(&trace->litl_filename, filename) == -1) {
+    if (asprintf(&trace->filename, filename) == -1) {
         perror("Error: Cannot set the filename for recording events!\n");
         exit(EXIT_FAILURE);
     }
@@ -219,8 +220,8 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
 
     if (!trace->is_header_flushed) {
         // check whether the trace file can be opened
-        if (!(trace->ftrace = fopen(trace->litl_filename, "w+"))) {
-            perror("Could not open the trace file for writing!");
+        if ((trace->ftrace = open(trace->filename, O_WRONLY | O_CREAT, 0644)) < 0) {
+            fprintf(stderr, "Cannot open %s\n", trace->filename);
             exit(EXIT_FAILURE);
         }
 
@@ -258,7 +259,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         }
 
         // write the trace header to the trace file
-        if (fwrite(trace->header_ptr, __get_header_size(trace), 1, trace->ftrace) != 1) {
+        if (write(trace->ftrace, trace->header_ptr, __get_header_size(trace)) == -1) {
             perror("Flushing the buffer. Could not write measured data to the trace file!");
             exit(EXIT_FAILURE);
         }
@@ -272,28 +273,28 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
     // handle the situation when some threads start after the header was flushed
     if (!trace->buffers[index].already_flushed) {
         // add the pair tid and add & update offset at once
-        fseek(trace->ftrace, trace->header_offset, SEEK_SET);
-        fwrite(&trace->buffers[index].tid, sizeof(litl_tid_t), 1, trace->ftrace);
-        fwrite(&trace->general_offset, sizeof(litl_offset_t), 1, trace->ftrace);
-        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+        lseek(trace->ftrace, trace->header_offset, SEEK_SET);
+        write(trace->ftrace, &trace->buffers[index].tid, sizeof(litl_tid_t));
+        write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+        lseek(trace->ftrace, trace->general_offset, SEEK_SET);
 
         trace->header_offset += sizeof(litl_tid_t) + sizeof(litl_offset_t);
         trace->buffers[index].already_flushed = 1;
 
         // updated the number of threads
-        fseek(trace->ftrace, trace->header_size, SEEK_SET);
-        fwrite(&trace->nb_threads, sizeof(litl_size_t), 1, trace->ftrace);
-        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+        lseek(trace->ftrace, trace->header_size, SEEK_SET);
+        write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
+        lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     } else {
         // update the previous offset of the current thread, updating the location in the file
-        fseek(trace->ftrace, trace->buffers[index].offset, SEEK_SET);
-        fwrite(&trace->general_offset, sizeof(litl_offset_t), 1, trace->ftrace);
-        fseek(trace->ftrace, trace->general_offset, SEEK_SET);
+        lseek(trace->ftrace, trace->buffers[index].offset, SEEK_SET);
+        write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+        lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     }
 
     // add an event with offset
     litl_probe_offset(trace, index);
-    if (fwrite(trace->buffers[index].buffer_ptr, __get_buffer_size(trace, index), 1, trace->ftrace) != 1) {
+    if (write(trace->ftrace, trace->buffers[index].buffer_ptr, __get_buffer_size(trace, index)) == -1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
         abort();
         exit(EXIT_FAILURE);
@@ -826,21 +827,23 @@ void litl_fin_trace(litl_trace_write_t* trace) {
     // because the LITL_TRACE_END was written to the trace buffer #0
     //    litl_flush_buffer(trace, 0);
 
-    fclose(trace->ftrace);
+    close(trace->ftrace);
+    trace->ftrace = -1;
 
     for (i = 0; i < NBBUFFER; i++)
-        if (trace->buffers[i].tid != 0)
+        if (trace->buffers[i].tid != 0) {
             free(trace->buffers[i].buffer_ptr);
-        else
+        } else {
             break;
+        }
 
-    if (trace->allow_thread_safety)
+    if (trace->allow_thread_safety) {
         pthread_mutex_destroy(&trace->lock_litl_flush);
+    }
     pthread_mutex_destroy(&trace->lock_buffer_init);
 
-    trace->ftrace = NULL;
-    free(trace->litl_filename);
-    trace->litl_filename = NULL;
+    free(trace->filename);
+    trace->filename = NULL;
     trace->litl_initialized = 0;
     trace->is_header_flushed = 0;
 }

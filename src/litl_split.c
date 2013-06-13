@@ -146,8 +146,10 @@ void litl_split_archive(const char *dir) {
  * Close the archive and free the allocated memory
  */
 static void __close_archive() {
-    free(__archive->buffer);
     close(__archive->f_arch);
+    __archive->f_arch = -1;
+
+    free(__archive->buffer);
     free(__archive);
 }
 

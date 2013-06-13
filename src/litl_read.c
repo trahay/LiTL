@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "litl_macro.h"
 #include "litl_read.h"
@@ -47,9 +48,9 @@ static void __parse_args(int argc, char **argv) {
 litl_trace_read_t *litl_open_trace(const char* filename) {
     litl_trace_read_t *trace = malloc(sizeof(litl_trace_read_t));
 
-    // open the trace file
-    if (!(trace->fp = fopen(filename, "r"))) {
-        perror("Could not open the trace file for reading!");
+    // open a trace file
+    if ((trace->f_handle = open(filename, O_RDONLY)) < 0) {
+        fprintf(stderr, "Cannot open %s\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -65,10 +66,11 @@ litl_trace_read_t *litl_open_trace(const char* filename) {
     }
 
     // read the header
-    int res = fread(trace->header_buffer_ptr, trace->header_size, 1, trace->fp);
+    int res = read(trace->f_handle, trace->header_buffer_ptr, trace->header_size);
+
     // If the end of file is reached, then all data are read. So, res is 0.
     //      Otherwise, res is either an error or the number of elements, which is 1.
-    if ((res != 0) && (res != 1)) {
+    if (res == -1) {
         perror("Could not read the trace header!");
         exit(EXIT_FAILURE);
     }
@@ -134,15 +136,16 @@ void litl_init_buffers(litl_trace_read_t* trace) {
 
     for (i = 0; i < trace->nb_buffers; i++) {
         // use offsets in order to access a chuck of data that corresponds to each thread
-        fseek(trace->fp, trace->buffers[i].tids->offset, SEEK_SET);
+        lseek(trace->f_handle, trace->buffers[i].tids->offset, SEEK_SET);
 
         trace->buffers[i].buffer_size = trace->buffer_size;
         trace->buffers[i].buffer_ptr = (litl_buffer_t) malloc(trace->buffer_size);
 
-        int res = fread(trace->buffers[i].buffer_ptr, trace->buffer_size, 1, trace->fp);
+        int res = read(trace->f_handle, trace->buffers[i].buffer_ptr, trace->buffer_size);
+
         // If the end of file is reached, then all data are read. So, res is 0.
         // Otherwise, res is either an error or the number of elements, which is 1.
-        if ((res != 0) && (res != 1)) {
+        if (res == -1) {
             perror("Could not read the first partition of data from the trace file!");
             exit(EXIT_FAILURE);
         }
@@ -156,13 +159,14 @@ void litl_init_buffers(litl_trace_read_t* trace) {
  * This function reads another portion of data from the trace file to the buffer
  */
 static void __next_trace(litl_trace_read_t* trace, litl_size_t index) {
-    fseek(trace->fp, trace->buffers[index].tids->offset, SEEK_SET);
+    lseek(trace->f_handle, trace->buffers[index].tids->offset, SEEK_SET);
     trace->buffers[index].offset = 0;
 
-    int res = fread(trace->buffers[index].buffer_ptr, trace->buffer_size, 1, trace->fp);
+    int res = read(trace->f_handle, trace->buffers[index].buffer_ptr, trace->buffer_size);
+
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
-    if ((res != 0) && (res != 1)) {
+    if (res == -1) {
         perror("Could not read the next part of the trace file!");
         exit(EXIT_FAILURE);
     }
@@ -191,7 +195,7 @@ litl_read_t* litl_read_event(litl_trace_read_t* trace, litl_size_t index) {
 
     if (!buffer) {
         trace->buffers[index].cur_event.event = NULL;
-        return NULL;
+        return NULL ;
     }
 
     event = (litl_t *) buffer;
@@ -222,7 +226,7 @@ litl_read_t* litl_read_event(litl_trace_read_t* trace, litl_size_t index) {
             trace->buffers[index].buffer = NULL;
             *buffer = NULL;
             trace->buffers[index].cur_event.event = NULL;
-            return NULL;
+            return NULL ;
         }
     }
 
@@ -280,7 +284,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* trace) {
     }
     if (found)
         return GET_CUR_EVENT(trace);
-    return NULL;
+    return NULL ;
 }
 
 /*
@@ -290,7 +294,7 @@ void litl_close_trace(litl_trace_read_t* trace) {
     litl_size_t i;
 
     // close the file
-    fclose(trace->fp);
+    close(trace->f_handle);
 
     // free buffers
     free(trace->header_buffer_ptr);
@@ -300,9 +304,9 @@ void litl_close_trace(litl_trace_read_t* trace) {
     free(trace->buffers);
 
     // set pointers to NULL
-    trace->fp = NULL;
     trace->header_buffer_ptr = NULL;
     trace->buffers = NULL;
+    trace->f_handle = -1;
 }
 
 int main(int argc, char **argv) {
@@ -326,7 +330,7 @@ int main(int argc, char **argv) {
     while (1) {
         event = litl_next_trace_event(trace);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         switch (LITL_GET_TYPE(event)) {
@@ -335,7 +339,7 @@ int main(int argc, char **argv) {
                     LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_REGULAR(event)->nb_params);
 
             for (i = 0; i < LITL_REGULAR(event)->nb_params; i++)
-            printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
+                printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
             break;
         }
         case LITL_TYPE_RAW: { // raw event

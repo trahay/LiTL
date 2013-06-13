@@ -36,7 +36,6 @@ litl_trace_write_t trace;
  */
 void* write_trace(void* arg) {
     int i;
-    uint8_t my_id = *(uint8_t*) arg;
 
     // Notify the main thread that we got the args
     sem_post(&thread_ready);
@@ -121,7 +120,7 @@ int main(int argc, const char **argv) {
     for (i = 0; i < NBTHREAD; i++)
         pthread_join(tid[i], NULL);
 
-    printf("All events are stored in %s\n\n", trace.litl_filename);
+    printf("All events are stored in %s\n\n", trace.filename);
     litl_fin_trace(&trace);
 
     printf("Checking the recording of events\n\n");
