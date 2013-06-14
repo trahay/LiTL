@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sys/utsname.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "litl_timer.h"
 #include "litl_macro.h"

@@ -190,15 +190,13 @@ typedef struct {
     litl_offset_t offset; // offset from the beginning of the buffer
     litl_offset_t tracker; // indicator of the end of the buffer = offset + buffer_size
 
-    litl_offset_t file_offset; // offset from the beginning of the file
-
     litl_read_t cur_event; /* current event */
 
 } litl_trace_read_thread_t;
 
 // data structure for reading process related events
 typedef struct {
-    int f_handle; // TODO: remove since there is litl_trace_read_t
+    litl_header_triples_t* triples;
 
     litl_buffer_t header_buffer_ptr;
     litl_buffer_t header_buffer;
@@ -208,6 +206,7 @@ typedef struct {
 
     litl_size_t nb_buffers;
     litl_trace_read_thread_t *buffers;
+
     int cur_index; /* index of the thread of the current event */
     int initialized; /* set to 1 when initialized */
 
@@ -222,10 +221,9 @@ typedef struct {
     litl_header_t* header;
 
     litl_size_t nb_traces;
-    litl_header_triples_t* triples;
-    litl_trace_read_process_t *processes;
+    litl_trace_read_process_t *traces;
 
-    int process_index; /* index of a process of the current event */
+    int trace_index; /* index of a trace of the current event */
 } litl_trace_read_t;
 
 // data structure for merging traces in the archive

@@ -12,22 +12,22 @@
 /*
  * This function opens a trace and reads the first portion of data to the buffer
  */
-litl_trace_read_process_t *litl_open_trace(const char*);
+litl_trace_read_t *litl_open_trace(const char*);
 
 /*
  * This function return a pointer to the header
  */
-litl_header_t* litl_get_trace_header(litl_trace_read_process_t*);
+litl_header_t* litl_get_trace_header(litl_trace_read_t*);
 
 /*
  * This function sets the buffer size
  */
-void litl_set_buffer_size(litl_trace_read_process_t*, const litl_size_t);
+void litl_set_buffer_size(litl_trace_read_t*, const litl_size_t);
 
 /*
  * This function returns the buffer size
  */
-litl_size_t litl_get_buffer_size(litl_trace_read_process_t*);
+litl_size_t litl_get_buffer_size(litl_trace_read_t*);
 
 /*
  * This function resets the trace
@@ -52,7 +52,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_process_t*);
 /*
  * This function closes the trace and frees the allocated memory
  */
-void litl_close_trace(litl_trace_read_process_t*);
+void litl_close_trace(litl_trace_read_t*);
 
 #define GET_ARG_REGULAR(_ptr_, arg) do {		\
     arg = *(litl_param_t*)_ptr_;			\
