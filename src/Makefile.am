@@ -5,8 +5,8 @@
 #AM_LDFLAGS = $(FXT_LDFLAGS)
 
 bin_PROGRAMS = litl_read litl_merge litl_split
-litl_read_SOURCES = litl_types.h litl_read.h litl_read.c litl_macro.h litl_macro.c
-litl_merge_SOURCES = litl_types.h litl_merge.h litl_merge.c litl_queue.h litl_queue.c
+litl_read_SOURCES = litl_types.h litl_macro.h litl_macro.c litl_read.h litl_read.c
+litl_merge_SOURCES = litl_types.h litl_queue.h litl_queue.c litl_merge.h litl_merge.c
 litl_split_SOURCES = litl_types.h litl_split.h litl_split.c
 
 lib_LTLIBRARIES = liblitl.la
