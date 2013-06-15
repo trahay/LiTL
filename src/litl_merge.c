@@ -16,6 +16,7 @@
 
 static char* __archive_name = "archive";
 static litl_trace_merge_t* __archive;
+static litl_size_t __nb_traces = 0;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
     fprintf(stderr, "Usage: %s [-o archive_name] input_filename input_filename ... \n", argv[0]);
@@ -38,6 +39,7 @@ static void __parse_args(int argc, char **argv) {
             exit(-1);
         } else {
             enqueue(argv[i]);
+            __nb_traces++;
         }
     }
 
@@ -72,11 +74,11 @@ static void __init_trace(char *trace_name) {
  *   - The number of traces
  *   - Triples: a file id, a file size, and an offset
  */
-static void __add_trace_header(litl_size_t nb_traces) {
+static void __add_trace_header() {
     litl_size_t header_size;
 
     // add nb_traces and the is_trace_archive flag
-    ((litl_header_t *) __archive->buffer)->nb_threads = nb_traces;
+    ((litl_header_t *) __archive->buffer)->nb_threads = __nb_traces;
     ((litl_header_t *) __archive->buffer)->is_trace_archive = 1;
     header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
     __archive->header_offset += header_size;
@@ -84,7 +86,7 @@ static void __add_trace_header(litl_size_t nb_traces) {
 
     // we do not add all the information about each trace 'cause it will be added during packing them,
     //       instead we just reserve the space for that
-    header_size += nb_traces * sizeof(litl_header_triples_t);
+    header_size += __nb_traces * sizeof(litl_header_triples_t);
     __archive->general_offset += header_size;
     lseek(__archive->f_arch, header_size, SEEK_SET);
 }
@@ -153,8 +155,8 @@ int main(int argc, char **argv) {
     // init a buffer and an archive of traces
     __init_trace(__archive_name);
 
-    // write header with #traces and reserved space for pairs (fid, offset)
-    __add_trace_header(argc - 2);
+    // write header with #traces and reserved space for triples (fid, offset, traces_size)
+    __add_trace_header();
 
     // merging the trace files
     int i = 0;

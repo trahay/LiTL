@@ -55,12 +55,11 @@ static void __init_header(litl_trace_read_t* arch) {
     // read the archive header
     read(arch->f_handle, arch->header_buffer, arch->header_size);
 
-    arch->header = (litl_header_t *) arch->header_buffer;
-
     // get the number of traces
+    arch->header = (litl_header_t *) arch->header_buffer;
     arch->nb_traces = arch->header->nb_threads;
 
-    if (arch->header->is_trace_archive == 0) {
+    if (arch->header->is_trace_archive) {
         // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
         arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t);
         arch->header_buffer = (litl_buffer_t) realloc(arch->header_buffer, arch->header_size);
@@ -388,11 +387,11 @@ void litl_close_trace(litl_trace_read_t* arch) {
         // regular trace
 
         free(arch->traces->triples);
+        free(arch->header_buffer);
     }
 
     // free an archive
     free(arch->traces);
-    free(arch->header_buffer);
     free(arch);
 
     // set pointers to NULL
@@ -412,15 +411,15 @@ int main(int argc, char **argv) {
 
     arch = litl_open_trace(__input_filename);
 
-    /*    header = litl_get_trace_header(trace);
+    header = litl_get_trace_header(arch);
 
-     // print the header
-     printf(" LiTL v.%s\n", header->liblitl_ver);
-     printf(" %s\n", header->sysinfo);
-     printf(" nb_threads \t %d\n", header->nb_threads);
-     printf(" buffer_size \t %d\n", header->buffer_size);
+    // print the header
+    printf(" LiTL v.%s\n", header->liblitl_ver);
+    printf(" %s\n", header->sysinfo);
+    printf(" nb_threads \t %d\n", header->nb_threads);
+    printf(" buffer_size \t %d\n", header->buffer_size);
 
-     while (1) {
+    /*   while (1) {
      event = litl_next_trace_event(trace);
 
      if (event == NULL )
