@@ -56,13 +56,15 @@ static void __init_header(litl_trace_read_t* arch) {
     read(arch->f_handle, arch->header_buffer, arch->header_size);
 
     arch->header = (litl_header_t *) arch->header_buffer;
+
     // get the number of traces
     arch->nb_traces = arch->header->nb_threads;
 
     if (arch->header->is_trace_archive == 0) {
         // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
-        arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t); // +1 to allocate slightly more
+        arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t);
         arch->header_buffer = (litl_buffer_t) realloc(arch->header_buffer, arch->header_size);
+
         // read the archive header
         read(arch->f_handle, arch->header_buffer, arch->header_size);
     }
@@ -74,6 +76,7 @@ static void __init_header(litl_trace_read_t* arch) {
 static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process_t* trace) {
 
     // init the header structure
+    // TODO: be flexible as with triples
     trace->header_size = 1536; // 1.5KB
     trace->header_buffer_ptr = (litl_buffer_t) malloc(trace->header_size);
     if (!trace->header_buffer_ptr) {
@@ -142,24 +145,43 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
  * This function reads the data of one trace
  */
 static void __init_traces(litl_trace_read_t* arch) {
-    litl_size_t i, size;
 
     arch->traces = (litl_trace_read_process_t *) malloc(arch->nb_traces * sizeof(litl_trace_read_process_t));
-    size = sizeof(litl_header_triples_t);
 
-    for (i = 0; i < arch->nb_traces; i++) {
-        // read triples that contain offset from the beginning of the archive
-        arch->traces[i].triples = (litl_header_triples_t *) arch->header_buffer;
-        arch->header_buffer += size;
+    if (arch->header->is_trace_archive) {
+        // archive of traces
 
-        arch->traces[i].cur_index = -1;
-        arch->traces[i].initialized = 0;
+        litl_size_t i, size;
+        size = sizeof(litl_header_triples_t);
+
+        for (i = 0; i < arch->nb_traces; i++) {
+            // read triples that contain offset from the beginning of the archive
+            arch->traces[i].triples = (litl_header_triples_t *) arch->header_buffer;
+            arch->header_buffer += size;
+
+            arch->traces[i].cur_index = -1;
+            arch->traces[i].initialized = 0;
+
+            // init the trace header
+            __init_trace_header(arch, &arch->traces[i]);
+
+            // init buffers of events: one buffer per thread
+            __init_buffers(arch, &arch->traces[i]);
+        }
+    } else {
+        // regular trace
+
+        arch->traces->triples = (litl_header_triples_t *) malloc(sizeof(litl_header_triples_t));
+        arch->traces->triples->offset = 0;
+
+        arch->traces->cur_index = -1;
+        arch->traces->initialized = 0;
 
         // init the trace header
-        __init_trace_header(arch, &arch->traces[i]);
+        __init_trace_header(arch, arch->traces);
 
         // init buffers of events: one buffer per thread
-        __init_buffers(arch, &arch->traces[i]);
+        __init_buffers(arch, arch->traces);
     }
 }
 
@@ -351,13 +373,21 @@ void litl_close_trace(litl_trace_read_t* arch) {
     arch->f_handle = -1;
 
     // free traces
-    for (i = 0; i < arch->nb_traces; i++) {
-        free(arch->traces[i].header_buffer_ptr);
+    if (arch->header->is_trace_archive) {
+        // archive of traces
 
-        for (j = 0; j < arch->traces[i].nb_buffers; j++) {
-            free(arch->traces[i].buffers[j].buffer_ptr);
+        for (i = 0; i < arch->nb_traces; i++) {
+            free(arch->traces[i].header_buffer_ptr);
+
+            for (j = 0; j < arch->traces[i].nb_buffers; j++) {
+                free(arch->traces[i].buffers[j].buffer_ptr);
+            }
+            free(arch->traces[i].buffers);
         }
-        free(arch->traces[i].buffers);
+    } else {
+        // regular trace
+
+        free(arch->traces->triples);
     }
 
     // free an archive
