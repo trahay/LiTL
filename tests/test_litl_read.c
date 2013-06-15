@@ -4,6 +4,7 @@
  * See COPYING in top-level directory.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,20 +14,20 @@
 #include "litl_macro.h"
 
 int main(int argc, const char **argv) {
-    litl_size_t i, index;
+    litl_size_t i;
     const char* filename = "trace";
     litl_read_t* event;
-    litl_trace_read_process_t *trace;
     litl_header_t* header;
+    litl_trace_read_t *arch;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
         filename = "/tmp/test_litl_write.trace";
 
-    trace = litl_open_trace(filename);
+    arch = litl_open_trace(filename);
 
-    header = litl_get_trace_header(trace);
+    header = litl_get_trace_header(arch);
 
     // print the header
     printf(" LiTL v.%s\n", header->liblitl_ver);
@@ -36,24 +37,24 @@ int main(int argc, const char **argv) {
 
     printf("Thread ID\t Event Type & Code \t Time\t   NB args\t Arguments[0-9]\n");
     while (1) {
-        event = litl_next_buffer_event(trace, index);
+        event = litl_next_event(arch);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         switch (LITL_GET_TYPE(event)) {
         case LITL_TYPE_REGULAR: { // regular event
-            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event), LITL_GET_CODE(event),
-                    LITL_GET_TIME(event), LITL_REGULAR(event)->nb_params);
+            printf("%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event),
+                    LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_REGULAR(event)->nb_params);
 
             for (i = 0; i < LITL_REGULAR(event)->nb_params; i++)
-            printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
+                printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
             break;
         }
         case LITL_TYPE_RAW: { // raw event
             LITL_GET_CODE(event) = clear_bit(LITL_GET_CODE(event));
-            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event), LITL_GET_CODE(event),
-                    LITL_GET_TIME(event), LITL_RAW(event)->size);
+            printf("%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu64" \t %"PRTIu32, LITL_GET_TID(event),
+                    LITL_GET_CODE(event), LITL_GET_TIME(event), LITL_RAW(event)->size);
             printf("\t %s", (litl_data_t *) LITL_RAW(event)->data);
             break;
         }
@@ -77,7 +78,7 @@ int main(int argc, const char **argv) {
         printf("\n");
     }
 
-    litl_close_trace(trace);
+    litl_close_trace(arch);
 
     return EXIT_SUCCESS;
 }

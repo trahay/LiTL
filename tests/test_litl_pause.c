@@ -4,6 +4,7 @@
  * See COPYING in top-level directory.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -72,15 +73,15 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
     litl_size_t index;
     litl_read_t* event;
-    litl_trace_read_process_t *trace;
+    litl_trace_read_t *arch;
 
-    trace = litl_open_trace(filename);
+    arch = litl_open_trace(filename);
 
     index = 0;
-    while (trace->buffers[index].buffer != NULL) {
-        event = litl_next_buffer_event(trace, index);
+    while (1) {
+        event = litl_next_event(arch);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         if (get_bit(LITL_GET_CODE(event)) == 1)
@@ -89,12 +90,12 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
         // check whether some events were skipped
         if ((left_bound < LITL_GET_CODE(event))&& (LITL_GET_CODE(event) < right_bound)){
-        nbevents++;
-        break;
+            nbevents++;
+            break;
+        }
     }
-}
 
-    litl_close_trace(trace);
+    litl_close_trace(arch);
 
     if (nbevents > 0) {
         fprintf(stderr, "Some events were recorded when they supposed to be skipped");

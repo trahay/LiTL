@@ -183,8 +183,8 @@ typedef struct {
 typedef struct {
     litl_header_tids_t* tids;
 
-    litl_buffer_t buffer_ptr; // pointer to the beginning of the buffer
     litl_buffer_t buffer; // pointer to the current position in the buffer
+    litl_buffer_t buffer_ptr; // pointer to the beginning of the buffer
     litl_size_t buffer_size;
 
     litl_offset_t offset; // offset from the beginning of the buffer
@@ -198,13 +198,13 @@ typedef struct {
 typedef struct {
     litl_header_triples_t* triples;
 
-    litl_buffer_t header_buffer_ptr;
-    litl_buffer_t header_buffer;
     litl_size_t header_size;
+    litl_buffer_t header_buffer;
+    litl_buffer_t header_buffer_ptr;
     litl_header_t* header;
-    litl_size_t buffer_size;
 
     litl_size_t nb_buffers;
+    litl_size_t buffer_size;
     litl_trace_read_thread_t *buffers;
 
     int cur_index; /* index of the thread of the current event */
@@ -216,8 +216,8 @@ typedef struct {
 typedef struct {
     int f_handle;
 
-    litl_buffer_t header_buffer;
     litl_size_t header_size;
+    litl_buffer_t header_buffer;
     litl_header_t* header;
 
     litl_size_t nb_traces;
@@ -241,8 +241,8 @@ typedef struct {
 typedef struct {
     int f_arch;
 
-    litl_buffer_t header_buffer;
     litl_size_t header_size;
+    litl_buffer_t header_buffer;
     litl_header_t *header;
     litl_size_t nb_traces;
     litl_header_triples_t* triples;

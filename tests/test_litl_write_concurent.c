@@ -9,6 +9,7 @@
  * Afterwards, the buffers are stored in one file
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@
 #include "litl_write.h"
 #include "litl_read.h"
 
-#define NBTHREAD 24
+#define NBTHREAD 16
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
@@ -34,7 +35,7 @@ litl_trace_write_t trace;
 /*
  * This test records several traces at the same time
  */
-void* write_trace(void* arg) {
+void* write_trace(void *arg) {
     int i;
 
     // Notify the main thread that we got the args
@@ -69,27 +70,27 @@ void* write_trace(void* arg) {
         usleep(100);
     }
 
-    return NULL;
+    return NULL ;
 }
 
 void read_trace(char* filename) {
     int nb_events = 0;
 
-    litl_t* event;
-    litl_trace_read_process_t *trace;
+    litl_read_t* event;
+    litl_trace_read_t *arch;
 
-    trace = litl_open_trace(filename);
+    arch = litl_open_trace(filename);
 
     while (1) {
-        event = litl_next_trace_event(trace);
+        event = litl_next_event(arch);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         nb_events++;
     }
 
-    litl_close_trace(trace);
+    litl_close_trace(arch);
 
     if (nb_events != NBEVENT * NBTHREAD) {
         fprintf(stderr, "Some events were NOT recorded!\n Expected nb_events = %d \t Recorded nb_events = %d\n",
@@ -98,7 +99,7 @@ void read_trace(char* filename) {
     }
 }
 
-int main(int argc, const char **argv) {
+int main() {
     int i;
     char* filename;
     pthread_t tid[NBTHREAD];
@@ -118,7 +119,7 @@ int main(int argc, const char **argv) {
     }
 
     for (i = 0; i < NBTHREAD; i++)
-        pthread_join(tid[i], NULL);
+        pthread_join(tid[i], NULL );
 
     printf("All events are stored in %s\n\n", trace.filename);
     litl_fin_trace(&trace);

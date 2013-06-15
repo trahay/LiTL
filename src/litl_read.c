@@ -363,7 +363,7 @@ litl_read_t* litl_next_event(litl_trace_read_t* arch) {
     for (i = 0; i < arch->nb_traces; i++) {
         event = litl_next_trace_event(arch, &arch->traces[i]);
 
-        if (event != NULL)
+        if (event != NULL )
             break;
     }
 
