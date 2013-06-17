@@ -57,15 +57,17 @@ static void __init_header(litl_trace_read_t* arch) {
 
     // get the number of traces
     arch->header = (litl_header_t *) arch->header_buffer;
-    arch->nb_traces = arch->header->nb_threads;
 
     if (arch->header->is_trace_archive) {
         // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
+        arch->nb_traces = arch->header->nb_threads;
         arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t);
         arch->header_buffer = (litl_buffer_t) realloc(arch->header_buffer, arch->header_size);
 
         // read the archive header
         read(arch->f_handle, arch->header_buffer, arch->header_size);
+    } else {
+        arch->nb_traces = 1;
     }
 }
 
@@ -232,11 +234,13 @@ litl_size_t litl_get_buffer_size(litl_trace_read_t* arch) {
 /*
  * This function reads another portion of data from the trace file to the buffer
  */
-static void __next_buffer(litl_trace_read_t* arch, litl_trace_read_process_t* trace, litl_size_t index) {
-    lseek(arch->f_handle, trace->triples->offset + trace->buffers[index].tids->offset, SEEK_SET);
-    trace->buffers[index].offset = 0;
+static void __next_buffer(litl_trace_read_t* arch, litl_size_t trace_index, litl_size_t buffer_index) {
+    litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
-    int res = read(arch->f_handle, trace->buffers[index].buffer_ptr, trace->buffer_size);
+    lseek(arch->f_handle, trace->triples->offset + trace->buffers[buffer_index].tids->offset, SEEK_SET);
+    trace->buffers[buffer_index].offset = 0;
+
+    int res = read(arch->f_handle, trace->buffers[buffer_index].buffer_ptr, trace->buffer_size);
 
     // If the end of file is reached, then all data are read. So, res is 0.
     // Otherwise, res is either an error or the number of elements, which is 1.
@@ -245,29 +249,35 @@ static void __next_buffer(litl_trace_read_t* arch, litl_trace_read_process_t* tr
         exit(EXIT_FAILURE);
     }
 
-    trace->buffers[index].buffer = trace->buffers[index].buffer_ptr;
-    trace->buffers[index].tracker = trace->buffers[index].offset + trace->buffer_size;
+    trace->buffers[buffer_index].buffer = trace->buffers[buffer_index].buffer_ptr;
+    trace->buffers[buffer_index].tracker = trace->buffers[buffer_index].offset + trace->buffer_size;
 }
 
 /*
  * This function resets the trace
  */
-void litl_reset_trace(litl_trace_read_process_t* trace, litl_size_t index) {
-    trace->buffers[index].buffer = trace->buffers[index].buffer_ptr;
+void litl_reset_trace(litl_trace_read_t* arch, litl_size_t trace_index) {
+    litl_size_t i;
+    litl_trace_read_process_t* trace = &arch->traces[trace_index];
+
+    for (i = 0; i < trace->nb_buffers; i++)
+        trace->buffers[i].buffer = trace->buffers[i].buffer_ptr;
 }
 
 /*
  * This function reads an event
  */
-static litl_read_t* __read_event(litl_trace_read_t* arch, litl_trace_read_process_t* trace, litl_size_t index) {
+static litl_read_t* __read_event(litl_trace_read_t* arch, litl_size_t trace_index, litl_size_t buffer_index) {
     uint8_t to_be_loaded;
     litl_t* event;
     litl_buffer_t* buffer;
-    buffer = trace->buffers[index].buffer;
+    litl_trace_read_process_t* trace = &arch->traces[trace_index];
+
+    buffer = trace->buffers[buffer_index].buffer;
     to_be_loaded = 0;
 
     if (!buffer) {
-        trace->buffers[index].cur_event.event = NULL;
+        trace->buffers[buffer_index].cur_event.event = NULL;
         return NULL ;
     }
 
@@ -279,7 +289,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch, litl_trace_read_proces
      Check whether the main four components (tid, time, code, nb_params) are loaded.
      Check whether all arguments are loaded.
      If any of these cases is not true, the next part of the trace plus the current event is loaded to the buffer.*/
-    unsigned remaining_size = trace->buffers[index].tracker - trace->buffers[index].offset;
+    unsigned remaining_size = trace->buffers[buffer_index].tracker - trace->buffers[buffer_index].offset;
     if (remaining_size < get_event_size(0)) {
         /* this event is truncated. We can't even read the nb_param field */
         to_be_loaded = 1;
@@ -293,43 +303,44 @@ static litl_read_t* __read_event(litl_trace_read_t* arch, litl_trace_read_proces
     // event that stores tid and offset
     if (event->code == LITL_OFFSET_CODE) {
         if (event->parameters.offset.offset != 0) {
-            trace->buffers[index].tids->offset = event->parameters.offset.offset;
+            trace->buffers[buffer_index].tids->offset = event->parameters.offset.offset;
             to_be_loaded = 1;
         } else {
-            trace->buffers[index].buffer = NULL;
+            trace->buffers[buffer_index].buffer = NULL;
             *buffer = NULL;
-            trace->buffers[index].cur_event.event = NULL;
+            trace->buffers[buffer_index].cur_event.event = NULL;
             return NULL ;
         }
     }
 
     // fetch the next block of data from the trace
     if (to_be_loaded) {
-        __next_buffer(arch, trace, index);
-        buffer = &trace->buffers[index].buffer;
+        __next_buffer(arch, trace_index, buffer_index);
+        buffer = &trace->buffers[buffer_index].buffer;
         event = (litl_t *) *buffer;
     }
 
     // move pointer to the next event and update __offset
     unsigned evt_size = get_event_size_type(event);
-    trace->buffers[index].buffer += evt_size;
-    trace->buffers[index].offset += evt_size;
+    trace->buffers[buffer_index].buffer += evt_size;
+    trace->buffers[buffer_index].offset += evt_size;
 
-    trace->buffers[index].cur_event.event = event;
-    trace->buffers[index].cur_event.tid = trace->buffers[index].tids->tid;
-    return &trace->buffers[index].cur_event;
+    trace->buffers[buffer_index].cur_event.event = event;
+    trace->buffers[buffer_index].cur_event.tid = trace->buffers[buffer_index].tids->tid;
+    return &trace->buffers[buffer_index].cur_event;
 }
 
 /*
  * This function searches for the next event inside the trace
  */
-litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_trace_read_process_t* trace) {
+litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_size_t trace_index) {
     litl_size_t i;
     litl_time_t min_time = -1;
+    litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
     if (!trace->initialized) {
         for (i = 0; i < trace->nb_buffers; i++)
-            __read_event(arch, trace, i);
+            __read_event(arch, trace_index, i);
 
         trace->cur_index = -1;
         trace->initialized = 1;
@@ -337,7 +348,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_trace_read_proc
 
     // read the next event from the buffer
     if (trace->cur_index != -1)
-        __read_event(arch, trace, trace->cur_index);
+        __read_event(arch, trace_index, trace->cur_index);
 
     int found = 0;
     for (i = 0; i < trace->nb_buffers; i++) {
@@ -348,8 +359,10 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_trace_read_proc
             trace->cur_index = i;
         }
     }
+
     if (found)
         return GET_CUR_EVENT(trace);
+
     return NULL ;
 }
 
@@ -361,7 +374,7 @@ litl_read_t* litl_next_event(litl_trace_read_t* arch) {
     litl_read_t* event;
 
     for (i = 0; i < arch->nb_traces; i++) {
-        event = litl_next_trace_event(arch, &arch->traces[i]);
+        event = litl_next_trace_event(arch, i);
 
         if (event != NULL )
             break;
