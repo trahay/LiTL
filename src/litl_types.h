@@ -222,8 +222,6 @@ typedef struct {
 
     litl_size_t nb_traces;
     litl_trace_read_process_t *traces;
-
-    int trace_index; /* index of a trace of the current event */
 } litl_trace_read_t;
 
 // data structure for merging traces in the archive
