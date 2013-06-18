@@ -143,9 +143,27 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
 }
 
 /*
- * This function reads the data of one trace
+ * This function opens an archive of traces
  */
-static void __init_traces(litl_trace_read_t* arch) {
+litl_trace_read_t *litl_open_trace(const char* filename) {
+    litl_trace_read_t *arch = malloc(sizeof(litl_trace_read_t));
+
+    // open a trace file
+    if ((arch->f_handle = open(filename, O_RDONLY)) < 0) {
+        fprintf(stderr, "Cannot open %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    // init the archive header
+    __init_header(arch);
+
+    return arch;
+}
+
+/*
+ * This function initializes the archive's traces
+ */
+void litl_init_traces(litl_trace_read_t* arch) {
 
     arch->traces = (litl_trace_read_process_t *) malloc(arch->nb_traces * sizeof(litl_trace_read_process_t));
 
@@ -184,27 +202,6 @@ static void __init_traces(litl_trace_read_t* arch) {
         // init buffers of events: one buffer per thread
         __init_buffers(arch, arch->traces);
     }
-}
-
-/*
- * This function opens an archive of traces
- */
-litl_trace_read_t *litl_open_trace(const char* filename) {
-    litl_trace_read_t *arch = malloc(sizeof(litl_trace_read_t));
-
-    // open a trace file
-    if ((arch->f_handle = open(filename, O_RDONLY)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    // init the archive header
-    __init_header(arch);
-
-    // init traces
-    __init_traces(arch);
-
-    return arch;
 }
 
 /*
@@ -432,6 +429,8 @@ int main(int argc, char **argv) {
     __parse_args(argc, argv);
 
     arch = litl_open_trace(__input_filename);
+
+    litl_init_traces(arch);
 
     header = litl_get_trace_header(arch);
 

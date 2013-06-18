@@ -27,6 +27,8 @@ int main(int argc, const char **argv) {
 
     arch = litl_open_trace(filename);
 
+    litl_init_traces(arch);
+
     header = litl_get_trace_header(arch);
 
     // print the header

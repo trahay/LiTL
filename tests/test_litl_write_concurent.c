@@ -81,6 +81,8 @@ void read_trace(char* filename) {
 
     arch = litl_open_trace(filename);
 
+    litl_init_traces(arch);
+
     while (1) {
         event = litl_next_event(arch);
 

@@ -15,6 +15,11 @@
 litl_trace_read_t *litl_open_trace(const char*);
 
 /*
+ * This function initializes the archive's traces
+ */
+void litl_init_traces(litl_trace_read_t*);
+
+/*
  * This function return a pointer to the header
  */
 litl_header_t* litl_get_trace_header(litl_trace_read_t*);

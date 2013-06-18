@@ -77,6 +77,8 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
     arch = litl_open_trace(filename);
 
+    litl_init_traces(arch);
+
     index = 0;
     while (1) {
         event = litl_next_event(arch);
