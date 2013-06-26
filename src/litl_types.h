@@ -88,6 +88,9 @@ typedef struct {
     } parameters;
 }__attribute__((packed)) litl_t;
 
+// indicates the max number of threads which info (tids pairs) is stored in one buffer
+#define NBTHREADS 4
+
 // data structure that corresponds to the header of a trace file
 typedef struct {
     litl_size_t nb_threads;
@@ -128,12 +131,19 @@ typedef struct {
     int ftrace;
     char* filename;
 
-    litl_offset_t general_offset; // offset from the beginning of the trace file until the current position
+    litl_offset_t general_offset; // offset from the beginning of the trace file
 
     litl_buffer_t header_ptr;
     litl_buffer_t header_cur;
     litl_size_t header_size;
     litl_size_t header_offset;
+
+    // the number of slots with the information on threads; first slot, which is in the header, does not count;
+    //     each contains at most 64 threads
+    litl_size_t nb_slots;
+    litl_size_t header_nb_threads; // the number of threads in the header
+    litl_param_t threads_offset; // an offset to the next chunk of pairs (tid, offset)
+    uint8_t is_header_flushed; // is_header_flushed is used to check whether the header with tids and offsets has been flushed
 
     litl_size_t buffer_size; // a buffer size
     uint8_t allow_buffer_flush; // buffer_flush indicates whether buffer flush is enabled (1) or not (0)
@@ -151,14 +161,9 @@ typedef struct {
     // litl_initialized is used to ensure that EZTrace does not start recording events before the initialization is
     //      finished
     uint8_t litl_initialized;
-    // litl_paused indicates whether LiTL stops recording events (1) for a while or not (0)
-    volatile uint8_t litl_paused;
+    volatile uint8_t litl_paused; // litl_paused indicates whether LiTL stops recording events (1) for a while or not (0)
 
-    // is_header_flushed is used to check whether the header with tids and offsets has been flushed
-    uint8_t is_header_flushed;
-
-    /* array of thread-specific buffers */
-    litl_write_buffer_t buffers[NBBUFFER];
+    litl_write_buffer_t buffers[NBBUFFER]; // array of thread-specific buffers
 } litl_trace_write_t;
 
 #define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)

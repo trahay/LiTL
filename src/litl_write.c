@@ -71,10 +71,9 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     trace.buffer_size = buf_size;
 
     // set variables
-    trace.header_size = 1536; // 1.5Kb
     trace.filename = NULL;
-    trace.is_header_flushed = 0;
     trace.is_buffer_full = 0;
+    trace.is_header_flushed = 0;
     litl_tid_recording_on(&trace);
 
     for (i = 0; i < NBBUFFER; i++) {
@@ -93,7 +92,7 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     trace.index_once = PTHREAD_ONCE_INIT;
     pthread_once(&trace.index_once, __init);
 
-    // set trace.allow_buffer_flush using the environment variable. By default the flushing is enabled
+    // set trace.allow_buffer_flush using the environment variable. By default the buffer flushing is enabled
     char* str = getenv("LITL_BUFFER_FLUSH");
     if (str && (strcmp(str, "off") == 0))
         litl_buffer_flush_off(&trace);
@@ -114,9 +113,6 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     // TODO: touch each block in buffer_ptr in order to load it
     trace.litl_paused = 0;
     trace.litl_initialized = 1;
-
-    // add a header to the trace file
-    __add_trace_header(&trace);
 
     return trace;
 }
@@ -226,11 +222,10 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
             exit(EXIT_FAILURE);
         }
 
-        /*
-         TODO: handling more than 64 threads
-         if (__get_header_size(trace) < trace->header_size)
-         // relocate memory
-         */
+        // add a header to the trace file
+        trace->header_size = sizeof(litl_header_t)
+                + (NBTHREADS > trace->nb_threads ? NBTHREADS + 1 : trace->nb_threads + 1) * sizeof(litl_header_tids_t);
+        __add_trace_header(trace);
 
         // update nb_threads
         *(litl_size_t *) trace->header_ptr = trace->nb_threads;
@@ -244,20 +239,17 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
             ((litl_header_tids_t *) trace->header_cur)->tid = trace->buffers[i].tid;
             ((litl_header_tids_t *) trace->header_cur)->offset = 0;
 
-            trace->header_cur += sizeof(litl_tid_t) + sizeof(litl_offset_t);
+            trace->header_cur += sizeof(litl_header_tids_t);
             // save the position of offset inside the trace file
             trace->buffers[i].offset = __get_header_size(trace) - sizeof(litl_offset_t);
             trace->buffers[i].already_flushed = 1;
         }
 
-        // increase the size of header to be able to hold exactly 64 pairs of tid and offset.
-        // TODO: if the previous todo changes, this also needs to be modified
-        if (trace->nb_threads < 64) {
-            // offset from the top of the trace to the next free position for a pair (tid, offset)
-            trace->header_offset = __get_header_size(trace);
-            // the header should hold information about all 64 threads
-            trace->header_cur += (64 - trace->nb_threads) * (sizeof(litl_tid_t) + sizeof(litl_offset_t));
-        }
+        // offset from the top of the trace to the next free position for a pair (tid, offset)
+        trace->header_offset = __get_header_size(trace);
+        // increase the size of header to reserve space for other potential pairs (tid, offset)
+        trace->header_cur += (NBTHREADS > trace->nb_threads ? (NBTHREADS - trace->nb_threads + 1) : 1)
+                * sizeof(litl_header_tids_t);
 
         // write the trace header to the trace file
         if (write(trace->ftrace, trace->header_ptr, __get_header_size(trace)) == -1) {
@@ -268,18 +260,40 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         // set the general_offset
         trace->general_offset = __get_header_size(trace);
 
+        trace->header_nb_threads = trace->nb_threads;
+        trace->threads_offset = 0;
+        trace->nb_slots = 0;
+
         trace->is_header_flushed = 1;
     }
 
     // handle the situation when some threads start after the header was flushed
     if (!trace->buffers[index].already_flushed) {
+
+        // when more buffers to store threads information is required
+        if (trace->nb_threads > (trace->header_nb_threads + NBTHREADS * trace->nb_slots)) {
+
+            // updated the offset from the previous slot
+            lseek(trace->ftrace, trace->header_offset, SEEK_SET);
+            write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_tid_t)); // 0 as an indicator of offset
+            write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+
+            // reserve new slot for pairs (tid, offset)
+            trace->header_offset = trace->general_offset;
+            trace->threads_offset = trace->header_offset;
+            trace->general_offset += (NBTHREADS + 1) * sizeof(litl_header_tids_t);
+            lseek(trace->ftrace, trace->general_offset, SEEK_SET);
+
+            trace->nb_slots++;
+        }
+
         // add the pair tid and add & update offset at once
         lseek(trace->ftrace, trace->header_offset, SEEK_SET);
         write(trace->ftrace, &trace->buffers[index].tid, sizeof(litl_tid_t));
         write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
 
-        trace->header_offset += sizeof(litl_tid_t) + sizeof(litl_offset_t);
+        trace->header_offset += sizeof(litl_header_tids_t);
         trace->buffers[index].already_flushed = 1;
 
         // updated the number of threads
@@ -298,7 +312,6 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
     if (write(trace->ftrace, trace->buffers[index].buffer_ptr, __get_buffer_size(trace, index)) == -1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
         abort();
-        exit(EXIT_FAILURE);
     }
 
     // update the general_offset
