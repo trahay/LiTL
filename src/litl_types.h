@@ -89,14 +89,15 @@ typedef struct {
 }__attribute__((packed)) litl_t;
 
 // indicates the max number of threads which info (tids pairs) is stored in one buffer
-#define NBTHREADS 4
+#define NBTHREADS 64
 
 // data structure that corresponds to the header of a trace file
 typedef struct {
     litl_size_t nb_threads;
     litl_tiny_size_t is_trace_archive;
     litl_size_t buffer_size;
-    litl_data_t liblitl_ver[8];
+    litl_size_t header_nb_threads;
+    litl_data_t litl_ver[8];
     litl_data_t sysinfo[128];
 } litl_header_t;
 

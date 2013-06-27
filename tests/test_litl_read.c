@@ -32,7 +32,7 @@ int main(int argc, const char **argv) {
     header = litl_get_trace_header(arch);
 
     // print the header
-    printf(" LiTL v.%s\n", header->liblitl_ver);
+    printf(" LiTL v.%s\n", header->litl_ver);
     printf(" %s\n", header->sysinfo);
     printf(" nb_threads \t %d\n", header->nb_threads);
     printf(" buffer_size \t %d\n", header->buffer_size);

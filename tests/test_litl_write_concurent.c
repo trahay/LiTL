@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <semaphore.h>
 #include <pthread.h>
 
 #include "litl_types.h"
@@ -25,11 +24,6 @@
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
-/*
- * Only used during thread creating to make sure that the thread got the correct args.
- */
-sem_t thread_ready;
-
 litl_trace_write_t trace;
 
 /*
@@ -37,9 +31,6 @@ litl_trace_write_t trace;
  */
 void* write_trace(void *arg) {
     int i;
-
-    // Notify the main thread that we got the args
-    sem_post(&thread_ready);
 
     litl_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
@@ -113,11 +104,8 @@ int main() {
     trace = litl_init_trace(buffer_size);
     litl_set_filename(&trace, filename);
 
-    sem_init(&thread_ready, 0, 0);
-
     for (i = 0; i < NBTHREAD; i++) {
         pthread_create(&tid[i], NULL, write_trace, &i);
-        sem_wait(&thread_ready);
     }
 
     for (i = 0; i < NBTHREAD; i++)

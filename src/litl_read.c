@@ -51,13 +51,22 @@ static void __init_header(litl_trace_read_t* arch) {
     // At first, the header is small 'cause it stores only nb_traces and is_trace_archive values
     arch->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
     arch->header_buffer = (litl_buffer_t) malloc(arch->header_size);
+    if (!arch->header_buffer) {
+        perror("Could not allocate memory for the header!");
+        exit(EXIT_FAILURE);
+    }
 
     // read the archive header
-    read(arch->f_handle, arch->header_buffer, arch->header_size);
+    int res = read(arch->f_handle, arch->header_buffer, arch->header_size);
+    // If the end of file is reached, then all data are read; res = 0.
+    //      Otherwise, res equals the number of elements (= 1) or the error occurred and res = -1.
+    if (res == -1) {
+        perror("Could not read the trace header!");
+        exit(EXIT_FAILURE);
+    }
 
     // get the number of traces
     arch->header = (litl_header_t *) arch->header_buffer;
-
     if (arch->header->is_trace_archive) {
         // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
         arch->nb_traces = arch->header->nb_threads;
@@ -72,13 +81,13 @@ static void __init_header(litl_trace_read_t* arch) {
 }
 
 /*
- * This function initializes the trace header
+ * This function initializes the trace header, meaning it reads chunks with all pairs
  */
 static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process_t* trace) {
 
     // init the header structure
-    // TODO: be flexible as with triples
-    trace->header_size = 1536; // 1.5KB
+    // the minimum size: size of the header with all information and one pair (tid, offset)
+    trace->header_size = sizeof(litl_header_t) + sizeof(litl_header_tids_t);
     trace->header_buffer_ptr = (litl_buffer_t) malloc(trace->header_size);
     if (!trace->header_buffer_ptr) {
         perror("Could not allocate memory for the trace header!");
@@ -88,16 +97,24 @@ static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process
     // read the header
     lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
     int res = read(arch->f_handle, trace->header_buffer_ptr, trace->header_size);
-
-    // If the end of file is reached, then all data are read. So, res is 0.
-    //      Otherwise, res is either an error or the number of elements, which is 1.
     if (res == -1) {
         perror("Could not read the trace header!");
         exit(EXIT_FAILURE);
     }
-    trace->header_buffer = trace->header_buffer_ptr;
+    trace->header = (litl_header_t *) trace->header_buffer_ptr;
 
-    trace->header = (litl_header_t *) trace->header_buffer;
+    // check if the buffer is large enough to store the header
+    if (trace->header->header_nb_threads > 1) {
+        trace->header_size = sizeof(litl_header_t)
+                + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
+        trace->header_buffer_ptr = (litl_buffer_t) realloc(trace->header_buffer_ptr, trace->header_size);
+
+        lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
+        int res = read(arch->f_handle, trace->header_buffer_ptr, trace->header_size);
+        trace->header = (litl_header_t *) trace->header_buffer_ptr;
+    }
+
+    trace->header_buffer = trace->header_buffer_ptr;
     trace->header_buffer += sizeof(litl_header_t);
 }
 
@@ -113,7 +130,12 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
     trace->buffers = (litl_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(litl_trace_read_thread_t));
     size = sizeof(litl_header_tids_t);
 
-    for (i = 0; i < trace->nb_buffers; i++) {
+    /*for (i = 0; i < trace->nb_buffers; i++) {
+     trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
+     trace->header_buffer += size;
+     }*/
+    for (i = 0; i < trace->header->header_nb_threads; i++) {
+        // TODO: check whether the offset is a jump to the next portion of pairs (tid, offset)
         trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
         trace->header_buffer += size;
     }
@@ -169,7 +191,6 @@ void litl_init_traces(litl_trace_read_t* arch) {
 
     if (arch->header->is_trace_archive) {
         // archive of traces
-
         litl_size_t i, size;
         size = sizeof(litl_header_triples_t);
 
@@ -189,7 +210,6 @@ void litl_init_traces(litl_trace_read_t* arch) {
         }
     } else {
         // regular trace
-
         arch->traces->triples = (litl_header_triples_t *) malloc(sizeof(litl_header_triples_t));
         arch->traces->triples->offset = 0;
 
@@ -435,7 +455,7 @@ int main(int argc, char **argv) {
     header = litl_get_trace_header(arch);
 
     // print the header
-    printf(" LiTL v.%s\n", header->liblitl_ver);
+    printf(" LiTL v.%s\n", header->litl_ver);
     printf(" %s\n", header->sysinfo);
     printf(" nb_threads \t %d\n", header->nb_threads);
     printf(" buffer_size \t %d\n", header->buffer_size);

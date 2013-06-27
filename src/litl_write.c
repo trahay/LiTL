@@ -38,17 +38,21 @@ static void __add_trace_header(litl_trace_write_t* trace) {
     if (uname(&uts) < 0)
         perror("Could not use uname()!");
 
-    // get the number of symbols for liblitl_ver
-    sprintf((char*) ((litl_header_t *) trace->header_cur)->liblitl_ver, "%s", VERSION);
+    // get the number of symbols for litl_ver
+    sprintf((char*) ((litl_header_t *) trace->header_cur)->litl_ver, "%s", VERSION);
 
     // get the number of symbols for sysinfo
     sprintf((char*) ((litl_header_t *) trace->header_cur)->sysinfo, "%s %s %s %s %s", uts.sysname, uts.nodename,
             uts.release, uts.version, uts.machine);
 
     // add nb_threads and buffer_size
-    ((litl_header_t *) trace->header_cur)->nb_threads = 0;
+    ((litl_header_t *) trace->header_cur)->nb_threads = trace->nb_threads;
     ((litl_header_t *) trace->header_cur)->is_trace_archive = 0;
+    ((litl_header_t *) trace->header_cur)->header_nb_threads = trace->nb_threads;
     ((litl_header_t *) trace->header_cur)->buffer_size = trace->buffer_size;
+
+    // header_size stores the position of nb_threads in the trace file
+    trace->header_size = 0;
 
     // size of two strings (LiTL, OS), nb_threads, and buffer_size
     trace->header_cur += sizeof(litl_header_t);
@@ -227,13 +231,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
                 + (NBTHREADS > trace->nb_threads ? NBTHREADS + 1 : trace->nb_threads + 1) * sizeof(litl_header_tids_t);
         __add_trace_header(trace);
 
-        // update nb_threads
-        *(litl_size_t *) trace->header_ptr = trace->nb_threads;
-        // header_size stores the position of nb_threads in the trace file
-        trace->header_size = __get_header_size(trace) - 2 * sizeof(litl_size_t);
-
         // add information about each working thread: (tid, offset)
-        // put first the information regarding the current thread
         litl_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
             ((litl_header_tids_t *) trace->header_cur)->tid = trace->buffers[i].tid;
@@ -297,6 +295,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         trace->buffers[index].already_flushed = 1;
 
         // updated the number of threads
+        printf("trace->nb_threads = %d\n", trace->nb_threads);
         lseek(trace->ftrace, trace->header_size, SEEK_SET);
         write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
