@@ -104,18 +104,34 @@ static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process
     trace->header = (litl_header_t *) trace->header_buffer_ptr;
 
     // check if the buffer is large enough to store the header
-    if (trace->header->header_nb_threads > 1) {
-        trace->header_size = sizeof(litl_header_t)
-                + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
-        trace->header_buffer_ptr = (litl_buffer_t) realloc(trace->header_buffer_ptr, trace->header_size);
+    if (trace->header->nb_threads > 1) {
+        trace->header_buffer_ptr = (litl_buffer_t) realloc(trace->header_buffer_ptr,
+                sizeof(litl_header_t) + (trace->header->nb_threads + 1) * sizeof(litl_header_tids_t));
 
         lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
+        trace->header_size = sizeof(litl_header_t)
+                + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
         int res = read(arch->f_handle, trace->header_buffer_ptr, trace->header_size);
         trace->header = (litl_header_t *) trace->header_buffer_ptr;
     }
 
-    trace->header_buffer = trace->header_buffer_ptr;
-    trace->header_buffer += sizeof(litl_header_t);
+    trace->header_buffer = trace->header_buffer_ptr + sizeof(litl_header_t);
+}
+
+/*
+ * This function reads another portion of pairs(tid, offset) from the trace file
+ */
+static void __next_pairs_buffer(litl_trace_read_t* arch, litl_trace_read_process_t* trace, litl_offset_t offset) {
+
+    lseek(arch->f_handle, offset, SEEK_SET);
+
+    trace->header_buffer -= sizeof(litl_header_tids_t);
+    int res = read(arch->f_handle, trace->header_buffer,
+            (NBTHREADS + 1) * sizeof(litl_header_tids_t));
+    if (res == -1) {
+        perror("Could not read the next part of pairs (tid, offset) from the trace file!");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*
@@ -123,21 +139,32 @@ static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process
  */
 static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* trace) {
     litl_size_t i, size;
-
-    // init nb_buffers
-    trace->nb_buffers = trace->header->nb_threads;
-
-    trace->buffers = (litl_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(litl_trace_read_thread_t));
+    litl_header_tids_t *tids;
     size = sizeof(litl_header_tids_t);
 
-    /*for (i = 0; i < trace->nb_buffers; i++) {
-     trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
-     trace->header_buffer += size;
-     }*/
-    for (i = 0; i < trace->header->header_nb_threads; i++) {
-        // TODO: check whether the offset is a jump to the next portion of pairs (tid, offset)
-        trace->buffers[i].tids = (litl_header_tids_t *) trace->header_buffer;
+    // init nb_buffers and allocate memory
+    trace->nb_buffers = trace->header->nb_threads;
+    trace->buffers = (litl_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(litl_trace_read_thread_t));
+
+    i = 0;
+    // read pairs (tid, offset)
+    while (1) {
+        tids = (litl_header_tids_t *) trace->header_buffer;
+
+        // deal with slots of pairs
+        if ((tids->tid == 0) && (tids->offset != 0)) {
+            __next_pairs_buffer(arch, trace, tids->offset);
+            continue;
+        }
+
+        // end of reading pairs
+        if ((tids->tid == 0) && (tids->offset == 0)) {
+            break;
+        }
+
+        trace->buffers[i].tids = tids;
         trace->header_buffer += size;
+        i++;
     }
 
     // increase a bit the buffer size 'cause of the possible event's tail and the offset

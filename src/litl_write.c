@@ -227,8 +227,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         }
 
         // add a header to the trace file
-        trace->header_size = sizeof(litl_header_t)
-                + (NBTHREADS > trace->nb_threads ? NBTHREADS + 1 : trace->nb_threads + 1) * sizeof(litl_header_tids_t);
+        trace->header_size = sizeof(litl_header_t) + (trace->nb_threads + 1) * sizeof(litl_header_tids_t);
         __add_trace_header(trace);
 
         // add information about each working thread: (tid, offset)
@@ -238,16 +237,19 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
             ((litl_header_tids_t *) trace->header_cur)->offset = 0;
 
             trace->header_cur += sizeof(litl_header_tids_t);
+
             // save the position of offset inside the trace file
             trace->buffers[i].offset = __get_header_size(trace) - sizeof(litl_offset_t);
             trace->buffers[i].already_flushed = 1;
         }
 
-        // offset from the top of the trace to the next free position for a pair (tid, offset)
+        // offset indicates the position of offset to the next slot of pairs (tid, offset) within the trace file
         trace->header_offset = __get_header_size(trace);
-        // increase the size of header to reserve space for other potential pairs (tid, offset)
-        trace->header_cur += (NBTHREADS > trace->nb_threads ? (NBTHREADS - trace->nb_threads + 1) : 1)
-                * sizeof(litl_header_tids_t);
+
+        // specify the last slot of pairs (offset == 0)
+        ((litl_header_tids_t *) trace->header_cur)->tid = 0;
+        ((litl_header_tids_t *) trace->header_cur)->offset = 0;
+        trace->header_cur += sizeof(litl_header_tids_t);
 
         // write the trace header to the trace file
         if (write(trace->ftrace, trace->header_ptr, __get_header_size(trace)) == -1) {
@@ -272,30 +274,33 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         if (trace->nb_threads > (trace->header_nb_threads + NBTHREADS * trace->nb_slots)) {
 
             // updated the offset from the previous slot
-            lseek(trace->ftrace, trace->header_offset, SEEK_SET);
-            write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_tid_t)); // 0 as an indicator of offset
+            lseek(trace->ftrace, trace->header_offset + sizeof(litl_tid_t), SEEK_SET);
             write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
 
-            // reserve new slot for pairs (tid, offset)
+            // reserve a new slot for pairs (tid, offset)
             trace->header_offset = trace->general_offset;
             trace->threads_offset = trace->header_offset;
             trace->general_offset += (NBTHREADS + 1) * sizeof(litl_header_tids_t);
-            lseek(trace->ftrace, trace->general_offset, SEEK_SET);
 
             trace->nb_slots++;
         }
 
-        // add the pair tid and add & update offset at once
+        // add a new pair (tid, offset)
         lseek(trace->ftrace, trace->header_offset, SEEK_SET);
         write(trace->ftrace, &trace->buffers[index].tid, sizeof(litl_tid_t));
         write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
-        lseek(trace->ftrace, trace->general_offset, SEEK_SET);
+
+        // add an indicator to specify the last slot of pairs (offset == 0)
+        // TODO: how to optimize this and write only once at the end of the slot
+        write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_tid_t));
+        write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_offset_t));
 
         trace->header_offset += sizeof(litl_header_tids_t);
         trace->buffers[index].already_flushed = 1;
 
         // updated the number of threads
-        printf("trace->nb_threads = %d\n", trace->nb_threads);
+        // TODO: perform update only once 'cause there is duplication
+        //        printf("trace->nb_threads = %d\n", trace->nb_threads);
         lseek(trace->ftrace, trace->header_size, SEEK_SET);
         write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
