@@ -400,7 +400,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_size_t trace_in
 
     int found = 0;
     for (i = 0; i < trace->nb_buffers; i++) {
-        litl_read_t *evt = GET_CUR_EVENT_PER_THREAD(trace, i);
+        litl_read_t *evt = LITL_GET_CUR_EVENT_PER_THREAD(trace, i);
         if ( evt && evt->event && (LITL_GET_TIME(evt) < min_time)) {
             found = 1;
             min_time = LITL_GET_TIME(evt);
@@ -409,7 +409,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch, litl_size_t trace_in
     }
 
     if (found)
-        return GET_CUR_EVENT(trace);
+        return LITL_GET_CUR_EVENT(trace);
 
     return NULL ;
 }

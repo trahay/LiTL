@@ -167,18 +167,6 @@ typedef struct {
     
 } litl_trace_write_t;
 
-#define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
-#define GET_CUR_EVENT(_trace_) GET_CUR_EVENT_PER_THREAD(_trace_, (trace)->cur_index)
-
-#define LITL_GET_TID(_read_event_) (_read_event_)->tid
-#define LITL_GET_TIME(_read_event_) (_read_event_)->event->time
-#define LITL_GET_TYPE(_read_event_) (_read_event_)->event->type
-#define LITL_GET_CODE(_read_event_) (_read_event_)->event->code
-
-#define LITL_RAW(_read_event_) (&(_read_event_)->event->parameters.raw)
-#define LITL_REGULAR(_read_event_) (&(_read_event_)->event->parameters.regular)
-#define LITL_PACKED(_read_event_) (&(_read_event_)->event->parameters.packed)
-#define LITL_OFFSET(_read_event_) (&(_read_event_)->event->parameters.offset)
 
 typedef struct {
     litl_tid_t tid; /* thread id */

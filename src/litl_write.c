@@ -374,7 +374,10 @@ static void __allocate_buffer(litl_trace_write_t* trace) {
     trace->buffers[*pos].buffer_cur = trace->buffers[*pos].buffer_ptr;
 }
 
-litl_t* get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_t code, int size) {
+/* Allocates an event.
+ * For internal use only.
+ */
+litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_t code, int size) {
 
     if (trace->litl_initialized && !trace->litl_paused && !trace->is_buffer_full) {
 
@@ -418,7 +421,7 @@ litl_t* get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_t code,
 
             /* not enough space. flush the buffer and retry */
             litl_flush_buffer(trace, index);
-            return get_event(trace, type, code, size);
+            return __litl_get_event(trace, type, code, size);
 
         } else {
 
