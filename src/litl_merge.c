@@ -17,6 +17,7 @@
 static char* __archive_name = "archive";
 static litl_trace_merge_t* __archive;
 static litl_size_t __nb_traces = 0;
+static struct litl_queue_t trace_queue;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
     fprintf(stderr, "Usage: %s [-o archive_name] input_filename input_filename ... \n", argv[0]);
@@ -26,7 +27,7 @@ static void __usage(int argc __attribute__((unused)), char **argv) {
 static void __parse_args(int argc, char **argv) {
     int i;
 
-    init_queue();
+    __litl_init_queue(&trace_queue);
     for (i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-o") == 0)) {
             __archive_name = argv[++i];
@@ -38,7 +39,7 @@ static void __parse_args(int argc, char **argv) {
             __usage(argc, argv);
             exit(-1);
         } else {
-            enqueue(argv[i]);
+	    __litl_enqueue(&trace_queue, argv[i]);
             __nb_traces++;
         }
     }
@@ -141,7 +142,7 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
 
 static void __finalize_trace() {
     // remove the queue consisting of trace file names
-    delqueue();
+    __litl_delqueue(&trace_queue);
     free(__archive->buffer);
     close(__archive->f_arch);
     free(__archive);
@@ -161,7 +162,7 @@ int main(int argc, char **argv) {
     // merging the trace files
     int i = 0;
     char *filename;
-    while ((filename = dequeue()) != NULL)
+    while ((filename = __litl_dequeue(&trace_queue)) != NULL)
         litl_merge_file(i++, filename);
 
     /*// error handling: valid ONLY for FILE*

@@ -10,59 +10,59 @@
 
 #include "litl_queue.h"
 
-static litl_queue traces;
+//static litl_queue traces;
 
-void init_queue() {
-    traces.head = NULL;
-    traces.tail = NULL;
+void __litl_init_queue(litl_queue* queue) {
+    queue->head = NULL;
+    queue->tail = NULL;
 }
 
-void enqueue(char* val) {
+void __litl_enqueue(litl_queue* queue, char* val) {
     int length;
     length = strlen(val) + 1;
 
-    if (traces.tail == NULL ) {
-        traces.tail = (struct node *) malloc(sizeof(struct node));
-        traces.tail->filename = (char *) malloc(length);
-        strcpy(traces.tail->filename, val);
-        traces.tail->next = NULL;
-        traces.head = traces.tail;
+    if (queue->tail == NULL ) {
+        queue->tail = (struct node *) malloc(sizeof(struct node));
+        queue->tail->filename = (char *) malloc(length);
+        strcpy(queue->tail->filename, val);
+        queue->tail->next = NULL;
+        queue->head = queue->tail;
     } else {
         struct node *tmp;
         tmp = (struct node *) malloc(sizeof(struct node));
         tmp->filename = (char *) malloc(length);
         strcpy(tmp->filename, val);
         tmp->next = NULL;
-        traces.tail->next = tmp;
-        traces.tail = tmp;
+        queue->tail->next = tmp;
+        queue->tail = tmp;
     }
 }
 
-char* dequeue() {
-    if (traces.head == NULL )
+char* __litl_dequeue (litl_queue* queue) {
+    if (queue->head == NULL )
         return NULL ;
 
     char* val;
-    val = traces.head->filename;
-    traces.head = traces.head->next;
+    val = queue->head->filename;
+    queue->head = queue->head->next;
 
     return val;
 }
 
-void print() {
-    while (traces.head != NULL ) {
-        printf("%s \n", traces.head->filename);
-        traces.head = traces.head->next;
+void __litl_print(litl_queue *queue) {
+    while (queue->head != NULL ) {
+        printf("%s \n", queue->head->filename);
+        queue->head = queue->head->next;
     }
 
 }
 
-void delqueue() {
+void __litl_delqueue(litl_queue* queue) {
     struct node *tmp;
 
-    while (traces.head != NULL ) {
-        tmp = traces.head;
-        traces.head = traces.head->next;
+    while (queue->head != NULL ) {
+        tmp = queue->head;
+        queue->head = queue->head->next;
         free(tmp->filename);
         free(tmp);
     }

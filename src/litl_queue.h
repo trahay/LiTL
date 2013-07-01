@@ -13,19 +13,19 @@ struct node {
     struct node* next;
 };
 
-typedef struct {
+typedef struct litl_queue_t{
     struct node *head;
     struct node *tail;
 } litl_queue;
 
-void init_queue();
+void __litl_init_queue(litl_queue* queue);
 
-void enqueue(char* val);
+void __litl_enqueue(litl_queue* queue, char* val);
 
-char* dequeue();
+char* __litl_dequeue(litl_queue* queue);
 
-void print();
+void __litl_print(litl_queue* queue);
 
-void delqueue();
+void __litl_delqueue(litl_queue* queue);
 
 #endif /* LITL_QUEUE_H_ */
