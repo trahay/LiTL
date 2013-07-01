@@ -206,7 +206,7 @@ void litl_set_filename(litl_trace_write_t* trace, char* filename) {
     if (filename == NULL )
         sprintf(filename, "/tmp/%s_%s", getenv("USER"), "eztrace_log_rank_1");
 
-    if (asprintf(&trace->filename, filename) == -1) {
+    if (asprintf(&trace->filename, "%s", filename) == -1) {
         perror("Error: Cannot set the filename for recording events!\n");
         exit(EXIT_FAILURE);
     }

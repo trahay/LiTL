@@ -21,6 +21,11 @@ litl_size_t get_event_components(litl_size_t);
 litl_size_t get_event_size(litl_size_t);
 
 /*
+ * This function returns the size of a particular event in bytes depending on the number of arguments
+ */
+litl_size_t get_event_size_type(litl_t *p_evt);
+
+/*
  * This function converts evnt's parameters to string. As a separator, a space is used
  */
 char* params_to_string(litl_t *);

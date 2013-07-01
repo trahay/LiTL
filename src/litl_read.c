@@ -110,8 +110,12 @@ static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process
 
         lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
         trace->header_size = sizeof(litl_header_t)
-                + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
+	  + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
         int res = read(arch->f_handle, trace->header_buffer_ptr, trace->header_size);
+	if (res == -1) {
+	  perror("Could not read the trace header!");
+	  exit(EXIT_FAILURE);
+	}
         trace->header = (litl_header_t *) trace->header_buffer_ptr;
     }
 
@@ -317,7 +321,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch, litl_size_t trace_inde
     litl_buffer_t* buffer;
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
-    buffer = trace->buffers[buffer_index].buffer;
+    buffer = (litl_buffer_t*) trace->buffers[buffer_index].buffer;
     to_be_loaded = 0;
 
     if (!buffer) {

@@ -102,10 +102,8 @@ void litl_split_archive(const char *dir) {
     char *trace_name = NULL;
     char user[32];
     litl_size_t size;
-    litl_offset_t trace_offset;
 
     size = sizeof(litl_header_triples_t);
-    trace_offset = 0;
 
     strcpy(user, getenv("USER"));
 
@@ -154,7 +152,7 @@ static void __close_archive() {
     free(__archive);
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
 
     // parse the arguments passed to this program
     __parse_args(argc, argv);
