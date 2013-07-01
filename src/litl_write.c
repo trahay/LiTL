@@ -79,8 +79,11 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     trace.is_buffer_full = 0;
     trace.is_header_flushed = 0;
     litl_tid_recording_on(&trace);
-
-    for (i = 0; i < NBBUFFER; i++) {
+    
+    trace.nb_allocated_buffers = 1000;
+    trace.buffers = realloc(NULL, sizeof(litl_write_buffer_t) * trace.nb_allocated_buffers);
+    
+    for (i = 0; i < trace.nb_allocated_buffers; i++) {
         // initialize the array already_flushed
         trace.buffers[i].already_flushed = 0;
 
@@ -344,7 +347,19 @@ static void __allocate_buffer(litl_trace_write_t* trace) {
     pthread_setspecific(trace->index, pos);
     trace->nb_threads++;
 
+    if(*pos >= trace->nb_allocated_buffers) {
+      // We need to allocate a bigger array of buffers     
+      void* ptr = realloc(trace->buffers, trace->nb_allocated_buffers * 2 * sizeof(litl_write_buffer_t));
+      if(!ptr) {
+	  fprintf(stderr, "LiTL failed to allocate memory. Aborting.\n");
+	  abort();
+      }
+      trace->buffers = ptr;
+      trace->nb_allocated_buffers *= 2;
+    }
+    
     trace->buffers[*pos].tid = CUR_TID;
+    trace->buffers[*pos].already_flushed = 0;
 
     pthread_mutex_unlock(&trace->lock_buffer_init);
 
@@ -848,7 +863,7 @@ void litl_fin_trace(litl_trace_write_t* trace) {
     close(trace->ftrace);
     trace->ftrace = -1;
 
-    for (i = 0; i < NBBUFFER; i++)
+    for (i = 0; i < trace->nb_allocated_buffers ; i++)
         if (trace->buffers[i].tid != 0) {
             free(trace->buffers[i].buffer_ptr);
         } else {

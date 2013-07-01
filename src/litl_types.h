@@ -114,8 +114,6 @@ typedef struct {
     litl_offset_t offset;
 } litl_header_triples_t;
 
-#define NBBUFFER 1000
-
 /* thread-specific buffer */
 typedef struct {
     litl_buffer_t buffer_ptr; /* beginning of the buffer */
@@ -164,7 +162,9 @@ typedef struct {
     uint8_t litl_initialized;
     volatile uint8_t litl_paused; // litl_paused indicates whether LiTL stops recording events (1) for a while or not (0)
 
-    litl_write_buffer_t buffers[NBBUFFER]; // array of thread-specific buffers
+    litl_write_buffer_t *buffers; // array of thread-specific buffers
+    unsigned nb_allocated_buffers;  /* number of thread-specific buffers that are allocated */
+    
 } litl_trace_write_t;
 
 #define GET_CUR_EVENT_PER_THREAD(_trace_, _thread_index_) (&(_trace_)->buffers[(_thread_index_)].cur_event)
