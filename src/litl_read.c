@@ -110,12 +110,12 @@ static void __init_trace_header(litl_trace_read_t* arch, litl_trace_read_process
 
         lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
         trace->header_size = sizeof(litl_header_t)
-	  + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
+                + (trace->header->header_nb_threads + 1) * sizeof(litl_header_tids_t);
         int res = read(arch->f_handle, trace->header_buffer_ptr, trace->header_size);
-	if (res == -1) {
-	  perror("Could not read the trace header!");
-	  exit(EXIT_FAILURE);
-	}
+        if (res == -1) {
+            perror("Could not read the trace header!");
+            exit(EXIT_FAILURE);
+        }
         trace->header = (litl_header_t *) trace->header_buffer_ptr;
     }
 
@@ -129,9 +129,11 @@ static void __next_pairs_buffer(litl_trace_read_t* arch, litl_trace_read_process
 
     lseek(arch->f_handle, offset, SEEK_SET);
 
+    litl_size_t nb_threads =
+            (trace->nb_buffers - trace->header->header_nb_threads) > NBTHREADS ? NBTHREADS :
+                    (trace->nb_buffers - trace->header->header_nb_threads);
     trace->header_buffer -= sizeof(litl_header_tids_t);
-    int res = read(arch->f_handle, trace->header_buffer,
-            (NBTHREADS + 1) * sizeof(litl_header_tids_t));
+    int res = read(arch->f_handle, trace->header_buffer, (nb_threads + 1) * sizeof(litl_header_tids_t));
     if (res == -1) {
         perror("Could not read the next part of pairs (tid, offset) from the trace file!");
         exit(EXIT_FAILURE);
@@ -157,6 +159,7 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
 
         // deal with slots of pairs
         if ((tids->tid == 0) && (tids->offset != 0)) {
+            printf("here\n");
             __next_pairs_buffer(arch, trace, tids->offset);
             continue;
         }

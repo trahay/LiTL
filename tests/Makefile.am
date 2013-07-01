@@ -9,13 +9,14 @@ AM_LDFLAGS = $(top_builddir)/src/liblitl.la
 
 EVNTDEPENDENCIES = $(AM_LDFLAGS)
 
-CTESTS = test_litl_write_multiple_threads
-#         test_litl_write_multiple \
-#         test_litl_write_concurent \
-#         test_litl_read \
-#         test_litl_pause \
-#         test_litl_buffer \
-#         test_litl_trace_size
+CTESTS = test_litl_write \
+         test_litl_write_multiple \
+         test_litl_write_concurent \
+         test_litl_write_multiple_threads \
+         test_litl_read \
+         test_litl_pause \
+         test_litl_buffer \
+         test_litl_trace_size
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
