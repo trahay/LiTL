@@ -60,7 +60,7 @@ typedef uint8_t litl_data_t;
 #define LITL_MAX_PARAMS 10
 #define LITL_MAX_DATA (LITL_MAX_PARAMS * sizeof(litl_param_t))
 
-typedef enum {
+typedef enum __attribute__((packed)) {
     LITL_TYPE_REGULAR, LITL_TYPE_RAW, LITL_TYPE_PACKED, LITL_TYPE_OFFSET
 } litl_type_t;
 
