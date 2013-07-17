@@ -81,14 +81,15 @@ litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
     litl_tid_recording_on(&trace);
     
     trace.nb_allocated_buffers = 1000;
-    trace.buffers = realloc(NULL, sizeof(litl_write_buffer_t) * trace.nb_allocated_buffers);
+    trace.buffers = realloc(NULL, sizeof(litl_write_buffer_t*) * trace.nb_allocated_buffers);
     
     for (i = 0; i < trace.nb_allocated_buffers; i++) {
         // initialize the array already_flushed
-        trace.buffers[i].already_flushed = 0;
+      trace.buffers[i] = malloc(sizeof(litl_write_buffer_t));
+      trace.buffers[i]->already_flushed = 0;
 
         // initialize tids by zeros; this is needed for __is_tid and __find_slot
-        trace.buffers[i].tid = 0;
+        trace.buffers[i]->tid = 0;
     }
     trace.nb_threads = 0;
 
@@ -138,7 +139,7 @@ static uint32_t __get_header_size(litl_trace_write_t* trace) {
  * This function computes the size of data in buffer
  */
 static uint32_t __get_buffer_size(litl_trace_write_t* trace, litl_size_t pos) {
-    return (trace->buffers[pos].buffer_cur - trace->buffers[pos].buffer_ptr);
+    return (trace->buffers[pos]->buffer_cur - trace->buffers[pos]->buffer_ptr);
 }
 
 /*
@@ -239,14 +240,14 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         // add information about each working thread: (tid, offset)
         litl_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
-            ((litl_header_tids_t *) trace->header_cur)->tid = trace->buffers[i].tid;
+            ((litl_header_tids_t *) trace->header_cur)->tid = trace->buffers[i]->tid;
             ((litl_header_tids_t *) trace->header_cur)->offset = 0;
 
             trace->header_cur += sizeof(litl_header_tids_t);
 
             // save the position of offset inside the trace file
-            trace->buffers[i].offset = __get_header_size(trace) - sizeof(litl_offset_t);
-            trace->buffers[i].already_flushed = 1;
+            trace->buffers[i]->offset = __get_header_size(trace) - sizeof(litl_offset_t);
+            trace->buffers[i]->already_flushed = 1;
         }
 
         // offset indicates the position of offset to the next slot of pairs (tid, offset) within the trace file
@@ -274,7 +275,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
     }
 
     // handle the situation when some threads start after the header was flushed
-    if (!trace->buffers[index].already_flushed) {
+    if (!trace->buffers[index]->already_flushed) {
 
         // when more buffers to store threads information is required
         if (trace->nb_threads > (trace->header_nb_threads + NBTHREADS * trace->nb_slots)) {
@@ -293,16 +294,16 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
 
         // add a new pair (tid, offset)
         lseek(trace->ftrace, trace->header_offset, SEEK_SET);
-        write(trace->ftrace, &trace->buffers[index].tid, sizeof(litl_tid_t));
+        write(trace->ftrace, &trace->buffers[index]->tid, sizeof(litl_tid_t));
         write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
 
         // add an indicator to specify the last slot of pairs (offset == 0)
         // TODO: how to optimize this and write only once at the end of the slot
-        write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_tid_t));
-        write(trace->ftrace, &trace->buffers[index].already_flushed, sizeof(litl_offset_t));
+        write(trace->ftrace, &trace->buffers[index]->already_flushed, sizeof(litl_tid_t));
+        write(trace->ftrace, &trace->buffers[index]->already_flushed, sizeof(litl_offset_t));
 
         trace->header_offset += sizeof(litl_header_tids_t);
-        trace->buffers[index].already_flushed = 1;
+        trace->buffers[index]->already_flushed = 1;
 
         // updated the number of threads
         // TODO: perform update only once 'cause there is duplication
@@ -312,14 +313,14 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     } else {
         // update the previous offset of the current thread, updating the location in the file
-        lseek(trace->ftrace, trace->buffers[index].offset, SEEK_SET);
+        lseek(trace->ftrace, trace->buffers[index]->offset, SEEK_SET);
         write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     }
 
     // add an event with offset
     litl_probe_offset(trace, index);
-    if (write(trace->ftrace, trace->buffers[index].buffer_ptr, __get_buffer_size(trace, index)) == -1) {
+    if (write(trace->ftrace, trace->buffers[index]->buffer_ptr, __get_buffer_size(trace, index)) == -1) {
         perror("Flushing the buffer. Could not write measured data to the trace file!");
         abort();
     }
@@ -327,12 +328,12 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
     // update the general_offset
     trace->general_offset += __get_buffer_size(trace, index);
     // update the current offset of the thread
-    trace->buffers[index].offset = trace->general_offset - sizeof(litl_offset_t);
+    trace->buffers[index]->offset = trace->general_offset - sizeof(litl_offset_t);
 
     if (trace->allow_thread_safety)
         pthread_mutex_unlock(&trace->lock_litl_flush);
 
-    trace->buffers[index].buffer_cur = trace->buffers[index].buffer_ptr;
+    trace->buffers[index]->buffer_cur = trace->buffers[index]->buffer_ptr;
 }
 
 /*
@@ -352,29 +353,35 @@ static void __allocate_buffer(litl_trace_write_t* trace) {
 
     if(*pos >= trace->nb_allocated_buffers) {
       // We need to allocate a bigger array of buffers     
-      void* ptr = realloc(trace->buffers, trace->nb_allocated_buffers * 2 * sizeof(litl_write_buffer_t));
+      void* ptr = realloc(trace->buffers, trace->nb_allocated_buffers * 2 * sizeof(litl_write_buffer_t*));
       if(!ptr) {
 	  fprintf(stderr, "LiTL failed to allocate memory. Aborting.\n");
 	  abort();
       }
+
       trace->buffers = ptr;
+      unsigned i;
+      for (i = trace->nb_allocated_buffers; i < 2*trace->nb_allocated_buffers; i++) {
+	trace->buffers[i] = malloc(sizeof(litl_write_buffer_t));
+	trace->buffers[i]->already_flushed = 0;
+      }
       trace->nb_allocated_buffers *= 2;
     }
     
-    trace->buffers[*pos].tid = CUR_TID;
-    trace->buffers[*pos].already_flushed = 0;
+    trace->buffers[*pos]->tid = CUR_TID;
+    trace->buffers[*pos]->already_flushed = 0;
 
     pthread_mutex_unlock(&trace->lock_buffer_init);
 
-    trace->buffers[*pos].buffer_ptr = malloc(trace->buffer_size + get_event_size(LITL_MAX_PARAMS) + get_event_size(1));
-    if (!trace->buffers[*pos].buffer_ptr) {
+    trace->buffers[*pos]->buffer_ptr = malloc(trace->buffer_size + get_event_size(LITL_MAX_PARAMS) + get_event_size(1));
+    if (!trace->buffers[*pos]->buffer_ptr) {
         perror("Could not allocate memory for the buffer!");
         exit(EXIT_FAILURE);
     }
 
     /* touch the memory so that it is allocated for real (otherwise, this may cause performance issues on NUMA machines) */
-    memset(trace->buffers[*pos].buffer_ptr, 1, 1);
-    trace->buffers[*pos].buffer_cur = trace->buffers[*pos].buffer_ptr;
+    memset(trace->buffers[*pos]->buffer_ptr, 1, 1);
+    trace->buffers[*pos]->buffer_cur = trace->buffers[*pos]->buffer_ptr;
 }
 
 /* Allocates an event.
@@ -392,7 +399,7 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
         }
         litl_size_t index = *(litl_size_t *) p_index;
 
-        litl_write_buffer_t *p_buffer = &trace->buffers[index];
+        litl_write_buffer_t *p_buffer = trace->buffers[index];
 
         /* is there enough space in the buffer ? */
         if (__get_buffer_size(trace, index) < trace->buffer_size) {
@@ -443,14 +450,14 @@ void litl_probe_offset(litl_trace_write_t* trace, int16_t index) {
     if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
         return;
 //    litl_t* cur_ptr = litl_cmpxchg((uint8_t**) &trace->buffer_cur[index], LITL_BASE_SIZE + sizeof(litl_param_t));
-    litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+    litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
     cur_ptr->time = 0;
     cur_ptr->code = LITL_OFFSET_CODE;
     cur_ptr->type = LITL_TYPE_REGULAR;
     cur_ptr->parameters.offset.nb_params = 1;
     cur_ptr->parameters.offset.offset = 0;
-    trace->buffers[index].buffer_cur += LITL_BASE_SIZE + sizeof(litl_param_t);
+    trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + sizeof(litl_param_t);
 }
 
 /*
@@ -465,13 +472,13 @@ void litl_probe0(litl_trace_write_t* trace, litl_code_t code) {
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
         cur_ptr->type = LITL_TYPE_REGULAR;
         cur_ptr->parameters.regular.nb_params = 0;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE;
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE;
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe0(trace, code);
@@ -492,14 +499,14 @@ void litl_probe1(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
         cur_ptr->type = LITL_TYPE_REGULAR;
         cur_ptr->parameters.regular.nb_params = 1;
         cur_ptr->parameters.regular.param[0] = param1;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe1(trace, code, param1);
@@ -520,7 +527,7 @@ void litl_probe2(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -528,7 +535,7 @@ void litl_probe2(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.nb_params = 2;
         cur_ptr->parameters.regular.param[0] = param1;
         cur_ptr->parameters.regular.param[1] = param2;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 2 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 2 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe2(trace, code, param1, param2);
@@ -550,7 +557,7 @@ void litl_probe3(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -559,7 +566,7 @@ void litl_probe3(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[0] = param1;
         cur_ptr->parameters.regular.param[1] = param2;
         cur_ptr->parameters.regular.param[2] = param3;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 3 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 3 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe3(trace, code, param1, param2, param3);
@@ -581,7 +588,7 @@ void litl_probe4(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -591,7 +598,7 @@ void litl_probe4(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[1] = param2;
         cur_ptr->parameters.regular.param[2] = param3;
         cur_ptr->parameters.regular.param[3] = param4;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 4 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 4 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe4(trace, code, param1, param2, param3, param4);
@@ -613,7 +620,7 @@ void litl_probe5(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -624,7 +631,7 @@ void litl_probe5(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[2] = param3;
         cur_ptr->parameters.regular.param[3] = param4;
         cur_ptr->parameters.regular.param[4] = param5;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 5 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 5 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe5(trace, code, param1, param2, param3, param4, param5);
@@ -646,7 +653,7 @@ void litl_probe6(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -658,7 +665,7 @@ void litl_probe6(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[3] = param4;
         cur_ptr->parameters.regular.param[4] = param5;
         cur_ptr->parameters.regular.param[5] = param6;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 6 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 6 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe6(trace, code, param1, param2, param3, param4, param5, param6);
@@ -680,7 +687,7 @@ void litl_probe7(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -693,7 +700,7 @@ void litl_probe7(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[4] = param5;
         cur_ptr->parameters.regular.param[5] = param6;
         cur_ptr->parameters.regular.param[6] = param7;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 7 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 7 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe7(trace, code, param1, param2, param3, param4, param5, param6, param7);
@@ -716,7 +723,7 @@ void litl_probe8(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -730,7 +737,7 @@ void litl_probe8(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[5] = param6;
         cur_ptr->parameters.regular.param[6] = param7;
         cur_ptr->parameters.regular.param[7] = param8;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 8 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 8 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe8(trace, code, param1, param2, param3, param4, param5, param6, param7, param8);
@@ -753,7 +760,7 @@ void litl_probe9(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -768,7 +775,7 @@ void litl_probe9(litl_trace_write_t* trace, litl_code_t code, litl_param_t param
         cur_ptr->parameters.regular.param[6] = param7;
         cur_ptr->parameters.regular.param[7] = param8;
         cur_ptr->parameters.regular.param[8] = param9;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 9 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 9 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe9(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9);
@@ -791,7 +798,7 @@ void litl_probe10(litl_trace_write_t* trace, litl_code_t code, litl_param_t para
 
     litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
-        litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+        litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
         cur_ptr->time = litl_get_time();
         cur_ptr->code = code;
@@ -807,7 +814,7 @@ void litl_probe10(litl_trace_write_t* trace, litl_code_t code, litl_param_t para
         cur_ptr->parameters.regular.param[7] = param8;
         cur_ptr->parameters.regular.param[8] = param9;
         cur_ptr->parameters.regular.param[9] = param10;
-        trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 10 * sizeof(litl_param_t);
+        trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 10 * sizeof(litl_param_t);
     } else if (trace->allow_buffer_flush) {
         litl_flush_buffer(trace, index);
         litl_probe10(trace, code, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
@@ -830,9 +837,9 @@ void litl_raw_probe(litl_trace_write_t* trace, litl_code_t code, litl_size_t siz
     litl_size_t i, index;
     index = *(litl_size_t *) pthread_getspecific(trace->index);
 
-    litl_t* cur_ptr = (litl_t *) trace->buffers[index].buffer_cur;
+    litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
     // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
-    trace->buffers[index].buffer_cur += LITL_BASE_SIZE + 7 + size;
+    trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 7 + size;
 
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         cur_ptr->time = litl_get_time();
@@ -845,7 +852,7 @@ void litl_raw_probe(litl_trace_write_t* trace, litl_code_t code, litl_size_t siz
                 cur_ptr->parameters.raw.data[i] = data[i];
     } else if (trace->allow_buffer_flush) {
         // if there is not enough size we reset back the buffer pointer
-        trace->buffers[index].buffer_cur -= LITL_BASE_SIZE + 7 + size;
+        trace->buffers[index]->buffer_cur -= LITL_BASE_SIZE + 7 + size;
 
         litl_flush_buffer(trace, index);
         litl_raw_probe(trace, code, size, data);
@@ -870,8 +877,8 @@ void litl_fin_trace(litl_trace_write_t* trace) {
     trace->ftrace = -1;
 
     for (i = 0; i < trace->nb_allocated_buffers ; i++)
-        if (trace->buffers[i].tid != 0) {
-            free(trace->buffers[i].buffer_ptr);
+        if (trace->buffers[i]->tid != 0) {
+            free(trace->buffers[i]->buffer_ptr);
         } else {
             break;
         }

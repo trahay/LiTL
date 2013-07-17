@@ -162,7 +162,7 @@ typedef struct {
     uint8_t litl_initialized;
     volatile uint8_t litl_paused; // litl_paused indicates whether LiTL stops recording events (1) for a while or not (0)
 
-    litl_write_buffer_t *buffers; // array of thread-specific buffers
+    litl_write_buffer_t **buffers; // array of thread-specific buffers
     unsigned nb_allocated_buffers;  /* number of thread-specific buffers that are allocated */
     
 } litl_trace_write_t;
