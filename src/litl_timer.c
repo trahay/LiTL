@@ -34,6 +34,69 @@
 litl_timing_method_t litl_get_time = TIMER_DEFAULT;
 
 /*
+ * This function benchmarks function f and returns the number of calls to f that can be done in 100 microseconds
+ */
+static uint64_t __litl_time_benchmark_generic(litl_timing_method_t f) {
+  uint64_t i = 0;
+  unsigned threshold = 100000; 	/* how many calls to f() in 100 microseconds ? */
+  litl_time_t t1, t2;
+  t1 = f();
+  do {
+    t2 = f();
+    i++;
+  } while(t2-t1 < threshold);
+
+  return i;
+}
+
+/*
+ * Select the most efficient timing method
+ */
+static void __litl_time_benchmark() {
+  uint64_t best_score = 0;
+  uint64_t cur_score;
+
+#define RUN_BENCHMARK(_func_) do {			\
+    cur_score = __litl_time_benchmark_generic(_func_);	\
+    if(cur_score > best_score) {			\
+      best_score = cur_score;				\
+      litl_set_timing_method(_func_);			\
+    }							\
+  }while(0)
+
+#ifdef CLOCK_GETTIME_AVAIL
+
+#ifdef CLOCK_MONOTONIC_RAW
+  RUN_BENCHMARK(litl_get_time_monotonic_raw);
+#endif
+
+#ifdef CLOCK_MONOTONIC
+  RUN_BENCHMARK(litl_get_time_monotonic);
+#endif
+
+#ifdef CLOCK_REALTIME
+  RUN_BENCHMARK(litl_get_time_realtime);
+#endif
+
+#ifdef CLOCK_PROCESS_CPUTIME_ID
+  RUN_BENCHMARK(litl_get_time_process_cputime);
+#endif
+
+#ifdef CLOCK_THREAD_CPUTIME_ID
+  RUN_BENCHMARK(litl_get_time_thread_cputime);
+#endif
+
+#endif	/* CLOCK_GETTIME_AVAIL */
+
+#if defined(__x86_64__) || defined(__i386)
+  RUN_BENCHMARK(litl_get_time_ticks);
+#endif
+
+
+  fprintf(stderr, "Best score: %ul\n", best_score);
+}
+
+/*
  * This function initializes the timing mechanism
  */
 void litl_time_initialize() {
@@ -75,7 +138,9 @@ void litl_time_initialize() {
 #else
 	    goto not_available;
 #endif
-        else {
+        else if (strcmp(time_str, "best") == 0) {
+	    __litl_time_benchmark();
+	} else {
             fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
             abort();
         }
