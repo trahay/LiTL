@@ -45,6 +45,21 @@ litl_time_t litl_get_time_monotonic_raw();
 litl_time_t litl_get_time_monotonic();
 
 /*
+ * This function uses clock_gettime(CLOCK_REALTIME)
+ */
+litl_time_t litl_get_time_realtime();
+
+/*
+ * This function uses clock_gettime(CLOCK_PROCESS_CPUTIME)
+ */
+litl_time_t litl_get_time_process_cputime();
+
+/*
+ * This function uses clock_gettime(CLOCK_THREAD_CPUTIME)
+ */
+litl_time_t litl_get_time_thread_cputime();
+
+/*
  * This function uses CPU specific register (for instance, rdtsc for X86* processors)
  */
 litl_time_t litl_get_time_ticks();

@@ -39,18 +39,53 @@ litl_timing_method_t litl_get_time = TIMER_DEFAULT;
 void litl_time_initialize() {
     char* time_str = getenv("LITL_TIMING_METHOD");
     if (time_str) {
-        if (strcmp(time_str, "monotonic_raw") == 0)
+      if (strcmp(time_str, "monotonic_raw") == 0) {
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC_RAW))
             litl_set_timing_method(litl_get_time_monotonic_raw);
-        else if (strcmp(time_str, "monotonic") == 0)
+#else
+	    goto not_available;
+#endif
+      } else if (strcmp(time_str, "monotonic") == 0)
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC))
             litl_set_timing_method(litl_get_time_monotonic);
+#else
+	    goto not_available;
+#endif
+        else if (strcmp(time_str, "realtime") == 0)
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_REALTIME))
+            litl_set_timing_method(litl_get_time_realtime);
+#else
+	    goto not_available;
+#endif
+        else if (strcmp(time_str, "process_cputime") == 0)
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_PROCESS_CPUTIME_ID))
+            litl_set_timing_method(litl_get_time_process_cputime);
+#else
+	    goto not_available;
+#endif
+        else if (strcmp(time_str, "thread_cputime") == 0)
+#if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_THREAD_CPUTIME_ID))
+            litl_set_timing_method(litl_get_time_thread_cputime);
+#else
+	    goto not_available;
+#endif
         else if (strcmp(time_str, "ticks") == 0)
+#if defined(__x86_64__) || defined(__i386)
             litl_set_timing_method(litl_get_time_ticks);
+#else
+	    goto not_available;
+#endif
         else {
             fprintf(stderr, "Unknown timining method: '%s'\n", time_str);
             abort();
         }
     }
+    return ;
+ not_available:
+    fprintf(stderr, "Timing function '%s' not available on this system\n", time_str);
+    abort();
 }
+
 
 /*
  * This function returns -1 if none of timings is available. Otherwise, it returns 0
@@ -63,16 +98,20 @@ int litl_set_timing_method(litl_timing_method_t callback) {
     return 0;
 }
 
+static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
+    litl_time_t time;
+    struct timespec tp;
+    clock_gettime(clk_id, &tp);
+    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
+    return time;
+}
+
 /*
  * This function uses clock_gettime(CLOCK_MONOTONIC_RAW)
  */
 litl_time_t litl_get_time_monotonic_raw() {
 #if(defined(CLOCK_GETTIME_AVAIL) && defined( CLOCK_MONOTONIC_RAW))
-    litl_time_t time;
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
-    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
-    return time;
+    return __litl_get_time_generic(CLOCK_MONOTONIC_RAW);
 #else
     ERROR_TIMER_NOT_AVAILABLE();
     return -1;
@@ -84,11 +123,43 @@ litl_time_t litl_get_time_monotonic_raw() {
  */
 litl_time_t litl_get_time_monotonic() {
 #ifdef CLOCK_GETTIME_AVAIL
-    litl_time_t time;
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-    time = 1000000000 * tp.tv_sec + tp.tv_nsec;
-    return time;
+    return __litl_get_time_generic(CLOCK_MONOTONIC);
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+    return -1;
+#endif
+}
+
+/*
+ * This function uses clock_gettime(CLOCK_REALTIME)
+ */
+litl_time_t litl_get_time_realtime() {
+#if (defined(CLOCK_GETTIME_AVAIL) && defined (CLOCK_REALTIME))
+    return __litl_get_time_generic(CLOCK_REALTIME);
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+    return -1;
+#endif
+}
+
+/*
+ * This function uses clock_gettime(CLOCK_PROCESS_CPUTIME_ID)
+ */
+litl_time_t litl_get_time_process_cputime() {
+#if (defined(CLOCK_GETTIME_AVAIL) && defined (CLOCK_PROCESS_CPUTIME_ID))
+    return __litl_get_time_generic(CLOCK_PROCESS_CPUTIME_ID);
+#else
+    ERROR_TIMER_NOT_AVAILABLE();
+    return -1;
+#endif
+}
+
+/*
+ * This function uses clock_gettime(CLOCK_THREAD_CPUTIME_ID)
+ */
+litl_time_t litl_get_time_thread_cputime() {
+#if (defined(CLOCK_GETTIME_AVAIL) && defined(CLOCK_THREAD_CPUTIME_ID))
+    return __litl_get_time_generic(CLOCK_THREAD_CPUTIME_ID);
 #else
     ERROR_TIMER_NOT_AVAILABLE();
     return -1;
@@ -99,13 +170,19 @@ litl_time_t litl_get_time_monotonic() {
  * This function uses CPU specific register (for instance, rdtsc for X86* processors)
  */
 litl_time_t litl_get_time_ticks() {
-#if HAVE_RDTSC
+
+#ifdef __x86_64__
      // This is a copy of rdtscll function from asm/msr.h
 #define ticks(val) do {					\
     uint32_t __a,__d;						\
     asm volatile("rdtsc" : "=a" (__a), "=d" (__d));		\
     (val) = ((litl_time_t)__a) | (((litl_time_t)__d)<<32);	\
   } while(0)
+
+#elif defined(__i386)
+
+#define ticks(val) \
+  __asm__ volatile("rdtsc" : "=A" (val))
 
 #else
     ERROR_TIMER_NOT_AVAILABLE();
