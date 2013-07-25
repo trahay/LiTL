@@ -152,14 +152,12 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
     trace->nb_buffers = trace->header->nb_threads;
     trace->buffers = (litl_trace_read_thread_t*) malloc(trace->nb_buffers * sizeof(litl_trace_read_thread_t));
 
-    i = 0;
     // read pairs (tid, offset)
-    while (1) {
+    for (i = 0; i < trace->nb_buffers; i++) {
         tids = (litl_header_tids_t *) trace->header_buffer;
 
         // deal with slots of pairs
         if ((tids->tid == 0) && (tids->offset != 0)) {
-            printf("here\n");
             __next_pairs_buffer(arch, trace, tids->offset);
             continue;
         }
@@ -171,7 +169,6 @@ static void __init_buffers(litl_trace_read_t* arch, litl_trace_read_process_t* t
 
         trace->buffers[i].tids = tids;
         trace->header_buffer += size;
-        i++;
     }
 
     // increase a bit the buffer size 'cause of the possible event's tail and the offset
