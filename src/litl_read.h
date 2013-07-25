@@ -118,7 +118,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_1(p_evt, arg1)		\
   do {						\
     void* _ptr_;				\
-    INIT_PTR(p_evt, _ptr_);			\
+    __LITL_INIT_PTR(p_evt, _ptr_);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);		\
   } while(0)
 
@@ -126,7 +126,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_2(p_evt, arg1, arg2)	\
   do {						\
     void* _ptr_;				\
-    INIT_PTR(p_evt, _ptr_);			\
+    __LITL_INIT_PTR(p_evt, _ptr_);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);		\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);		\
   } while(0)
@@ -135,7 +135,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_3(p_evt, arg1, arg2, arg3)	\
   do {							\
     void* _ptr_;					\
-    INIT_PTR(p_evt, _ptr_);				\
+    __LITL_INIT_PTR(p_evt, _ptr_);				\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);			\
@@ -145,7 +145,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_4(p_evt, arg1, arg2, arg3, arg4)	\
   do {							\
     void* _ptr_;					\
-    INIT_PTR(p_evt, _ptr_);				\
+    __LITL_INIT_PTR(p_evt, _ptr_);				\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);			\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);			\
@@ -156,7 +156,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_5(p_evt, arg1, arg2, arg3, arg4, arg5)	\
   do {								\
     void* _ptr_;						\
-    INIT_PTR(p_evt, _ptr_);					\
+    __LITL_INIT_PTR(p_evt, _ptr_);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);				\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);				\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);				\
@@ -168,7 +168,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_6(p_evt, arg1, arg2, arg3, arg4, arg5, arg6)	\
   do {									\
     void* _ptr_;							\
-    INIT_PTR(p_evt, _ptr_);						\
+    __LITL_INIT_PTR(p_evt, _ptr_);						\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);					\
@@ -181,7 +181,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_7(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
   do {									\
     void* _ptr_;							\
-    INIT_PTR(p_evt, _ptr_);						\
+    __LITL_INIT_PTR(p_evt, _ptr_);						\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);					\
@@ -195,7 +195,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_8(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
   do {									\
     void* _ptr_;							\
-    INIT_PTR(p_evt, _ptr_);						\
+    __LITL_INIT_PTR(p_evt, _ptr_);						\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);					\
@@ -210,7 +210,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_9(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
   do {									\
     void* _ptr_;							\
-    INIT_PTR(p_evt, _ptr_);						\
+    __LITL_INIT_PTR(p_evt, _ptr_);						\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);					\
@@ -226,7 +226,7 @@ void litl_close_trace(litl_trace_read_t*);
 #define litl_get_param_10(p_evt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) \
   do {									\
     void* _ptr_;							\
-    INIT_PTR(p_evt, _ptr_);						\
+    __LITL_INIT_PTR(p_evt, _ptr_);						\
     __LITL_GET_ARG(p_evt, _ptr_, arg1);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg2);					\
     __LITL_GET_ARG(p_evt, _ptr_, arg3);					\
