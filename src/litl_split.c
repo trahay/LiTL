@@ -18,7 +18,8 @@ static char *__archive_name = "archive";
 static char *__output_dir = "dir";
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
-    fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n", argv[0]);
+    fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n",
+            argv[0]);
     printf("       -?, -h:    Display this help and exit\n");
 }
 
@@ -50,7 +51,7 @@ static void __parse_args(int argc, char **argv) {
 }
 
 /*
- * Open an archive of traces
+ * Opens an archive of traces
  */
 static void __open_archive(const char *archive_name) {
     __archive = malloc(sizeof(litl_trace_split_t));
@@ -67,10 +68,11 @@ static void __open_archive(const char *archive_name) {
 }
 
 /*
- * Initialize a structure that stores triples from the archive's header
+ * Initializes a structure that stores triples from the archive's header
  */
 static void __read_archive_header() {
-    // At first, the header is small 'cause it stores only nb_traces and is_trace_archive values
+    // at first, the header is small 'cause it stores only nb_traces and
+    //   is_trace_archive values
     __archive->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
     __archive->header_buffer = (litl_buffer_t) malloc(__archive->header_size);
 
@@ -82,20 +84,24 @@ static void __read_archive_header() {
     __archive->nb_traces = __archive->header->nb_threads;
 
     if (__archive->header->is_trace_archive == 0) {
-        printf("The given trace is not an archive of traces. Therefore, there is nothing to be split.\n");
+        printf(
+                "The given trace is not an archive of traces. Therefore, there is nothing to be split.\n");
         exit(EXIT_SUCCESS);
     }
 
-    // Yes, we work with an archive of trace. So, we increase the header size and relocate the header buffer
-    __archive->header_size = __archive->nb_traces * sizeof(litl_header_triples_t); // +1 to allocate slightly more
-    __archive->header_buffer = (litl_buffer_t) realloc(__archive->header_buffer, __archive->header_size);
+    // Yes, we work with an archive of trace. So, we increase the header size
+    //   and relocate the header buffer
+    __archive->header_size = __archive->nb_traces
+            * sizeof(litl_header_triples_t); // +1 to allocate slightly more
+    __archive->header_buffer = (litl_buffer_t) realloc(__archive->header_buffer,
+            __archive->header_size);
 
     // read all triples
     read(__archive->f_arch, __archive->header_buffer, __archive->header_size);
 }
 
 /*
- * Write each trace from an archive into a separate trace file
+ * Writes each trace from an archive into a separate trace file
  */
 void litl_split_archive(const char *dir) {
     int trace_out;
@@ -116,7 +122,8 @@ void litl_split_archive(const char *dir) {
         lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
 
         // create and open a new trace file
-        asprintf(&trace_name, "%s/%s_eztrace_log_rank_%d", dir, user, __archive->triples->fid);
+        asprintf(&trace_name, "%s/%s_eztrace_log_rank_%d", dir, user,
+                __archive->triples->fid);
         if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
             fprintf(stderr, "Cannot open %s\n", trace_name);
             exit(EXIT_FAILURE);
@@ -129,7 +136,8 @@ void litl_split_archive(const char *dir) {
             if (__archive->triples->trace_size > __archive->buffer_size)
                 write(trace_out, __archive->buffer, __archive->buffer_size);
             else {
-                write(trace_out, __archive->buffer, __archive->triples->trace_size);
+                write(trace_out, __archive->buffer,
+                        __archive->triples->trace_size);
                 break;
             }
 
@@ -142,7 +150,7 @@ void litl_split_archive(const char *dir) {
 }
 
 /*
- * Close the archive and free the allocated memory
+ * Closes the archive and free the allocated memory
  */
 static void __close_archive() {
     close(__archive->f_arch);

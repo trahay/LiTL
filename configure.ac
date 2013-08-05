@@ -45,7 +45,8 @@ else
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h stdlib.h stdio.h string.h math.h time.h sys/stat.h unistd.h sys/syscall.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h stdio.h string.h math.h time.h sys/stat.h \
+  unistd.h sys/syscall.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UINT8_T
@@ -64,8 +65,8 @@ if test "x$enable_gettid" = xyes; then
   AC_DEFINE([USE_GETTID], [1], [Use gettid])
 fi
 
-# On many multicore CPUs, clock cycles are not synchronized. Therefore, we prefer to use clock_gettime() instead of 
-# time stamp counter (clock cycles).
+# On many multicore CPUs, clock cycles are not synchronized. Therefore, we 
+# prefer to use clock_gettime() instead of time stamp counter (clock cycles).
 AC_MSG_CHECKING([for clock_gettime(CLOCK_MONOTONIC_RAW)])
 AC_COMPILE_IFELSE(
   AC_LANG_PROGRAM([[
@@ -85,5 +86,5 @@ AC_SUBST(prefix)
 AC_SUBST(includedir)
 
 AC_OUTPUT([Makefile litl.pc \
-            src/Makefile \
-            tests/Makefile ])
+           src/Makefile \
+           tests/Makefile ])

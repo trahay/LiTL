@@ -1,11 +1,12 @@
 
 What is LiTL?
 =============================================
-LiTL (or litl) is a lightweight tool for recording events during the execution of scientific high-performance
-applications. litl is designed to record events on the user level only. Therefore, it will consume much less
-resources (CPU time, memory, and the disk space) as the alternative tools, e.g. FxT, that gather events on both user
-and kernel levels. As a result, litl will be well-suited for recording events on embedded systems like ARM
-architectures.
+LiTL (or litl) is a lightweight tool for recording events during the execution 
+of scientific high-performance applications. litl is designed to record events 
+on the user level only. Therefore, it consumes much less resources (CPU time, 
+memory, and the disk space) as the alternative tools, e.g. FxT, that gather 
+events on both user and kernel levels. As a result, litl is well-suited for 
+recording events on embedded systems like ARM architectures.
 
 
 Requirements
@@ -13,17 +14,19 @@ Requirements
 In order to use LiTL, the following software is needed:
     * autoconf 2.63;
     
-    * libelf or libbfd. On Debian, libelf can be installed from command line by the following command:
+    * libelf or libbfd. On Debian, libelf can be installed from command line by 
+      the following command:
         apt-get install libelf-dev
 
 
 Getting LiTL
 =============================================
 Current development version of LiTL is available via Git
-    git clone git+ssh://roman@fusionforge.int-evry.fr//var/lib/gforge/chroot/scmrepos/git/evnt/evnt.git
+    git clone git+ssh://roman@fusionforge.int-evry.fr//var/lib/gforge/chroot/
+    scmrepos/git/evnt/evnt.git
 
-After getting the latest development version (from Git), './bootstrap' should be run in the root directory and only then
-the tool can be built.
+After getting the latest development version (from Git), './bootstrap' should 
+be run in the root directory and only then the tool can be built.
 
 
 Building LiTL
@@ -31,14 +34,15 @@ Building LiTL
 At first, to configure LiTL the following script should be invoked:
     $ ./configure --prefix=<WHERE_YOU_INSTALL_LITL>
 
-The configuration script contains many different options that can be set. However, we recommend to use the default
-settings.
+The configuration script contains many different options that can be set. 
+However, we recommend to use the default settings.
 
 Once LiTL is configured, the next two commands should be run:
     $ make
     $ make install
 
-In order to check whether LiTL was installed correctly, a set of tests can be executed by
+In order to check whether LiTL was installed correctly, a set of tests can be 
+executed by
     $ make check
 
 
@@ -46,32 +50,32 @@ How to Use LiTL
 =============================================
 litl_read
 ---------
-
-    This tool analyzes a trace produced by LiTL. It shows the recorded events in the following format:
-        - the code of the probe
-        - the id of the current thread on this CPU
-        - the time since last probe record on the same CPU
-        - the number of parameters of the probe
-        - the list of parameters of the probe, if any
+    This tool analyzes a trace produced by LiTL. It shows the recorded events 
+    in the following format:
+        - Time since last probe record on the same CPU    
+        - ID of the current thread on this CPU
+        - Event type        
+        - Code of the probe        
+        - Number of parameters of the probe
+        - List of parameters of the probe, if any
 
 Options:
-    -f specify the path to the input trace file
-
-    -h prints some reference help
+    -f  Specify the path to the input trace file
+    -h  Prints some reference help
 
 litl_merge
 ----------
-
     This tool merges severals traces into one archive for further processing.
 
 Options:
-    -h prints some reference help
+    -o  Specify the path to the output archive of traces
+    -h  Prints some reference help    
 
 litl_split
 ----------
-
     This tool splits an archive of traces into separate trace files
 
 Options:
-    -h prints some reference help
-
+    -f  Specify the path to the input archive of traces
+    -d  Specify the path to the output directory
+    -h  Prints some reference help

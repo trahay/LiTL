@@ -10,7 +10,7 @@
 #include "litl_types.h"
 
 /*
- * Write each trace from an archive into a separate trace file
+ * Writes each trace from an archive into a separate trace file
  */
 void litl_split_archive(const char *);
 

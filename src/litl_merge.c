@@ -20,14 +20,16 @@ static litl_size_t __nb_traces = 0;
 static struct litl_queue_t trace_queue;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
-    fprintf(stderr, "Usage: %s [-o archive_name] input_filename input_filename ... \n", argv[0]);
+    fprintf(stderr,
+            "Usage: %s [-o archive_name] input_filename input_filename ... \n",
+            argv[0]);
     printf("       -?, -h:    Display this help and exit\n");
 }
 
 static void __parse_args(int argc, char **argv) {
     int i;
 
-    __litl_init_queue(&trace_queue);
+    litl_init_queue(&trace_queue);
     for (i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-o") == 0)) {
             __archive_name = argv[++i];
@@ -39,7 +41,7 @@ static void __parse_args(int argc, char **argv) {
             __usage(argc, argv);
             exit(-1);
         } else {
-	    __litl_enqueue(&trace_queue, argv[i]);
+            litl_enqueue(&trace_queue, argv[i]);
             __nb_traces++;
         }
     }
@@ -51,8 +53,8 @@ static void __parse_args(int argc, char **argv) {
 }
 
 /*
- * Create and open an archive for traces
- * Allocate memory for the buffer
+ * Creates and opens an archive for traces.
+ * Allocates memory for the buffer
  */
 static void __init_trace(char *trace_name) {
     __archive = malloc(sizeof(litl_trace_merge_t));
@@ -71,7 +73,7 @@ static void __init_trace(char *trace_name) {
 }
 
 /*
- * This function adds a trace header:
+ * Adds a trace header:
  *   - The number of traces
  *   - Triples: a file id, a file size, and an offset
  */
@@ -85,15 +87,16 @@ static void __add_trace_header() {
     __archive->header_offset += header_size;
     write(__archive->f_arch, __archive->buffer, header_size);
 
-    // we do not add all the information about each trace 'cause it will be added during packing them,
-    //       instead we just reserve the space for that
+    // we do not add all the information about each trace 'cause it will be
+    // added during packing them, instead we just reserve the space for that
     header_size += __nb_traces * sizeof(litl_header_triples_t);
     __archive->general_offset += header_size;
     lseek(__archive->f_arch, header_size, SEEK_SET);
 }
 
 /*
- * This function for merging trace files is a modified version of the cat implementation from the Kernighan & Ritchie book
+ * Merges trace files. This is a modified version of the cat implementation
+ *   from the Kernighan & Ritchie book
  */
 void litl_merge_file(const int file_id, const char *file_name_in) {
     int trace_in, res;
@@ -116,13 +119,15 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
     lseek(__archive->f_arch, __archive->header_offset, SEEK_SET);
     res = write(__archive->f_arch, &file_id, sizeof(litl_tid_t));
     res = write(__archive->f_arch, &file_size, sizeof(litl_trace_size_t));
-    res = write(__archive->f_arch, &__archive->general_offset, sizeof(litl_offset_t));
+    res = write(__archive->f_arch, &__archive->general_offset,
+            sizeof(litl_offset_t));
     lseek(__archive->f_arch, __archive->general_offset, SEEK_SET);
     __archive->header_offset += sizeof(litl_header_triples_t);
 
-    // solution A: Reading and writing blocks of data. Use the file size to deal with the reading of the last block from
-    //             the traces
-    while ((res = read(trace_in, __archive->buffer, __archive->buffer_size)) != 0) {
+    // solution A: Reading and writing blocks of data. Use the file size to deal
+    //             with the reading of the last block from the traces
+    while ((res = read(trace_in, __archive->buffer, __archive->buffer_size))
+            != 0) {
         if (res < 0) {
             perror("Cannot read the data from the traces!");
             exit(EXIT_FAILURE);
@@ -142,7 +147,7 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
 
 static void __finalize_trace() {
     // remove the queue consisting of trace file names
-    __litl_delqueue(&trace_queue);
+    litl_delqueue(&trace_queue);
     free(__archive->buffer);
     close(__archive->f_arch);
     free(__archive);
@@ -156,13 +161,14 @@ int main(int argc, char **argv) {
     // init a buffer and an archive of traces
     __init_trace(__archive_name);
 
-    // write header with #traces and reserved space for triples (fid, offset, traces_size)
+    // write header with #traces and reserved space for
+    //   triples (fid, offset, traces_size)
     __add_trace_header();
 
     // merging the trace files
     int i = 0;
     char *filename;
-    while ((filename = __litl_dequeue(&trace_queue)) != NULL)
+    while ((filename = litl_dequeue(&trace_queue)) != NULL )
         litl_merge_file(i++, filename);
 
     /*// error handling: valid ONLY for FILE*

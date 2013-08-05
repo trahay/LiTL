@@ -4,6 +4,10 @@
  * See COPYING in top-level directory.
  */
 
+/*
+ * This test simulates the situation when the event recoding is paused.
+ */
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,29 +35,32 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
             litl_pause_recording(&trace);
         }
 
-        litl_probe0(&trace, 0x100 * (i + 1) + 1);
+        litl_probe_reg_0(&trace, 0x100 * (i + 1) + 1);
         usleep(100);
-        litl_probe1(&trace, 0x100 * (i + 1) + 2, 1);
+        litl_probe_reg_1(&trace, 0x100 * (i + 1) + 2, 1);
         usleep(100);
-        litl_probe2(&trace, 0x100 * (i + 1) + 3, 1, 3);
+        litl_probe_reg_2(&trace, 0x100 * (i + 1) + 3, 1, 3);
         usleep(100);
-        litl_probe3(&trace, 0x100 * (i + 1) + 4, 1, 3, 5);
+        litl_probe_reg_3(&trace, 0x100 * (i + 1) + 4, 1, 3, 5);
         usleep(100);
-        litl_probe4(&trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
+        litl_probe_reg_4(&trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
         usleep(100);
-        litl_probe5(&trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
+        litl_probe_reg_5(&trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
         usleep(100);
-        litl_probe6(&trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
+        litl_probe_reg_6(&trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
         usleep(100);
-        litl_probe7(&trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
+        litl_probe_reg_7(&trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
         usleep(100);
-        litl_probe8(&trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17, 19);
+        litl_probe_reg_8(&trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
+                19);
         usleep(100);
-        litl_probe9(&trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17, 19, 23);
+        litl_probe_reg_9(&trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17,
+                19, 23);
         usleep(100);
-        litl_probe10(&trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17, 19, 23, 29);
+        litl_probe_reg_10(&trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17,
+                19, 23, 29);
         usleep(100);
-        litl_raw_probe(&trace, 0x100 * (i + 1) + 12, sizeof(val) - 1, val);
+        litl_probe_raw(&trace, 0x100 * (i + 1) + 12, sizeof(val) - 1, val);
         usleep(100);
 
         if (i == skipped_iter - 1) {
@@ -62,8 +69,8 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
         }
     }
 
-    printf("\nEvents with code between %x and %x were not recorded\n", 0x100 * skipped_iter + 1,
-            0x100 * skipped_iter + 12);
+    printf("\nEvents with code between %x and %x were not recorded\n",
+            0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
 
     litl_fin_trace(&trace);
 }
@@ -92,15 +99,16 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
         // check whether some events were skipped
         if ((left_bound < LITL_GET_CODE(event))&& (LITL_GET_CODE(event) < right_bound)){
-            nbevents++;
-            break;
-        }
+        nbevents++;
+        break;
     }
+}
 
     litl_close_trace(arch);
 
     if (nbevents > 0) {
-        fprintf(stderr, "Some events were recorded when they supposed to be skipped");
+        fprintf(stderr,
+                "Some events were recorded when they supposed to be skipped");
         exit(EXIT_FAILURE);
     }
 }

@@ -1,9 +1,6 @@
 # Copyright © Télécom SudParis.
 # See COPYING in top-level directory.
 
-#FXTCFLAGS=$(FXT_CPPFLAGS)
-#FXTLDFLAGS=$(FXT_LDFLAGS)
-
 SUBDIRS = src \
 	  	  tests
 

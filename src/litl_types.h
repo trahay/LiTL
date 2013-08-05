@@ -30,9 +30,9 @@
 #ifdef __x86_64__
 typedef uint64_t litl_tid_t;
 typedef uint64_t litl_time_t;
+// TODO: there is a possibility of using uint16_t, however then the alignment
+//       would collapse
 typedef uint32_t litl_code_t;
-// TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
-//       function get_event_components() in litl_macro.c should be changed accordingly.
 typedef uint64_t litl_trace_size_t;
 typedef uint32_t litl_size_t;
 typedef uint8_t litl_tiny_size_t;
@@ -44,8 +44,8 @@ typedef uint64_t litl_offset_t;
 typedef uint32_t litl_tid_t;
 typedef uint32_t litl_time_t;
 typedef uint32_t litl_code_t;
-// TODO: there is a possibility of using uint16_t, however then the alignment would collapse. If this is applied, the
-//       function get_event_components() in litl_macro.c should be changed accordingly.
+// TODO: there is a possibility of using uint16_t, however then the alignment
+//       would collapse
 typedef uint32_t litl_trace_size_t;
 typedef uint32_t litl_size_t;
 typedef uint8_t litl_tiny_size_t;
@@ -60,8 +60,9 @@ typedef uint8_t litl_data_t;
 #define LITL_MAX_PARAMS 10
 #define LITL_MAX_DATA (LITL_MAX_PARAMS * sizeof(litl_param_t))
 
-typedef enum __attribute__((packed)) {
-    LITL_TYPE_REGULAR, LITL_TYPE_RAW, LITL_TYPE_PACKED, LITL_TYPE_OFFSET
+typedef enum
+    __attribute__((packed)) {
+        LITL_TYPE_REGULAR, LITL_TYPE_RAW, LITL_TYPE_PACKED, LITL_TYPE_OFFSET
 } litl_type_t;
 
 typedef struct {
@@ -89,7 +90,7 @@ typedef struct {
 }__attribute__((packed)) litl_t;
 
 // indicates the max number of threads which info (tids pairs) is stored in one buffer
-#define NBTHREADS 64
+#define NBTHREADS 32
 
 // data structure that corresponds to the header of a trace file
 typedef struct {
@@ -163,10 +164,9 @@ typedef struct {
     volatile uint8_t litl_paused; // litl_paused indicates whether LiTL stops recording events (1) for a while or not (0)
 
     litl_write_buffer_t **buffers; // array of thread-specific buffers
-    unsigned nb_allocated_buffers;  /* number of thread-specific buffers that are allocated */
-    
-} litl_trace_write_t;
+    unsigned nb_allocated_buffers; // number of thread-specific buffers that are allocated
 
+} litl_trace_write_t;
 
 typedef struct {
     litl_tid_t tid; /* thread id */

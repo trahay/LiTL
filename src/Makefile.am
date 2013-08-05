@@ -1,9 +1,6 @@
 # Copyright © Télécom SudParis.
 # See COPYING in top-level directory.
 
-#AM_CFLAGS = $(FXT_CPPFLAGS)
-#AM_LDFLAGS = $(FXT_LDFLAGS)
-
 bin_PROGRAMS = litl_read litl_merge litl_split
 litl_read_SOURCES = litl_types.h litl_macro.h litl_macro.c litl_read.h litl_read.c
 litl_merge_SOURCES = litl_types.h litl_queue.h litl_queue.c litl_merge.h litl_merge.c

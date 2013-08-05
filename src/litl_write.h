@@ -10,129 +10,167 @@
 #include "litl_types.h"
 
 /*
- * This function initializes the trace
+ * Initializes the trace buffer
  */
 litl_trace_write_t litl_init_trace(const uint32_t);
 
+/*
+ * Activates buffer flush
+ */
 void litl_buffer_flush_on(litl_trace_write_t*);
+/*
+ * Deactivates buffer flush. By default, it is activated
+ */
 void litl_buffer_flush_off(litl_trace_write_t*);
 
+/*
+ * Activates thread safety
+ */
 void litl_thread_safety_on(litl_trace_write_t*);
+/*
+ * Deactivates thread safety
+ */
 void litl_thread_safety_off(litl_trace_write_t*);
 
+/*
+ * Activates recording tid
+ */
 void litl_tid_recording_on(litl_trace_write_t*);
+/*
+ * Deactivates recording tid
+ */
 void litl_tid_recording_off(litl_trace_write_t*);
 
+/*
+ * Pauses the event recording
+ */
 void litl_pause_recording(litl_trace_write_t*);
+/*
+ * Resumes the event recording
+ */
 void litl_resume_recording(litl_trace_write_t*);
 
+/*
+ * Sets a new name for the trace file
+ */
 void litl_set_filename(litl_trace_write_t*, char*);
+
+/*
+ * Writes the recorded events from the buffer to the trace file
+ */
+void litl_flush_buffer(litl_trace_write_t*, litl_size_t);
+
+/*
+ * Records an event with offset only
+ */
+void litl_probe_offset(litl_trace_write_t*, int16_t);
 
 
 /*** Regular events ***/
 
 /*
- * This function writes the recorded events from the buffer to the trace file
+ * Records a regular event without parameters
  */
-void litl_flush_buffer(litl_trace_write_t*, litl_size_t);
+void litl_probe_reg_0(litl_trace_write_t*, litl_code_t);
 
 /*
- * This function records an event with offset only
+ * Records a regular event with 1 parameter
  */
-void litl_probe_offset(litl_trace_write_t*, int16_t);
+void litl_probe_reg_1(litl_trace_write_t*, litl_code_t, litl_param_t);
 
 /*
- * This function records an event without any arguments
+ * Records a regular event with 2 parameters
  */
-void litl_probe0(litl_trace_write_t*, litl_code_t);
-
-/*
- * This function records an event with one argument
- */
-void litl_probe1(litl_trace_write_t*, litl_code_t, litl_param_t);
-
-/*
- * This function records an event with two arguments
- */
-void litl_probe2(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t);
-
-/*
- * This function records an event with three arguments
- */
-void litl_probe3(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t);
-
-/*
- * This function records an event with four arguments
- */
-void litl_probe4(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t);
-
-/*
- * This function records an event with five arguments
- */
-void litl_probe5(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+void litl_probe_reg_2(litl_trace_write_t*, litl_code_t, litl_param_t,
         litl_param_t);
 
 /*
- * This function records an event with six arguments
+ * Records a regular event with 3 parameters
  */
-void litl_probe6(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t);
-
-/*
- * This function records an event with seven arguments
- */
-void litl_probe7(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+void litl_probe_reg_3(litl_trace_write_t*, litl_code_t, litl_param_t,
         litl_param_t, litl_param_t);
 
 /*
- * This function records an event with eight arguments
+ * Records a regular event with 4 parameters
  */
-void litl_probe8(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+void litl_probe_reg_4(litl_trace_write_t*, litl_code_t, litl_param_t,
         litl_param_t, litl_param_t, litl_param_t);
 
 /*
- * This function records an event with nine arguments
+ * Records a regular event with 5 parameters
  */
-void litl_probe9(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+void litl_probe_reg_5(litl_trace_write_t*, litl_code_t, litl_param_t,
         litl_param_t, litl_param_t, litl_param_t, litl_param_t);
 
 /*
- * This function records an event with ten arguments
+ * Records a regular event with 6 parameters
  */
-void litl_probe10(litl_trace_write_t*, litl_code_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t);
+void litl_probe_reg_6(litl_trace_write_t*, litl_code_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t);
 
+/*
+ * Records a regular event with 7 parameters
+ */
+void litl_probe_reg_7(litl_trace_write_t*, litl_code_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+        litl_param_t);
+
+/*
+ * Records a regular event with 8 parameters
+ */
+void litl_probe_reg_8(litl_trace_write_t*, litl_code_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+        litl_param_t, litl_param_t);
+
+/*
+ * Records a regular event with 9 parameters
+ */
+void litl_probe_reg_9(litl_trace_write_t*, litl_code_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t);
+
+/*
+ * Records a regular event with 10 parameters
+ */
+void litl_probe_reg_10(litl_trace_write_t*, litl_code_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
+        litl_param_t, litl_param_t, litl_param_t, litl_param_t);
 
 
 /*** Raw events ***/
 
 /*
- * This function records an event in a raw state, where the size is #args in the void* array
- * That helps to discover places where the application has crashed while using EZTrace
+ * Records an event in a raw state, where the size is #args in the void* array.
+ * That helps to discover places where the application has crashed
  */
-void litl_raw_probe(litl_trace_write_t*, litl_code_t, litl_size_t, litl_data_t[]);
-
+void litl_probe_raw(litl_trace_write_t*, litl_code_t, litl_size_t,
+        litl_data_t[]);
 
 
 /*** Internal-use macros ***/
 
-/* Allocates an event.
+/*
  * For internal use only.
+ * Allocates an event
  */
-litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_t code, int size);
+litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type,
+        litl_code_t code, int size);
 
-/* Computes the offset of MEMBER in structure TYPE.
+/*
  * For internal use only.
+ * Computes the offset of MEMBER in structure TYPE
  */
 #define __litl_offset_of(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
 
-/* Computes the offset of the first parameter in an event.
+/*
  * For internal use only.
+ * Computes the offset of the first parameter in an event
  */
 #define LITL_BASE_SIZE __litl_offset_of(litl_t, parameters.regular.param)
 
-/* Adds a parameter in an event.
- * For internal use only
+/*
+ * For internal use only.
+ * Adds a parameter in an event
  */
 #define __LITL_ADD_ARG(_ptr_, arg) do {		\
     typeof(arg) _arg = arg;			\
@@ -143,8 +181,9 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
 
 /*** Packed events ***/
 
-
-/* Records a packed event */
+/*
+ * Records a packed event without parameters
+ */
 #define litl_probe_pack_0(trace, code) do {				\
     int total_size = LITL_BASE_SIZE;					\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
@@ -153,49 +192,57 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 1 parameter */
+/*
+ * Records a packed event with 1 parameter
+ */
 #define litl_probe_pack_1(trace, code, arg1) do {			\
     int total_size = LITL_BASE_SIZE + sizeof(arg1);			\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
     }									\
   } while(0)
 
-/* Records a packed event with 2 parameters */
+/*
+ * Records a packed event with 2 parameters
+ */
 #define litl_probe_pack_2(trace, code, arg1, arg2) do {			\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2);	\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
     }									\
   } while(0)
 
-/* Records a packed event with 3 parameters */
+/*
+ * Records a packed event with 3 parameters
+ */
 #define litl_probe_pack_3(trace, code, arg1, arg2, arg3) do {		\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3); \
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
     }									\
   } while(0)
 
-/* Records a packed event with 4 parameters */
+/*
+ * Records a packed event with 4 parameters
+ */
 #define litl_probe_pack_4(trace, code, arg1, arg2, arg3, arg4) do {	\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -203,14 +250,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 5 parameters */
+/*
+ * Records a packed event with 5 parameters
+ */
 #define litl_probe_pack_5(trace, code, arg1, arg2, arg3, arg4, arg5) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5);						\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -219,14 +268,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 6 parameters */
+/*
+ * Records a packed event with 6 parameters
+ */
 #define litl_probe_pack_6(trace, code, arg1, arg2, arg3, arg4, arg5, arg6) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6);				\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -236,14 +287,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 7 parameters */
+/*
+ * Records a packed event with 7 parameters
+ */
 #define litl_probe_pack_7(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7);		\
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -254,14 +307,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 8 parameters */
+/*
+ * Records a packed event with 8 parameters
+ */
 #define litl_probe_pack_8(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8); \
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -273,14 +328,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 9 parameters */
+/*
+ * Records a packed event with 9 parameters
+ */
 #define litl_probe_pack_9(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8) + sizeof(arg9); \
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -293,14 +350,16 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
     }									\
   } while(0)
 
-/* Records a packed event with 10 parameters */
+/*
+ * Records a packed event with 10 parameters
+ */
 #define litl_probe_pack_10(trace, code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
     total_size += sizeof(arg5) + sizeof(arg6) + sizeof(arg7) + sizeof(arg8) + sizeof(arg9) + sizeof(arg10); \
     litl_t* p_evt = __litl_get_event(trace, LITL_TYPE_PACKED, code, total_size); \
     if(p_evt){								\
       p_evt->parameters.packed.size = total_size - LITL_BASE_SIZE;	\
-      void*_ptr_ = &p_evt->parameters.packed.param[0];			\
+      void* _ptr_ = &p_evt->parameters.packed.param[0];			\
       __LITL_ADD_ARG(_ptr_, arg1);					\
       __LITL_ADD_ARG(_ptr_, arg2);					\
       __LITL_ADD_ARG(_ptr_, arg3);					\
@@ -315,7 +374,7 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type, litl_code_
   } while(0)
 
 /*
- * This function finalizes the trace
+ * Finalizes the trace
  */
 void litl_fin_trace(litl_trace_write_t*);
 

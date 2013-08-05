@@ -4,6 +4,12 @@
  * See COPYING in top-level directory.
  */
 
+/*
+ * This test is to show that LiTL uses the optimized event storage and occupies
+ * the required space only.
+ */
+
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,11 +37,9 @@ int main(int argc, const char **argv) {
 
     nb_iter = 1000;
     for (i = 0; i < nb_iter; i++) {
-        // event6
-        /*        litl_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5, (uint8_t ) 7,
-         (uint8_t ) 11, (uint8_t ) 13);*/
-        litl_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t ) 1, (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
-                (int32_t ) 11, (int32_t ) 13);
+        litl_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t ) 1,
+                (int32_t ) 3, (int32_t ) 5, (int32_t ) 7, (int32_t ) 11,
+                (int32_t ) 13);
         usleep(100);
     }
 
@@ -49,7 +53,8 @@ int main(int argc, const char **argv) {
     size = ftell(fp);
     fclose(fp);
 
-    printf("\nThe size of the trace file with %d packed event6 is %d bytes \n", nb_iter, size);
+    printf("\nThe size of the trace file with %d packed event6 is %d bytes \n",
+            nb_iter, size);
 
     return EXIT_SUCCESS;
 }

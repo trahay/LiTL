@@ -10,7 +10,8 @@
 #include "litl_types.h"
 
 /*
- * This function for merging trace files is a modified version of the cat implementation from the Kernighan & Ritchie book
+ * Merges trace files. This is a modified version of the cat implementation
+ *   from the Kernighan & Ritchie book
  */
 void litl_merge_file(const int, const char *);
 

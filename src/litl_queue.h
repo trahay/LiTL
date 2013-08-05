@@ -18,14 +18,14 @@ typedef struct litl_queue_t{
     struct node *tail;
 } litl_queue;
 
-void __litl_init_queue(litl_queue* queue);
+void litl_init_queue(litl_queue* queue);
 
-void __litl_enqueue(litl_queue* queue, char* val);
+void litl_enqueue(litl_queue* queue, char* val);
 
-char* __litl_dequeue(litl_queue* queue);
+char* litl_dequeue(litl_queue* queue);
 
-void __litl_print(litl_queue* queue);
+void litl_print(litl_queue* queue);
 
-void __litl_delqueue(litl_queue* queue);
+void litl_delqueue(litl_queue* queue);
 
 #endif /* LITL_QUEUE_H_ */

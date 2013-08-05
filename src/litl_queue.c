@@ -10,14 +10,12 @@
 
 #include "litl_queue.h"
 
-//static litl_queue traces;
-
-void __litl_init_queue(litl_queue* queue) {
+void litl_init_queue(litl_queue* queue) {
     queue->head = NULL;
     queue->tail = NULL;
 }
 
-void __litl_enqueue(litl_queue* queue, char* val) {
+void litl_enqueue(litl_queue* queue, char* val) {
     int length;
     length = strlen(val) + 1;
 
@@ -38,7 +36,7 @@ void __litl_enqueue(litl_queue* queue, char* val) {
     }
 }
 
-char* __litl_dequeue (litl_queue* queue) {
+char* litl_dequeue(litl_queue* queue) {
     if (queue->head == NULL )
         return NULL ;
 
@@ -49,7 +47,7 @@ char* __litl_dequeue (litl_queue* queue) {
     return val;
 }
 
-void __litl_print(litl_queue *queue) {
+void litl_print(litl_queue *queue) {
     while (queue->head != NULL ) {
         printf("%s \n", queue->head->filename);
         queue->head = queue->head->next;
@@ -57,7 +55,7 @@ void __litl_print(litl_queue *queue) {
 
 }
 
-void __litl_delqueue(litl_queue* queue) {
+void litl_delqueue(litl_queue* queue) {
     struct node *tmp;
 
     while (queue->head != NULL ) {
