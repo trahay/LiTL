@@ -111,12 +111,14 @@ static void __init_trace_header(litl_trace_read_t* arch,
     trace->header = (litl_header_t *) trace->header_buffer_ptr;
 
     // check if the buffer is large enough to store the header
+    litl_size_t nb_threads =
+            (trace->header->nb_threads > NBTHREADS) ? trace->header->nb_threads :
+                    NBTHREADS;
     if (trace->header->nb_threads > 1) {
         trace->header_buffer_ptr = (litl_buffer_t) realloc(
                 trace->header_buffer_ptr,
                 sizeof(litl_header_t)
-                        + (trace->header->nb_threads + 1)
-                                * sizeof(litl_header_tids_t));
+                        + (nb_threads + 1) * sizeof(litl_header_tids_t));
 
         lseek(arch->f_handle, trace->triples->offset, SEEK_SET);
         trace->header_size = sizeof(litl_header_t)
@@ -145,9 +147,12 @@ static void __next_pairs_buffer(litl_trace_read_t* arch,
     litl_size_t nb_threads =
             (trace->nb_buffers - trace->header->header_nb_threads) > NBTHREADS ? NBTHREADS :
                     (trace->nb_buffers - trace->header->header_nb_threads);
-    trace->header_buffer -= sizeof(litl_header_tids_t);
-    int res = read(arch->f_handle, trace->header_buffer,
+
+    int res = read(arch->f_handle,
+            trace->header_buffer_ptr + sizeof(litl_header_t),
             (nb_threads + 1) * sizeof(litl_header_tids_t));
+    trace->header_buffer = trace->header_buffer_ptr + sizeof(litl_header_t);
+
     if (res == -1) {
         perror(
                 "Could not read the next part of pairs (tid, offset) from the trace file!");
@@ -169,31 +174,33 @@ static void __init_buffers(litl_trace_read_t* arch,
     trace->buffers = (litl_trace_read_thread_t*) malloc(
             trace->nb_buffers * sizeof(litl_trace_read_thread_t));
 
-    // read pairs (tid, offset)
-    for (i = 0; i < trace->nb_buffers; i++) {
-        tids = (litl_header_tids_t *) trace->header_buffer;
-
-        // deal with slots of pairs
-        if ((tids->tid == 0) && (tids->offset != 0)) {
-            __next_pairs_buffer(arch, trace, tids->offset);
-            continue;
-        }
-
-        // end of reading pairs
-        if ((tids->tid == 0) && (tids->offset == 0)) {
-            break;
-        }
-
-        trace->buffers[i].tids = tids;
-        trace->header_buffer += size;
-    }
-
     // increase a bit the buffer size 'cause of the possible event's tail and
     //   the offset
     trace->buffer_size = trace->header->buffer_size
             + get_event_size(LITL_MAX_PARAMS) + get_event_size(0);
 
     for (i = 0; i < trace->nb_buffers; i++) {
+        /* read pairs (tid, offset) */
+        tids = (litl_header_tids_t *) trace->header_buffer;
+
+        // deal with slots of pairs
+        if ((tids->tid == 0) && (tids->offset != 0)) {
+            __next_pairs_buffer(arch, trace, tids->offset);
+            tids = (litl_header_tids_t *) trace->header_buffer;
+        }
+
+        // end of reading pairs
+        if ((tids->tid == 0) && (tids->offset == 0))
+            break;
+
+        trace->buffers[i].tids = (litl_header_tids_t*) malloc(
+                sizeof(litl_header_tids_t));
+        trace->buffers[i].tids->tid = tids->tid;
+        trace->buffers[i].tids->offset = tids->offset;
+
+        trace->header_buffer += size;
+
+        /* read chunks of data */
         trace->buffers[i].buffer_size = trace->buffer_size;
         trace->buffers[i].buffer_ptr = (litl_buffer_t) malloc(
                 trace->buffer_size);
@@ -483,25 +490,19 @@ void litl_close_trace(litl_trace_read_t* arch) {
     arch->f_handle = -1;
 
     // free traces
-    if (arch->header->is_trace_archive) {
-        // archive of traces
+    for (i = 0; i < arch->nb_traces; i++) {
+        free(arch->traces[i].header_buffer_ptr);
 
-        for (i = 0; i < arch->nb_traces; i++) {
-            free(arch->traces[i].header_buffer_ptr);
-
-            for (j = 0; j < arch->traces[i].nb_buffers; j++) {
-                free(arch->traces[i].buffers[j].buffer_ptr);
-            }
-            free(arch->traces[i].buffers);
+        for (j = 0; j < arch->traces[i].nb_buffers; j++) {
+            free(arch->traces[i].buffers[j].buffer_ptr);
+            free(arch->traces[i].buffers[j].tids);
         }
-    } else {
-        // regular trace
 
-        free(arch->traces->triples);
-        free(arch->header_buffer);
+        free(arch->traces[i].buffers);
     }
 
     // free an archive
+    free(arch->header_buffer);
     free(arch->traces);
     free(arch);
 
