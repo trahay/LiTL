@@ -1,0 +1,149 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOR PRINTING
+\documentclass[
+    11pt,
+    a4paper,
+    openright,
+    cleardoubleplain,
+    appendixprefix,
+    chapterprefix,
+    numbers=noenddot,
+    DIV11,
+    BCOR15mm
+]{report}
+               
+\newcommand{\litl}{LiTL}
+\newcommand{\reporttitle}{\litl}               
+\newcommand{\reportsubtitle}{Lightweight Trace Library}
+\newcommand{\reportsubsubtitle}{User Manual}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{etex}
+\usepackage{savesym}
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}
+\usepackage[small,bf]{caption}
+
+% for plotting 
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+    \definecolor{ListingsKeywordColor}{rgb}{0,0,0.4}
+    \definecolor{ListingsIdentifierColor}{rgb}{0,0.5,0}
+    \definecolor{ListingsCommentColor}{rgb}{0.4,0.4,0.4}
+    \definecolor{ListingsStringColor}{rgb}{0.6000,0.3333,0.7333}%{0.8,0,0}
+    \definecolor{ListingsRuleSepColor}{rgb}{0,0,0}
+    \definecolor{ListingsEmphColor}{rgb}{0,0.6667,0.6667}
+    \definecolor{ListingsBreakSymbolColor}{rgb}{0.780,0.082,0.522}
+    \definecolor{LinkColor}{rgb}{0,0,0.5}
+    \definecolor{UnitColor}{rgb}{0,0,0}
+    \definecolor{MathsVectorColor}{rgb}{0,0,0}
+    \definecolor{MathsMatrixColor}{rgb}{0,0,0}
+    \definecolor{MyGreen}{HTML}{228B22}
+%     \definecolor{TikzGreen}{HTML}{}
+    \definecolor{MyBlue}{HTML}{0000FF}
+    \colorlet{MatrixElementsLight}{gray!20!white}
+    \colorlet{MatrixElementsDark}{gray!40}
+
+% for listing
+\usepackage{listings}
+  \lstset{
+    basicstyle=\scriptsize\ttfamily,
+    tabsize=3,
+    showtabs=false,
+    showspaces=false,
+    showstringspaces=false,
+    tab=\rightarrowfill,
+    keywordstyle=\color{ListingsKeywordColor},
+    identifierstyle=\color{ListingsIdentifierColor},
+    commentstyle=\color{ListingsCommentColor},
+    stringstyle=\color{ListingsStringColor},
+    emphstyle=\color{ListingsEmphColor}\bfseries\underbar,
+    frame=none,
+    rulesepcolor=\color{ListingsRuleSepColor},
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    captionpos=top,
+    frame=tb,
+    firstnumber=1,
+    stepnumber=1,
+%     numberfirstline=false,
+    breaklines=true,
+    breakatwhitespace=true,
+%     prebreak=\mbox{\,$\color{ListingsBreakSymbolColor}\mathbf{\hookleftarrow}$},
+    mathescape=true,
+    morekeywords={},
+}
+
+\usepackage{url}
+\usepackage[final]{hyperref}
+\hypersetup{
+   % Farben fuer die Links
+   colorlinks=false,         % Links erhalten Farben statt Kaeten
+   urlcolor=LinkColor,    % \href{...}{...} external (URL)
+   filecolor=LinkColor,  % \href{...} local file
+   linkcolor=LinkColor,  %\ref{...} and \pageref{...}
+   menucolor=LinkColor,
+   citecolor=LinkColor,
+   % Links
+   raiselinks=true,       % calculate real height of the link
+   breaklinks,              % Links berstehen Zeilenumbruch
+   %backref=page,            % Backlinks im Literaturverzeichnis (section, slide, page, none)
+   %pagebackref=true,        % Backlinks im Literaturverzeichnis mit Seitenangabe
+   verbose,
+   hyperindex=true,         % backlinkex index
+   linktocpage=true,        % Inhaltsverzeichnis verlinkt Seiten
+   hyperfootnotes=false,     % Keine Links auf Fussnoten
+   % Bookmarks
+   bookmarks=true,          % Erzeugung von Bookmarks fuer PDF-Viewer
+   bookmarksopenlevel=1,    % Gliederungstiefe der Bookmarks
+   bookmarksopen=false,      % Expandierte Untermenues in Bookmarks
+   bookmarksnumbered=true,  % Nummerierung der Bookmarks
+   bookmarkstype=toc,       % Art der Verzeichnisses
+   % Anchors
+   plainpages=false,        % Anchors even on plain pages ?
+   pageanchor=true,         % Pages are linkable
+   % PDF Informationen
+   pdftitle={\reporttitle: \reportsubtitle. \reportsubsubtitle},             % Titel
+   pdfauthor={Roman Iakymchuk},            % Autor
+   pdfcreator={LaTeX, hyperref, KOMA-Script},
+   pdfstartview=Fit,       % Dokument wird Fit Height geaefnet
+   pdffitwindow=true,
+   pdfpagemode=UseOutlines, % Bookmarks im Viewer anzeigen
+   pdfpagelabels=true,      % set PDF page labels
+}
+
+\usepackage{cleveref}
+\Crefname{algorithm}{Alg.}{Algs.}
+\Crefname{figure}{Fig.}{Figs.}
+\Crefname{table}{Tab.}{Tabs.}
+\Crefname{equation}{Eq.}{Eqs.}
+\Crefname{eqnarray}{Eq.}{Eqs.}
+
+\usepackage{float}
+\newfloat{algorithm}{htb}{lob}
+\floatname{algorithm}{Algorithm}
+
+\newlength{\figlength}
+\setlength{\figlength}{7.6cm} %8.2cm
+\newlength{\subfiglength}
+\setlength{\subfiglength}{7.3cm}%7.8
+
+\newcommand{\bytes}{b}
+\newcommand{\kb}{Kb}
+\newcommand{\mb}{Mb}
+\newcommand{\ghz}{GHz}
+\newcommand{\flop}{Flop}
+\newcommand{\flops}{Flops}
+\newcommand{\gflops}{G\flops}
+\newcommand{\eztrace}{EZTrace}
+\newcommand{\fxt}{FxT}
+\newcommand{\pthread}{Pthreads}
+\newcommand{\openmp}{OpenMP}
+\newcommand{\mpi}{MPI}
+\newcommand{\dash}{ -- }

@@ -1,0 +1,242 @@
+\include{header}
+
+% Title Page
+\title{
+{\Huge\bf \reporttitle{}}\\[6mm]
+{\LARGE\bf \reportsubtitle}\\[12mm]
+{\Large\bf \reportsubsubtitle}}
+\author{Roman Iakymchuk and Fran\c{c}ois Trahay}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\chapter{License of \litl}
+\litl{} is developed and distributed under the GNU General Public License.
+
+This library is free software; you can redistribute it and/or modify it under 
+the terms of the GNU General Public License as published by the Free Software 
+Foundation; either version 2 of the License, or (at your option) any later 
+version.
+
+\litl{} is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with 
+\litl{}; if not, write to the Free Software Foundation, Inc., 675 Mass Ave, 
+Cambridge, MA 02139, USA.
+
+
+\chapter{\litl}
+\litl{}~\cite{litl} is a lightweight binary trace library that aims at 
+providing performance analysis tools with a scalable event recording mechanism 
+that utilizes minimum resources of the CPU and memory. In order to efficiently 
+analyze modern HPC applications that combine \openmp{} (or \pthread) threads 
+and \mpi{} processes, we design and implement various mechanisms to ensure the 
+scalability of \litl{} for a large  number of both threads and processes. 
+
+\litl{} is designed in order to resolve the following performance tracing 
+issues:
+\begin{itemize}
+ \item Scalability and the number of threads;
+ \item Scalability and the number of recorded traces;
+ \item Optimization in the storage capacity usage.
+\end{itemize}
+As a results, \litl{} provides similar functionality to standard event recording 
+libraries and records events only from user-space. \litl{} minimizes the usage 
+of the CPU time and memory space in order to avoid disturbing the application 
+that is being analyzed. Also, \litl{} is fully thread-safe that allows to record 
+events from multi-threaded applications. Finally, \litl{} is a generic library 
+that can be used in conjunction with many performance analysis tools. 
+
+
+\chapter{Installation}
+\section{Requirements}
+In order to use \litl{}, the following software is needed:
+\begin{enumerate}
+ \item autoconf 2.63;
+ 
+ \item libelf or libbfd. On Debian, libelf can be installed from command line by 
+       the following command:\\
+       \texttt{apt-get install libelf-dev}
+\end{enumerate}
+
+\section{Getting \litl}
+Current development version of \litl{} is available via Git\\
+    \hspace*{0.9cm}\texttt{git clone git+ssh://fusionforge.int-evry.fr//var/lib/}\\
+    \hspace*{0.9cm}\texttt{gforge/chroot/scmrepos/git/litl/litl.git}\\
+After getting the latest development version from Git,\\
+\hspace*{0.9cm}\texttt{./bootstrap}\\ 
+should be run in the root directory and only then the tool can be built.
+
+\section{Building \eztrace{}}
+At first, to configure \litl{} the following configure script should be 
+invoked:\\
+    \hspace*{0.9cm}\texttt{./configure --prefix=<LITL\_INSTALL\_DIR>}\\
+The configuration script contains many different options that can be set. 
+However, during the first try we recommend to use the default settings.
+
+Once \litl{} is configured, the next two commands should be executed:\\
+    \hspace*{0.9cm}\texttt{make}\\
+    \hspace*{0.9cm}\texttt{make install}
+
+In order to check whether \litl{} was installed correctly, a set of tests can be 
+run as\\
+    \hspace*{0.9cm}\texttt{make check}
+
+\chapter{\litl{} in Details}
+    
+\chapter{How to Use \litl{}}
+\section{Reading Events}
+After the application was traced and events were recorded into binary trace 
+files, those traces can be analyzed using \texttt{litl\_read} as\\
+    \hspace*{0.9cm}\texttt{litl\_read -f trace.file}\\
+This utility shows the recorded events in the following format:
+\begin{itemize}
+ \item Time since last probe record on the same CPU;
+ \item ID of the current thread on this CPU;
+ \item Event type;
+ \item Code of the probe;
+ \item Number of parameters of the probe;
+ \item List of parameters of the probe, if any.
+\end{itemize}
+
+\section{Merging Traces}
+Once the traces were recorded, they can be merged into an archive of traces for
+further processing by the following command\\
+    \hspace*{0.9cm}\texttt{litl\_read  -o archive.trace trace.0 trace.1 ... trace.n}
+
+\section{Splitting Traces}
+If there is a need for a detail analysis of a particular trace files, an archive
+of traces can be split back into separate trace files by\\
+\hspace*{0.9cm}\texttt{litl\_read  -f archive.trace -d output.dir}
+
+
+\chapter{Environment Variables}
+For a more flexible and comfortable usage of \litl{}, we provide three 
+environment variables:
+\begin{itemize}
+ \item \texttt{LITL\_BUFFER\_FLUSH} specifies the behavior of \litl{} when the 
+       event buffer is full. If it is set to one, which is a default option, 
+       the buffer is flushed. This permits to record traces that are larger 
+       than the buffer size. Otherwise, if it is set to zero any additional 
+       event will be recorded. The trace is, thus, truncated and there is no 
+       impact on the application performance;
+
+ \item \texttt{LITL\_THREAD\_SAFETY} specifies the behavior of \litl{} while
+       tracing multi-threaded applications. If it is set to one, which is a 
+       default value, the thread safety is enabled. Otherwise, when it is set 
+       to zero, the event recording is not thread safe;
+ 
+ \item \texttt{LITL\_TIMING\_METHOD} specifies the timing method that will be 
+       used during the recording phase. The \litl{} timing methods can be 
+       divided into two groups: those that measure time in clock ticks and 
+       those that rely on \texttt{clock\_gettime()} function. The first has one 
+       method:
+       \begin{itemize}
+        \item \texttt{ticks} that uses the CPU specific register, e.g. rdtsc 
+        on X86 and X86\_64 architectures.
+       \end{itemize}     
+       The second has five different possibilities:
+       \begin{itemize}
+        \item \texttt{monotonic} that corresponds to \texttt{CLOCK\_MONOTONIC};
+        \item \texttt{monotonic\_raw}\dash{}\texttt{CLOCK\_MONOTONIC\_RAW};
+        \item \texttt{realtime}\dash{}\texttt{CLOCK\_REALTIME};
+        \item \texttt{thread\_cputime}\dash{}\texttt{CLOCK\_THREAD\_CPUTIME\_ID};        
+        \item \texttt{process\_cputime}\dash{}\texttt{CLOCK\_PROCESS\_CPUTIME\_ID}.
+       \end{itemize}
+       User can also define its own timing method and set the environment 
+       variable accordingly.
+\end{itemize}
+
+% Here is a list of the environment variables that can be used for tuning \eztrace{}.
+% \begin{itemize}
+%  \item General-purpose variables:
+%   \begin{itemize}
+%    \item \texttt{EZTRACE\_TRACE\_DIR} specifies the directory in which trace files
+%     are stored (by default it is \texttt{/tmp});
+%    \item \texttt{EZTRACE\_LIBRARY\_PATH} specifies the directories in which \eztrace{}
+%     can find \eztrace{} modules (by default, it is none);
+%    \item \texttt{EZTRACE\_TRACE} specifies the list of \eztrace{} modules to load
+%     (by default, it is the list of all available modules);
+%    \item \texttt{EZTRACE\_BUFFER\_SIZE} specifies the size of the buffer in which 
+%     \eztrace{} stores events (by default, the size is 32\,MB);
+%    \item \texttt{EZTRACE\_FLUSH} specifies the behavior of \eztrace{} when the event
+%     buffer is full. If it is set to one, the buffer is flushed. This permits to record traces
+%     that are larger than \texttt{EZTRACE\_BUFFER\_SIZE}, but this may impact the
+%     application performance. Otherwise, if it is set to zero, which is a default option,
+%     any additional event will be recorded. The trace is, thus, truncated and there is no impact
+%     on performance.
+%   \end{itemize}
+%  \item Error-handling variables:
+%   \begin{itemize}
+%    \item \texttt{EZTRACE\_NO\_SIGNAL\_HANDLER} disables \eztrace{} signal handling (by default,
+%    it is zero).
+%   \end{itemize}
+% 
+%  \item Hardware counters-related variables:
+%   \begin{itemize}
+%    \item \texttt{EZTRACE\_PAPI\_COUNTERS} selects hardware events to trace using the PAPI
+%     library, e.g. export \texttt{EZTRACE\_PAPI\_COUNTERS="PAPI\_L3\\\_TCM PAPI\_FP\_INS"}.
+%     Please note that the list of supported events as well as the number of events,
+%     which can be traced simultaneously, vary depending on the processor type. This information
+%     can be retrieved using \texttt{papi\_avail} and the processor documentation.
+%   \end{itemize}
+%   
+%  \item MPI-related variables:
+%   \begin{itemize}
+%    \item \texttt{EZTRACE\_MPI\_DUMP\_MESSAGES} tells \eztrace{} to dump the list of messages
+%     into a file. You can then compute your own statistics on MPI messages.
+%   \end{itemize}    
+% \end{itemize}
+
+
+% \chapter{Known Limitations}
+
+
+% \chapter{Frequently Asked Questions}
+% \begin{itemize}
+%  \item[\bf Q.] When I run my \mpi{} application with \eztrace{}, all the processes generate
+%   the \texttt{/tmp/<username>\_eztrace\_log\_rank\_1} file. What is going wrong?
+% 
+%  \item[\bf A.] This happens when \eztrace{} fails to intercept calls to \texttt{MPI\_Init}
+%   or \texttt{MPI\_Init\_thread}. There can be several reasons for that:
+%   \begin{itemize}
+%    \item The \eztrace{} \mpi{} module was not compiled. For intercepting calls to \mpi{} functions,
+%     you need the MPI module in your installation (look for the
+%     \texttt{EZTRACE\_ROOT/lib/libeztrace-autostart-\\mpi.so} file). If you do not see that file,
+%     it means that something went wrong during the configuration of \eztrace{}, so check for
+%     errors or warnings in the \texttt{config.log} file.
+%    \item You specified the list of modules to use and the \mpi{} module was not there. Check
+%     your \texttt{EZTRACE\_TRACE} variable or use \texttt{eztrace\_\\loaded}.
+%   \end{itemize}
+%   If you still experience problems, please contact the \eztrace{} development team and we will
+%   fix your problem.\\[1mm]
+% \end{itemize}
+ 
+
+% \chapter{Troubleshooting}
+% If you encounter a bug or want some explanation about \eztrace{}, please contact and ask our
+% development team:
+% \begin{itemize}
+%  \item On the development mailing list, \url{https://gforge.inria.fr/mail/?group_id=2774};
+% 
+%  \item On our IRC channel:
+%   \begin{itemize}
+%    \item Server: \texttt{chat.freenode.net}
+%    \item Channel: \texttt{\#eztrace}
+%   \end{itemize}
+% \end{itemize}
+
+
+\bibliographystyle{plain}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\small
+\bibliography{references}
+\normalsize
+
+\end{document}
