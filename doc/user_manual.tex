@@ -151,84 +151,13 @@ environment variables:
        variable accordingly.
 \end{itemize}
 
-% Here is a list of the environment variables that can be used for tuning \eztrace{}.
-% \begin{itemize}
-%  \item General-purpose variables:
-%   \begin{itemize}
-%    \item \texttt{EZTRACE\_TRACE\_DIR} specifies the directory in which trace files
-%     are stored (by default it is \texttt{/tmp});
-%    \item \texttt{EZTRACE\_LIBRARY\_PATH} specifies the directories in which \eztrace{}
-%     can find \eztrace{} modules (by default, it is none);
-%    \item \texttt{EZTRACE\_TRACE} specifies the list of \eztrace{} modules to load
-%     (by default, it is the list of all available modules);
-%    \item \texttt{EZTRACE\_BUFFER\_SIZE} specifies the size of the buffer in which 
-%     \eztrace{} stores events (by default, the size is 32\,MB);
-%    \item \texttt{EZTRACE\_FLUSH} specifies the behavior of \eztrace{} when the event
-%     buffer is full. If it is set to one, the buffer is flushed. This permits to record traces
-%     that are larger than \texttt{EZTRACE\_BUFFER\_SIZE}, but this may impact the
-%     application performance. Otherwise, if it is set to zero, which is a default option,
-%     any additional event will be recorded. The trace is, thus, truncated and there is no impact
-%     on performance.
-%   \end{itemize}
-%  \item Error-handling variables:
-%   \begin{itemize}
-%    \item \texttt{EZTRACE\_NO\_SIGNAL\_HANDLER} disables \eztrace{} signal handling (by default,
-%    it is zero).
-%   \end{itemize}
-% 
-%  \item Hardware counters-related variables:
-%   \begin{itemize}
-%    \item \texttt{EZTRACE\_PAPI\_COUNTERS} selects hardware events to trace using the PAPI
-%     library, e.g. export \texttt{EZTRACE\_PAPI\_COUNTERS="PAPI\_L3\\\_TCM PAPI\_FP\_INS"}.
-%     Please note that the list of supported events as well as the number of events,
-%     which can be traced simultaneously, vary depending on the processor type. This information
-%     can be retrieved using \texttt{papi\_avail} and the processor documentation.
-%   \end{itemize}
-%   
-%  \item MPI-related variables:
-%   \begin{itemize}
-%    \item \texttt{EZTRACE\_MPI\_DUMP\_MESSAGES} tells \eztrace{} to dump the list of messages
-%     into a file. You can then compute your own statistics on MPI messages.
-%   \end{itemize}    
-% \end{itemize}
 
-
-% \chapter{Known Limitations}
-
-
-% \chapter{Frequently Asked Questions}
-% \begin{itemize}
-%  \item[\bf Q.] When I run my \mpi{} application with \eztrace{}, all the processes generate
-%   the \texttt{/tmp/<username>\_eztrace\_log\_rank\_1} file. What is going wrong?
-% 
-%  \item[\bf A.] This happens when \eztrace{} fails to intercept calls to \texttt{MPI\_Init}
-%   or \texttt{MPI\_Init\_thread}. There can be several reasons for that:
-%   \begin{itemize}
-%    \item The \eztrace{} \mpi{} module was not compiled. For intercepting calls to \mpi{} functions,
-%     you need the MPI module in your installation (look for the
-%     \texttt{EZTRACE\_ROOT/lib/libeztrace-autostart-\\mpi.so} file). If you do not see that file,
-%     it means that something went wrong during the configuration of \eztrace{}, so check for
-%     errors or warnings in the \texttt{config.log} file.
-%    \item You specified the list of modules to use and the \mpi{} module was not there. Check
-%     your \texttt{EZTRACE\_TRACE} variable or use \texttt{eztrace\_\\loaded}.
-%   \end{itemize}
-%   If you still experience problems, please contact the \eztrace{} development team and we will
-%   fix your problem.\\[1mm]
-% \end{itemize}
- 
-
-% \chapter{Troubleshooting}
-% If you encounter a bug or want some explanation about \eztrace{}, please contact and ask our
-% development team:
-% \begin{itemize}
-%  \item On the development mailing list, \url{https://gforge.inria.fr/mail/?group_id=2774};
-% 
-%  \item On our IRC channel:
-%   \begin{itemize}
-%    \item Server: \texttt{chat.freenode.net}
-%    \item Channel: \texttt{\#eztrace}
-%   \end{itemize}
-% \end{itemize}
+\chapter{Troubleshooting}
+If you encounter a bug or want some explanation about \litl{}, please contact 
+and ask our development team on the development mailing list
+\begin{itemize}
+ \item \url{litl-devel@fusionforge.int-evry.fr}.
+\end{itemize}
 
 
 \bibliographystyle{plain}
