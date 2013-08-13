@@ -7,7 +7,8 @@
 #ifndef LITL_QUEUE_H_
 #define LITL_QUEUE_H_
 
-// data structure for holding the trace file names in the same order as they arrived
+// data structure for holding the trace file names in the same order as they
+//    arrived
 struct node {
     char* filename;
     struct node* next;

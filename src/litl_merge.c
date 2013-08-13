@@ -137,11 +137,6 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
         __archive->general_offset += res;
     }
 
-    /*// Solution B: Reading and writing characters
-     int c;
-     while ((c = getc(trace_in)) != EOF)
-     putc(c, __archive->f_arch);*/
-
     close(trace_in);
 }
 
@@ -162,7 +157,7 @@ int main(int argc, char **argv) {
     __init_trace(__archive_name);
 
     // write header with #traces and reserved space for
-    //   triples (fid, offset, traces_size)
+    //    triples (fid, offset, traces_size)
     __add_trace_header();
 
     // merging the trace files
@@ -170,12 +165,6 @@ int main(int argc, char **argv) {
     char *filename;
     while ((filename = litl_dequeue(&trace_queue)) != NULL )
         litl_merge_file(i++, filename);
-
-    /*// error handling: valid ONLY for FILE*
-     if (ferror(trace_out)) {
-     fprintf(stderr, "%s: error while merging trace files\n", argv[0]);
-     exit(EXIT_FAILURE);
-     }*/
 
     // finalizing merging
     __finalize_trace();

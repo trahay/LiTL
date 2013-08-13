@@ -177,7 +177,7 @@ static void __init_buffers(litl_trace_read_t* arch,
     // increase a bit the buffer size 'cause of the possible event's tail and
     //   the offset
     trace->buffer_size = trace->header->buffer_size
-            + get_event_size(LITL_MAX_PARAMS) + get_event_size(0);
+            + get_reg_event_size(LITL_MAX_PARAMS) + get_reg_event_size(0);
 
     for (i = 0; i < trace->nb_buffers; i++) {
         /* read pairs (tid, offset) */
@@ -375,20 +375,21 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
 
     // While reading events from the buffer, there can be two situations:
     // 1. The situation when the buffer contains exact number of events;
-    // 2. The situation when only a part of the last event is loaded to the buffer.
-    // Check whether the main four components (tid, time, code, nb_params) are loaded.
+    // 2. The situation when only a part of the last event is loaded.
+    // Check whether the main four components (tid, time, code, nb_params) are
+    //   loaded.
     // Check whether all arguments are loaded.
     // If any of these cases is not true, the next part of the trace plus
     // the current event is loaded to the buffer
     unsigned remaining_size = trace->buffers[buffer_index].tracker
             - trace->buffers[buffer_index].offset;
-    if (remaining_size < get_event_size(0)) {
+    if (remaining_size < get_reg_event_size(0)) {
         // this event is truncated. We can't even read the nb_param field
         to_be_loaded = 1;
     } else {
         // The nb_param (or size) field is available. Let's check whether
         //   the event is truncated
-        litl_size_t event_size = get_event_size_type(event);
+        litl_size_t event_size = get_gen_event_size(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }
@@ -415,7 +416,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
     }
 
     // move pointer to the next event and update __offset
-    unsigned evt_size = get_event_size_type(event);
+    unsigned evt_size = get_gen_event_size(event);
     trace->buffers[buffer_index].buffer += evt_size;
     trace->buffers[buffer_index].offset += evt_size;
 

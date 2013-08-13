@@ -408,8 +408,8 @@ static void __allocate_buffer(litl_trace_write_t* trace) {
     pthread_mutex_unlock(&trace->lock_buffer_init);
 
     trace->buffers[*pos]->buffer_ptr = malloc(
-            trace->buffer_size + get_event_size(LITL_MAX_PARAMS)
-                    + get_event_size(1));
+            trace->buffer_size + get_reg_event_size(LITL_MAX_PARAMS)
+                    + get_reg_event_size(1));
     if (!trace->buffers[*pos]->buffer_ptr) {
         perror("Could not allocate memory for the buffer!");
         exit(EXIT_FAILURE);
@@ -431,7 +431,7 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type,
     if (trace->litl_initialized && !trace->litl_paused
             && !trace->is_buffer_full) {
 
-        // find the thead index
+        // find the thread index
         litl_size_t *p_index = pthread_getspecific(trace->index);
         if (!p_index) {
             __allocate_buffer(trace);
@@ -488,7 +488,8 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type,
 void litl_probe_offset(litl_trace_write_t* trace, int16_t index) {
     if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
         return;
-    //    litl_t* cur_ptr = litl_cmpxchg((uint8_t**) &trace->buffer_cur[index], LITL_BASE_SIZE + sizeof(litl_param_t));
+    // litl_t* cur_ptr = litl_cmpxchg((uint8_t**) &trace->buffer_cur[index],
+    //    LITL_BASE_SIZE + sizeof(litl_param_t));
     litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
     cur_ptr->time = 0;
@@ -904,7 +905,8 @@ void litl_probe_raw(litl_trace_write_t* trace, litl_code_t code,
     index = *(litl_size_t *) pthread_getspecific(trace->index);
 
     litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
-    // needs to be done outside of the if statement 'cause of undefined size of the string which may cause segfault
+    // needs to be done outside of the if statement 'cause of undefined size of
+    //    the string that may cause segfault
     trace->buffers[index]->buffer_cur += LITL_BASE_SIZE + 7 + size;
 
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
@@ -931,7 +933,8 @@ void litl_probe_raw(litl_trace_write_t* trace, litl_code_t code,
  * This function finalizes the trace
  */
 void litl_fin_trace(litl_trace_write_t* trace) {
-    // write an event with the LITL_TRACE_END (= 0) code in order to indicate the end of tracing
+    // write an event with the LITL_TRACE_END (= 0) code in order to indicate
+    //    the end of tracing
     litl_size_t i;
 
     for (i = 0; i < trace->nb_threads; i++)

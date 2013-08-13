@@ -40,9 +40,7 @@ int main(int argc, const char **argv) {
     printf("Buffer size[KB] \t Time \n");
 
     litl_data_t val[] =
-            "Well, that's Philosophy I've read, And Law and Medicine, and I fear \
-            Theology, too, from A to Z; Hard studies all, that have cost me dear. \
-            And so I sit, poor silly man No wiser now than when I began.";
+            "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     buf_size = 1024; // 1KB
     while (buf_size <= MAX_BUFFER_SIZE) {
         trace = litl_init_trace(buf_size);

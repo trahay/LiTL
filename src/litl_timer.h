@@ -10,7 +10,7 @@
 #include "litl_types.h"
 
 /*
- * Callback function that returns the current time in ns.
+ * A callback function that returns the current time in ns.
  * It can be either a pointer to one of the timing functions
  * provided by LiTL or a user-defined function
  */
