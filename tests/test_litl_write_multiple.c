@@ -32,7 +32,7 @@ sem_t thread_ready;
  * Records several traces at the same time
  */
 void* write_trace(void* arg) {
-    int i;
+    int i, res __attribute__ ((__unused__));
     char* filename;
     uint8_t my_id = *(uint8_t*) arg;
 
@@ -40,7 +40,7 @@ void* write_trace(void* arg) {
     sem_post(&thread_ready);
 
     printf("Recording events on thread #%d\n", my_id);
-    asprintf(&filename, "/tmp/test_litl_write_%d.trace", my_id);
+    res = asprintf(&filename, "/tmp/test_litl_write_%d.trace", my_id);
 
     litl_trace_write_t trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB
@@ -88,7 +88,7 @@ void* write_trace(void* arg) {
     return NULL ;
 }
 
-int main(int argc, const char **argv) {
+int main() {
     int i;
     pthread_t tid[NBTHREAD];
 

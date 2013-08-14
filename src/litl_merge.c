@@ -78,6 +78,7 @@ static void __init_trace(char *trace_name) {
  *   - Triples: a file id, a file size, and an offset
  */
 static void __add_trace_header() {
+    int res __attribute__ ((__unused__));
     litl_size_t header_size;
 
     // add nb_traces and the is_trace_archive flag
@@ -85,7 +86,7 @@ static void __add_trace_header() {
     ((litl_header_t *) __archive->buffer)->is_trace_archive = 1;
     header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
     __archive->header_offset += header_size;
-    write(__archive->f_arch, __archive->buffer, header_size);
+    res = write(__archive->f_arch, __archive->buffer, header_size);
 
     // we do not add all the information about each trace 'cause it will be
     // added during packing them, instead we just reserve the space for that

@@ -23,9 +23,9 @@
 #define MAX_BUFFER_SIZE 16 * 1024 * 1024
 #define NB_EVENTS 1000000
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
     int i;
-    const char* filename = "trace.trace";
+    char* filename = "trace.trace";
     uint32_t buf_size;
 
     litl_time_t start, fin;

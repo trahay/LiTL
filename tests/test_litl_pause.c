@@ -17,6 +17,7 @@
 #include "litl_types.h"
 #include "litl_write.h"
 #include "litl_read.h"
+#include "litl_macro.h"
 
 void write_trace(char* filename, int nb_iter, int skipped_iter) {
     int i;
@@ -75,10 +76,9 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
     litl_fin_trace(&trace);
 }
 
-void read_trace(char* filename, int left_bound, int right_bound) {
+void read_trace(char* filename, uint32_t left_bound, uint32_t right_bound) {
     int nbevents = 0;
 
-    litl_size_t index;
     litl_read_t* event;
     litl_trace_read_t *arch;
 
@@ -86,7 +86,6 @@ void read_trace(char* filename, int left_bound, int right_bound) {
 
     litl_init_traces(arch);
 
-    index = 0;
     while (1) {
         event = litl_next_event(arch);
 
@@ -113,10 +112,10 @@ void read_trace(char* filename, int left_bound, int right_bound) {
     }
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
     int nb_iter;
     int skipped_iter;
-    const char* filename = "trace";
+    char* filename = "trace";
 
     nb_iter = 10;
     skipped_iter = nb_iter / 2;

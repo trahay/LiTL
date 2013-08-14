@@ -47,6 +47,7 @@ static void __parse_args(int argc, char **argv) {
  * Initializes the archive header
  */
 static void __init_header(litl_trace_read_t* arch) {
+    int res;
 
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
@@ -58,7 +59,7 @@ static void __init_header(litl_trace_read_t* arch) {
     }
 
     // read the archive header
-    int res = read(arch->f_handle, arch->header_buffer, arch->header_size);
+    res = read(arch->f_handle, arch->header_buffer, arch->header_size);
     // If the end of file is reached, then all data are read; res = 0.
     //   Otherwise, res equals the number of elements (= 1) or the error
     //   occurred and res = -1.
@@ -78,7 +79,7 @@ static void __init_header(litl_trace_read_t* arch) {
                 arch->header_size);
 
         // read the archive header
-        read(arch->f_handle, arch->header_buffer, arch->header_size);
+        res = read(arch->f_handle, arch->header_buffer, arch->header_size);
     } else {
         arch->nb_traces = 1;
     }
@@ -468,7 +469,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
  */
 litl_read_t* litl_next_event(litl_trace_read_t* arch) {
     litl_size_t i;
-    litl_read_t* event;
+    litl_read_t* event = NULL;
 
     for (i = 0; i < arch->nb_traces; i++) {
         event = litl_next_trace_event(arch, i);

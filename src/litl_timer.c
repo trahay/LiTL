@@ -143,7 +143,7 @@ void litl_time_initialize() {
         }
     }
     return;
-    not_available: fprintf(stderr,
+    not_available: __attribute__ ((__unused__)) fprintf(stderr,
             "Timing function '%s' not available on this system\n", time_str);
     abort();
 }

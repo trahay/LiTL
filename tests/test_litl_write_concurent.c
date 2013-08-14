@@ -31,7 +31,7 @@ litl_trace_write_t trace;
 /*
  * This test records several traces at the same time
  */
-void* write_trace(void *arg) {
+void* write_trace(void *arg __attribute__ ((__unused__))) {
     int i;
 
     litl_data_t val[] =
@@ -99,13 +99,13 @@ void read_trace(char* filename) {
 }
 
 int main() {
-    int i;
+    int i, res __attribute__ ((__unused__));
     char* filename;
     pthread_t tid[NBTHREAD];
     const uint32_t buffer_size = 1024; // 1KB
 
     printf("Recording events by %d threads\n\n", NBTHREAD);
-    asprintf(&filename, "/tmp/test_litl_write_concurent.trace");
+    res = asprintf(&filename, "/tmp/test_litl_write_concurent.trace");
 
     trace = litl_init_trace(buffer_size);
     litl_set_filename(&trace, filename);

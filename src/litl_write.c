@@ -235,6 +235,8 @@ void litl_set_filename(litl_trace_write_t* trace, char* filename) {
  * Writes the recorded events from the buffer to the trace file
  */
 void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
+    int res __attribute__ ((__unused__));
+
     if (!trace->litl_initialized)
         return;
 
@@ -306,7 +308,8 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
             // updated the offset from the previous slot
             lseek(trace->ftrace, trace->header_offset + sizeof(litl_tid_t),
                     SEEK_SET);
-            write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+            res = write(trace->ftrace, &trace->general_offset,
+                    sizeof(litl_offset_t));
 
             // reserve a new slot for pairs (tid, offset)
             trace->header_offset = trace->general_offset;
@@ -319,14 +322,16 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
 
         // add a new pair (tid, offset)
         lseek(trace->ftrace, trace->header_offset, SEEK_SET);
-        write(trace->ftrace, &trace->buffers[index]->tid, sizeof(litl_tid_t));
-        write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+        res = write(trace->ftrace, &trace->buffers[index]->tid,
+                sizeof(litl_tid_t));
+        res = write(trace->ftrace, &trace->general_offset,
+                sizeof(litl_offset_t));
 
         // add an indicator to specify the last slot of pairs (offset == 0)
         // TODO: how to optimize this and write only once at the end of the slot
-        write(trace->ftrace, &trace->buffers[index]->already_flushed,
+        res = write(trace->ftrace, &trace->buffers[index]->already_flushed,
                 sizeof(litl_tid_t));
-        write(trace->ftrace, &trace->buffers[index]->already_flushed,
+        res = write(trace->ftrace, &trace->buffers[index]->already_flushed,
                 sizeof(litl_offset_t));
 
         trace->header_offset += sizeof(litl_header_tids_t);
@@ -336,13 +341,14 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         // TODO: perform update only once 'cause there is duplication
         //        printf("trace->nb_threads = %d\n", trace->nb_threads);
         lseek(trace->ftrace, trace->header_size, SEEK_SET);
-        write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
+        res = write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     } else {
         // update the previous offset of the current thread,
         //   updating the location in the file
         lseek(trace->ftrace, trace->buffers[index]->offset, SEEK_SET);
-        write(trace->ftrace, &trace->general_offset, sizeof(litl_offset_t));
+        res = write(trace->ftrace, &trace->general_offset,
+                sizeof(litl_offset_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     }
 

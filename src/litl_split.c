@@ -71,13 +71,16 @@ static void __open_archive(const char *archive_name) {
  * Initializes a structure that stores triples from the archive's header
  */
 static void __read_archive_header() {
+    int res __attribute__ ((__unused__));
+
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
     __archive->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
     __archive->header_buffer = (litl_buffer_t) malloc(__archive->header_size);
 
     // read the archive's header
-    read(__archive->f_arch, __archive->header_buffer, __archive->header_size);
+    res = read(__archive->f_arch, __archive->header_buffer,
+            __archive->header_size);
 
     // get the number of traces
     __archive->header = (litl_header_t *) __archive->header_buffer;
@@ -97,14 +100,15 @@ static void __read_archive_header() {
             __archive->header_size);
 
     // read all triples
-    read(__archive->f_arch, __archive->header_buffer, __archive->header_size);
+    res = read(__archive->f_arch, __archive->header_buffer,
+            __archive->header_size);
 }
 
 /*
  * Writes each trace from an archive into a separate trace file
  */
 void litl_split_archive(const char *dir) {
-    int trace_out;
+    int trace_out, res __attribute__ ((__unused__));
     char *trace_name = NULL;
     char user[32];
     litl_size_t size;
@@ -122,7 +126,7 @@ void litl_split_archive(const char *dir) {
         lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
 
         // create and open a new trace file
-        asprintf(&trace_name, "%s/%s_eztrace_log_rank_%d", dir, user,
+        res = asprintf(&trace_name, "%s/%s_eztrace_log_rank_%ld", dir, user,
                 __archive->triples->fid);
         if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
             fprintf(stderr, "Cannot open %s\n", trace_name);
@@ -131,12 +135,14 @@ void litl_split_archive(const char *dir) {
 
         // read data and write to separate traces
         while (1) {
-            read(__archive->f_arch, __archive->buffer, __archive->buffer_size);
+            res = read(__archive->f_arch, __archive->buffer,
+                    __archive->buffer_size);
 
             if (__archive->triples->trace_size > __archive->buffer_size)
-                write(trace_out, __archive->buffer, __archive->buffer_size);
+                res = write(trace_out, __archive->buffer,
+                        __archive->buffer_size);
             else {
-                write(trace_out, __archive->buffer,
+                res = write(trace_out, __archive->buffer,
                         __archive->triples->trace_size);
                 break;
             }

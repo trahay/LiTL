@@ -18,11 +18,11 @@
 #include "litl_types.h"
 #include "litl_write.h"
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
     int i, nb_iter;
 
     litl_trace_write_t trace;
-    const char* filename = "trace";
+    char* filename = "trace";
     const uint32_t buffer_size = 32 * 1024; // 32KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
@@ -53,7 +53,7 @@ int main(int argc, const char **argv) {
     size = ftell(fp);
     fclose(fp);
 
-    printf("\nThe size of the trace file with %d packed event6 is %d bytes \n",
+    printf("\nThe size of the trace file with %d packed event6 is %ld bytes \n",
             nb_iter, size);
 
     return EXIT_SUCCESS;
