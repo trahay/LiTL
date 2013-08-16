@@ -83,12 +83,14 @@ static void __read_archive_header() {
             __archive->header_size);
 
     // get the number of traces
-    __archive->header = (litl_header_t *) __archive->header_buffer;
-    __archive->nb_traces = __archive->header->nb_threads;
+    __archive->is_trace_archive =
+            ((litl_header_t *) __archive->header_buffer)->is_trace_archive;
+    __archive->nb_traces =
+            ((litl_header_t *) __archive->header_buffer)->nb_threads;
 
-    if (__archive->header->is_trace_archive == 0) {
+    if (__archive->is_trace_archive == 0) {
         printf(
-                "The given trace is not an archive of traces. Therefore, there is nothing to be split.\n");
+                "The given trace is not an archive. Therefore, there is nothing to split.\n");
         exit(EXIT_SUCCESS);
     }
 

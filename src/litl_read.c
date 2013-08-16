@@ -69,11 +69,12 @@ static void __init_header(litl_trace_read_t* arch) {
     }
 
     // get the number of traces
-    arch->header = (litl_header_t *) arch->header_buffer;
-    if (arch->header->is_trace_archive) {
+    arch->is_trace_archive =
+            ((litl_header_t *) arch->header_buffer)->is_trace_archive;
+    if (arch->is_trace_archive) {
         // Yes, we work with an archive of trace. So, we increase
         //   the header size and relocate the header buffer
-        arch->nb_traces = arch->header->nb_threads;
+        arch->nb_traces = ((litl_header_t *) arch->header_buffer)->nb_threads;
         arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t);
         arch->header_buffer = (litl_buffer_t) realloc(arch->header_buffer,
                 arch->header_size);
@@ -254,7 +255,7 @@ void litl_init_traces(litl_trace_read_t* arch) {
     arch->traces = (litl_trace_read_process_t *) malloc(
             arch->nb_traces * sizeof(litl_trace_read_process_t));
 
-    if (arch->header->is_trace_archive) {
+    if (arch->is_trace_archive) {
         // archive of traces
         litl_size_t i, size;
         size = sizeof(litl_header_triples_t);
@@ -263,6 +264,7 @@ void litl_init_traces(litl_trace_read_t* arch) {
             // read triples that contain offset from the beginning of the archive
             arch->traces[i].triples =
                     (litl_header_triples_t *) arch->header_buffer;
+
             arch->header_buffer += size;
 
             arch->traces[i].cur_index = -1;
@@ -369,7 +371,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
 
     if (!buffer) {
         trace->buffers[buffer_index].cur_event.event = NULL;
-        return NULL ;
+        return NULL;
     }
 
     event = (litl_t *) buffer;
@@ -405,7 +407,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
             trace->buffers[buffer_index].buffer = NULL;
             *buffer = NULL;
             trace->buffers[buffer_index].cur_event.event = NULL;
-            return NULL ;
+            return NULL;
         }
     }
 
@@ -461,7 +463,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
     if (found)
         return LITL_GET_CUR_EVENT(trace);
 
-    return NULL ;
+    return NULL;
 }
 
 /*
@@ -474,7 +476,7 @@ litl_read_t* litl_next_event(litl_trace_read_t* arch) {
     for (i = 0; i < arch->nb_traces; i++) {
         event = litl_next_trace_event(arch, i);
 
-        if (event != NULL )
+        if (event != NULL)
             break;
     }
 
@@ -504,8 +506,8 @@ void litl_close_trace(litl_trace_read_t* arch) {
     }
 
     // free an archive
-    free(arch->header_buffer);
     free(arch->traces);
+//    free(arch->header_buffer);
     free(arch);
 
     // set pointers to NULL
@@ -532,7 +534,10 @@ int main(int argc, char **argv) {
     // print the header
     printf(" LiTL v.%s\n", header->litl_ver);
     printf(" %s\n", header->sysinfo);
-    printf(" nb_threads \t %d\n", header->nb_threads);
+    if (arch->is_trace_archive)
+        printf(" nb_traces \t %d\n", arch->nb_traces);
+    else
+        printf(" nb_threads \t %d\n", header->nb_threads);
     printf(" buffer_size \t %d\n", header->buffer_size);
 
     printf(
@@ -540,7 +545,7 @@ int main(int argc, char **argv) {
     while (1) {
         event = litl_next_event(arch);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
         switch (LITL_GET_TYPE(event)) {
@@ -550,7 +555,7 @@ int main(int argc, char **argv) {
                     LITL_GET_CODE(event), LITL_REGULAR(event)->nb_params);
 
             for (i = 0; i < LITL_REGULAR(event)->nb_params; i++)
-                printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
+            printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
             break;
         }
         case LITL_TYPE_RAW: { // raw event

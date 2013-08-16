@@ -244,8 +244,8 @@ typedef struct {
 
     litl_size_t header_size;
     litl_buffer_t header_buffer;
-    litl_header_t* header;
 
+    litl_tiny_size_t is_trace_archive;
     litl_size_t nb_traces;
     litl_trace_read_process_t *traces;
 } litl_trace_read_t;
@@ -273,7 +273,8 @@ typedef struct {
 
     litl_size_t header_size;
     litl_buffer_t header_buffer;
-    litl_header_t *header;
+
+    litl_tiny_size_t is_trace_archive;
     litl_size_t nb_traces;
     litl_header_triples_t* triples;
 
