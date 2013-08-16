@@ -904,6 +904,10 @@ void litl_probe_raw(litl_trace_write_t* trace, litl_code_t code,
     if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
         return;
 
+    // specify explicitly the end of the string
+    data[size] = '\0';
+    size++;
+
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
