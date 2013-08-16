@@ -37,12 +37,12 @@ litl_size_t litl_get_buffer_size(litl_trace_read_t*);
 /*
  * Resets the trace
  */
-void litl_reset_trace(litl_trace_read_t*, litl_size_t);
+void litl_reset_trace(litl_trace_read_t*, litl_med_size_t);
 
 /*
  * Searches for the next event inside the trace
  */
-litl_read_t* litl_next_trace_event(litl_trace_read_t*, litl_size_t);
+litl_read_t* litl_next_trace_event(litl_trace_read_t*, litl_med_size_t);
 
 /*
  * Reads the next event either from an archive or a regular trace

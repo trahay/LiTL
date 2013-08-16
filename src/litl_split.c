@@ -75,7 +75,7 @@ static void __read_archive_header() {
 
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
-    __archive->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
+    __archive->header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
     __archive->header_buffer = (litl_buffer_t) malloc(__archive->header_size);
 
     // read the archive's header
@@ -113,7 +113,7 @@ void litl_split_archive(const char *dir) {
     int trace_out, res __attribute__ ((__unused__));
     char *trace_name = NULL;
     char user[32];
-    litl_size_t size;
+    litl_med_size_t size;
 
     size = sizeof(litl_header_triples_t);
 
@@ -128,7 +128,7 @@ void litl_split_archive(const char *dir) {
         lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
 
         // create and open a new trace file
-        res = asprintf(&trace_name, "%s/%s_eztrace_log_rank_%ld", dir, user,
+        res = asprintf(&trace_name, "%s/%s_litl_log_rank_%ld", dir, user,
                 __archive->triples->fid);
         if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
             fprintf(stderr, "Cannot open %s\n", trace_name);

@@ -18,7 +18,7 @@
 #include "litl_macro.h"
 
 int main(int argc, const char **argv) {
-    litl_size_t i;
+    litl_tiny_size_t i;
     const char* filename = "trace";
     litl_read_t* event;
     litl_header_t* header;

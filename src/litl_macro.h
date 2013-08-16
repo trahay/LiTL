@@ -14,13 +14,13 @@
  * Returns the size of a particular event in bytes depending on
  * the number of arguments
  */
-litl_size_t get_reg_event_size(litl_size_t);
+litl_med_size_t get_reg_event_size(litl_tiny_size_t);
 
 /*
  * Returns the size of a particular event in bytes depending on
  * the number of arguments
  */
-litl_size_t get_gen_event_size(litl_t *p_evt);
+litl_med_size_t get_gen_event_size(litl_t *p_evt);
 
 /*
  * Sets the bit of the higher order to one

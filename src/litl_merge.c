@@ -16,7 +16,7 @@
 
 static char* __archive_name = "archive";
 static litl_trace_merge_t* __archive;
-static litl_size_t __nb_traces = 0;
+static litl_med_size_t __nb_traces = 0;
 static struct litl_queue_t trace_queue;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
@@ -84,7 +84,8 @@ static void __add_trace_header() {
     // add nb_traces and the is_trace_archive flag
     ((litl_header_t *) __archive->buffer)->nb_threads = __nb_traces;
     ((litl_header_t *) __archive->buffer)->is_trace_archive = 1;
-    header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
+
+    header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
     __archive->header_offset += header_size;
     res = write(__archive->f_arch, __archive->buffer, header_size);
 
@@ -118,7 +119,7 @@ void litl_merge_file(const int file_id, const char *file_name_in) {
 
     // add triples (fid, file_size, offset)
     lseek(__archive->f_arch, __archive->header_offset, SEEK_SET);
-    res = write(__archive->f_arch, &file_id, sizeof(litl_tid_t));
+    res = write(__archive->f_arch, &file_id, sizeof(litl_med_size_t));
     res = write(__archive->f_arch, &file_size, sizeof(litl_trace_size_t));
     res = write(__archive->f_arch, &__archive->general_offset,
             sizeof(litl_offset_t));

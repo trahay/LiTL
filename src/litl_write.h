@@ -58,7 +58,7 @@ void litl_set_filename(litl_trace_write_t*, char*);
 /*
  * Writes the recorded events from the buffer to the trace file
  */
-void litl_flush_buffer(litl_trace_write_t*, litl_size_t);
+void litl_flush_buffer(litl_trace_write_t*, litl_med_size_t);
 
 /*
  * Records an event with offset only

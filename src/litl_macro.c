@@ -17,16 +17,17 @@
  * Returns the size in bytes of a REGULAR event depending on
  *   the number of arguments
  */
-litl_size_t get_reg_event_size(litl_size_t nb_params) {
+litl_med_size_t get_reg_event_size(litl_tiny_size_t nb_params) {
     return nb_params * sizeof(litl_param_t)
-            + (litl_size_t) ceil(LITL_BASE_SIZE / (double) sizeof(litl_param_t))
+            + (litl_med_size_t) ceil(
+                    LITL_BASE_SIZE / (double) sizeof(litl_param_t))
                     * sizeof(litl_param_t);
 }
 
 /*
  * Returns the size in bytes of an event of any type
  */
-litl_size_t get_gen_event_size(litl_t *p_evt) {
+litl_med_size_t get_gen_event_size(litl_t *p_evt) {
     switch (p_evt->type) {
     case LITL_TYPE_REGULAR:
         return p_evt->parameters.regular.nb_params * sizeof(litl_param_t)

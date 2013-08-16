@@ -34,8 +34,9 @@ typedef uint64_t litl_time_t;
 //       would collapse
 typedef uint32_t litl_code_t;
 typedef uint64_t litl_trace_size_t;
-typedef uint32_t litl_size_t;
 typedef uint8_t litl_tiny_size_t;
+typedef uint16_t litl_med_size_t;
+typedef uint32_t litl_size_t;
 typedef uint64_t litl_param_t;
 typedef uint8_t* litl_buffer_t; // data structure for holding a set of events
 typedef uint64_t litl_offset_t;
@@ -97,13 +98,13 @@ typedef struct {
  * Data structure that corresponds to the header of a trace file
  */
 typedef struct {
-    litl_size_t nb_threads; // the total number of threads
+    litl_med_size_t nb_threads; // the total number of threads
     litl_tiny_size_t is_trace_archive;
     litl_size_t buffer_size;
-    litl_size_t header_nb_threads; // the number of threads in the header
+    litl_med_size_t header_nb_threads; // the number of threads in the header
     litl_data_t litl_ver[8];
     litl_data_t sysinfo[128];
-} litl_header_t;
+}__attribute__((packed)) litl_header_t;
 
 /*
  * Data structure for pairs (tid, offset) stored in the trace's header
@@ -118,10 +119,10 @@ typedef struct {
  *     header
  */
 typedef struct {
-    litl_tid_t fid;
+    litl_med_size_t fid;
     litl_trace_size_t trace_size;
     litl_offset_t offset;
-} litl_header_triples_t;
+}__attribute__((packed)) litl_header_triples_t;
 
 /*
  * Thread-specific buffer
@@ -150,8 +151,8 @@ typedef struct {
 
     // the number of slots with the information on threads; first slot, which is
     //    in the header, does not count; each contains at most NBTHREADS threads
-    litl_size_t nb_slots;
-    litl_size_t header_nb_threads; // the number of threads in the header
+    litl_med_size_t nb_slots;
+    litl_med_size_t header_nb_threads; // the number of threads in the header
     // an offset to the next chunk of pairs (tid, offset)
     litl_param_t threads_offset;
     // is_header_flushed is used to check whether the header with tids and
@@ -169,7 +170,7 @@ typedef struct {
     // private thread variable holds its index in tids, buffer_ptr/buffer_cur,
     //     and offsets
     pthread_key_t index;
-    litl_size_t nb_threads; // number of threads
+    litl_med_size_t nb_threads; // number of threads
 
     // to handle write conflicts while using pthread
     pthread_mutex_t lock_litl_flush;
@@ -227,7 +228,7 @@ typedef struct {
     litl_buffer_t header_buffer;
     litl_buffer_t header_buffer_ptr;
 
-    litl_size_t nb_buffers;
+    litl_med_size_t nb_buffers;
     litl_size_t buffer_size;
     litl_trace_read_thread_t *buffers;
 
@@ -245,8 +246,12 @@ typedef struct {
     litl_size_t header_size;
     litl_buffer_t header_buffer;
 
+    // indicates whether a trace is:
+    //   (=0) a regular trace;
+    //   (=1) an archive of traces;
+    //   (=2) an archive of archives
     litl_tiny_size_t is_trace_archive;
-    litl_size_t nb_traces;
+    litl_med_size_t nb_traces;
     litl_trace_read_process_t *traces;
 } litl_trace_read_t;
 
@@ -275,7 +280,7 @@ typedef struct {
     litl_buffer_t header_buffer;
 
     litl_tiny_size_t is_trace_archive;
-    litl_size_t nb_traces;
+    litl_med_size_t nb_traces;
     litl_header_triples_t* triples;
 
     litl_buffer_t buffer;

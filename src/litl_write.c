@@ -73,7 +73,7 @@ static void __init_var(litl_trace_write_t* trace) {
  * Initializes the trace buffer
  */
 litl_trace_write_t litl_init_trace(const uint32_t buf_size) {
-    litl_size_t i;
+    litl_med_size_t i;
     litl_trace_write_t trace;
 
     trace.buffer_size = buf_size;
@@ -147,7 +147,8 @@ static uint32_t __get_header_size(litl_trace_write_t* trace) {
 /*
  * Computes the size of data in buffer
  */
-static uint32_t __get_buffer_size(litl_trace_write_t* trace, litl_size_t pos) {
+static uint32_t __get_buffer_size(litl_trace_write_t* trace,
+        litl_med_size_t pos) {
     return (trace->buffers[pos]->buffer_cur - trace->buffers[pos]->buffer_ptr);
 }
 
@@ -234,7 +235,7 @@ void litl_set_filename(litl_trace_write_t* trace, char* filename) {
 /*
  * Writes the recorded events from the buffer to the trace file
  */
-void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
+void litl_flush_buffer(litl_trace_write_t* trace, litl_med_size_t index) {
     int res __attribute__ ((__unused__));
 
     if (!trace->litl_initialized)
@@ -257,7 +258,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         __add_trace_header(trace);
 
         // add information about each working thread: (tid, offset)
-        litl_size_t i;
+        litl_med_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
             ((litl_header_tids_t *) trace->header_cur)->tid =
                     trace->buffers[i]->tid;
@@ -341,7 +342,7 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
         // TODO: perform update only once 'cause there is duplication
         //        printf("trace->nb_threads = %d\n", trace->nb_threads);
         lseek(trace->ftrace, trace->header_size, SEEK_SET);
-        res = write(trace->ftrace, &trace->nb_threads, sizeof(litl_size_t));
+        res = write(trace->ftrace, &trace->nb_threads, sizeof(litl_med_size_t));
         lseek(trace->ftrace, trace->general_offset, SEEK_SET);
     } else {
         // update the previous offset of the current thread,
@@ -379,12 +380,12 @@ void litl_flush_buffer(litl_trace_write_t* trace, litl_size_t index) {
  *    the thread buffer in the array buffer_ptr/buffer_cur.
  */
 static void __allocate_buffer(litl_trace_write_t* trace) {
-    litl_size_t* pos;
+    litl_med_size_t* pos;
 
     // thread safe region
     pthread_mutex_lock(&trace->lock_buffer_init);
 
-    pos = malloc(sizeof(litl_size_t));
+    pos = malloc(sizeof(litl_med_size_t));
     *pos = trace->nb_threads;
     pthread_setspecific(trace->index, pos);
     trace->nb_threads++;
@@ -438,12 +439,12 @@ litl_t* __litl_get_event(litl_trace_write_t* trace, litl_type_t type,
             && !trace->is_buffer_full) {
 
         // find the thread index
-        litl_size_t *p_index = pthread_getspecific(trace->index);
+        litl_med_size_t *p_index = pthread_getspecific(trace->index);
         if (!p_index) {
             __allocate_buffer(trace);
             p_index = pthread_getspecific(trace->index);
         }
-        litl_size_t index = *(litl_size_t *) p_index;
+        litl_med_size_t index = *(litl_med_size_t *) p_index;
 
         litl_write_buffer_t *p_buffer = trace->buffers[index];
 
@@ -516,7 +517,7 @@ void litl_probe_reg_0(litl_trace_write_t* trace, litl_code_t code) {
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -544,7 +545,7 @@ void litl_probe_reg_1(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -574,7 +575,7 @@ void litl_probe_reg_2(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -605,7 +606,7 @@ void litl_probe_reg_3(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -638,7 +639,7 @@ void litl_probe_reg_4(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -672,7 +673,7 @@ void litl_probe_reg_5(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -707,7 +708,7 @@ void litl_probe_reg_6(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -745,7 +746,7 @@ void litl_probe_reg_7(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -784,7 +785,7 @@ void litl_probe_reg_8(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -824,7 +825,7 @@ void litl_probe_reg_9(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -866,7 +867,7 @@ void litl_probe_reg_10(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(trace->index);
     if (__get_buffer_size(trace, index) < trace->buffer_size) {
         litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
 
@@ -911,8 +912,8 @@ void litl_probe_raw(litl_trace_write_t* trace, litl_code_t code,
     if (pthread_getspecific(trace->index) == NULL )
         __allocate_buffer(trace);
 
-    litl_size_t i, index;
-    index = *(litl_size_t *) pthread_getspecific(trace->index);
+    litl_med_size_t i, index;
+    index = *(litl_med_size_t *) pthread_getspecific(trace->index);
 
     litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer_cur;
     // needs to be done outside of the if statement 'cause of undefined size of
@@ -945,7 +946,7 @@ void litl_probe_raw(litl_trace_write_t* trace, litl_code_t code,
 void litl_fin_trace(litl_trace_write_t* trace) {
     // write an event with the LITL_TRACE_END (= 0) code in order to indicate
     //    the end of tracing
-    litl_size_t i;
+    litl_med_size_t i;
 
     for (i = 0; i < trace->nb_threads; i++)
         litl_flush_buffer(trace, i);

@@ -51,7 +51,7 @@ static void __init_header(litl_trace_read_t* arch) {
 
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
-    arch->header_size = sizeof(litl_size_t) + sizeof(litl_tiny_size_t);
+    arch->header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
     arch->header_buffer = (litl_buffer_t) malloc(arch->header_size);
     if (!arch->header_buffer) {
         perror("Could not allocate memory for the header!");
@@ -76,6 +76,7 @@ static void __init_header(litl_trace_read_t* arch) {
         //   the header size and relocate the header buffer
         arch->nb_traces = ((litl_header_t *) arch->header_buffer)->nb_threads;
         arch->header_size = arch->nb_traces * sizeof(litl_header_triples_t);
+        printf("header_size = %d\n", arch->header_size);
         arch->header_buffer = (litl_buffer_t) realloc(arch->header_buffer,
                 arch->header_size);
 
@@ -113,7 +114,7 @@ static void __init_trace_header(litl_trace_read_t* arch,
     trace->header = (litl_header_t *) trace->header_buffer_ptr;
 
     // check if the buffer is large enough to store the header
-    litl_size_t nb_threads =
+    litl_med_size_t nb_threads =
             (trace->header->nb_threads > NBTHREADS) ? trace->header->nb_threads :
                     NBTHREADS;
     if (trace->header->nb_threads > 1) {
@@ -146,7 +147,7 @@ static void __next_pairs_buffer(litl_trace_read_t* arch,
 
     lseek(arch->f_handle, offset, SEEK_SET);
 
-    litl_size_t nb_threads =
+    litl_med_size_t nb_threads =
             (trace->nb_buffers - trace->header->header_nb_threads) > NBTHREADS ? NBTHREADS :
                     (trace->nb_buffers - trace->header->header_nb_threads);
 
@@ -167,10 +168,10 @@ static void __next_pairs_buffer(litl_trace_read_t* arch,
  */
 static void __init_buffers(litl_trace_read_t* arch,
         litl_trace_read_process_t* trace) {
-    litl_size_t i, size;
+    litl_med_size_t i, size;
     litl_header_tids_t *tids;
-    size = sizeof(litl_header_tids_t);
 
+    size = sizeof(litl_header_tids_t);
     // init nb_buffers and allocate memory
     trace->nb_buffers = trace->header->nb_threads;
     trace->buffers = (litl_trace_read_thread_t*) malloc(
@@ -258,10 +259,12 @@ void litl_init_traces(litl_trace_read_t* arch) {
 
     if (arch->is_trace_archive) {
         // archive of traces
-        litl_size_t i, size;
+        litl_med_size_t i, size;
         size = sizeof(litl_header_triples_t);
 
         for (i = 0; i < arch->nb_traces; i++) {
+            // TODO: implement this loop as recursion in order to deal with
+            //       archives of archives
             // read triples that contain offset from the beginning of the archive
             arch->traces[i].triples =
                     (litl_header_triples_t *) arch->header_buffer;
@@ -305,7 +308,7 @@ litl_header_t* litl_get_trace_header(litl_trace_read_t* arch) {
  * Sets the buffer size
  */
 void litl_set_buffer_size(litl_trace_read_t* arch, const litl_size_t buf_size) {
-    litl_size_t i;
+    litl_med_size_t i;
 
     for (i = 0; i < arch->nb_traces; i++)
         arch->traces[i].buffer_size = buf_size;
@@ -321,8 +324,8 @@ litl_size_t litl_get_buffer_size(litl_trace_read_t* arch) {
 /*
  * Reads another portion of data from the trace file to the buffer
  */
-static void __next_buffer(litl_trace_read_t* arch, litl_size_t trace_index,
-        litl_size_t buffer_index) {
+static void __next_buffer(litl_trace_read_t* arch, litl_med_size_t trace_index,
+        litl_med_size_t buffer_index) {
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
     lseek(arch->f_handle,
@@ -349,8 +352,8 @@ static void __next_buffer(litl_trace_read_t* arch, litl_size_t trace_index,
 /*
  * Resets the trace buffer
  */
-void litl_reset_trace(litl_trace_read_t* arch, litl_size_t trace_index) {
-    litl_size_t i;
+void litl_reset_trace(litl_trace_read_t* arch, litl_med_size_t trace_index) {
+    litl_med_size_t i;
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
     for (i = 0; i < trace->nb_buffers; i++)
@@ -361,7 +364,7 @@ void litl_reset_trace(litl_trace_read_t* arch, litl_size_t trace_index) {
  * Reads an event
  */
 static litl_read_t* __read_event(litl_trace_read_t* arch,
-        litl_size_t trace_index, litl_size_t buffer_index) {
+        litl_med_size_t trace_index, litl_med_size_t buffer_index) {
     uint8_t to_be_loaded;
     litl_t* event;
     litl_buffer_t* buffer;
@@ -385,7 +388,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
     // Check whether all arguments are loaded.
     // If any of these cases is not true, the next part of the trace plus
     // the current event is loaded to the buffer
-    unsigned remaining_size = trace->buffers[buffer_index].tracker
+    litl_size_t remaining_size = trace->buffers[buffer_index].tracker
             - trace->buffers[buffer_index].offset;
     if (remaining_size < get_reg_event_size(0)) {
         // this event is truncated. We can't even read the nb_param field
@@ -393,7 +396,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
     } else {
         // The nb_param (or size) field is available. Let's check whether
         //   the event is truncated
-        litl_size_t event_size = get_gen_event_size(event);
+        litl_med_size_t event_size = get_gen_event_size(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }
@@ -434,8 +437,8 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
  * Searches for the next event inside the trace
  */
 litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
-        litl_size_t trace_index) {
-    litl_size_t i;
+        litl_med_size_t trace_index) {
+    litl_med_size_t i;
     litl_time_t min_time = -1;
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
@@ -471,7 +474,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
  * Reads the next event either from an archive or a regular trace
  */
 litl_read_t* litl_next_event(litl_trace_read_t* arch) {
-    litl_size_t i;
+    litl_med_size_t i;
     litl_read_t* event = NULL;
 
     for (i = 0; i < arch->nb_traces; i++) {
@@ -488,7 +491,7 @@ litl_read_t* litl_next_event(litl_trace_read_t* arch) {
  * Closes the trace and frees the buffer
  */
 void litl_close_trace(litl_trace_read_t* arch) {
-    litl_size_t i, j;
+    litl_med_size_t i, j;
 
     // close the file
     close(arch->f_handle);
@@ -518,7 +521,7 @@ void litl_close_trace(litl_trace_read_t* arch) {
 }
 
 int main(int argc, char **argv) {
-    litl_size_t i;
+    litl_med_size_t i;
     litl_read_t* event;
     litl_trace_read_t *arch;
     litl_header_t* header;
