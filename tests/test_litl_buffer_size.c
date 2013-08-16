@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
-        filename = "/tmp/test_litl_write.trace";
+        filename = "/tmp/test_litl_buffer_size.trace";
 
     printf("What is the optimal buffer size for recording events?\n");
     printf("Buffer size[KB] \t Time \n");

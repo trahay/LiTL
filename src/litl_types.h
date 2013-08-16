@@ -223,9 +223,9 @@ typedef struct {
     litl_header_triples_t* triples;
 
     litl_size_t header_size;
+    litl_header_t* header;
     litl_buffer_t header_buffer;
     litl_buffer_t header_buffer_ptr;
-    litl_header_t* header;
 
     litl_size_t nb_buffers;
     litl_size_t buffer_size;
