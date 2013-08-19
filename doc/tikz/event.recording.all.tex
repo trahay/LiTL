@@ -1,0 +1,123 @@
+
+\begin{figure}[!t]
+\begin{center}
+  \begin{footnotesize}
+\subfigure[\fxt{}]{
+    \label{fig:event_recording_fxt}
+    \begin{tikzpicture}[scale=.88]
+    % threads
+    \node at (98.5, 100.3) {Process};
+    \node[rotate=-90] at (100.3, 99.4) {Threads};
+    \draw [blue, line width=.3mm, rounded corners]
+        (100.,100.) rectangle (97.,98.8);
+    \foreach \x in {99.7,99.1,...,97.}
+        \draw [line width=.24mm, decorate,decoration={snake,post length=1mm}] (\x,99.9) -- (\x,98.9);        
+    % buffer
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (100.5,98.) rectangle (96.5,96.4);
+    \node at (98.5, 97.2) {B    U    F    F    E    R};
+    % 0
+    \node at (98.2, 98.) (buffer0up) {};
+    \node at (97.23, 98.96) (thread0) {}
+        edge[pil] (buffer0up.north);
+    % 1
+    \node at (98.35, 98.) (buffer1up) {};
+    \node at (97.84, 98.96) (thread1) {}
+        edge[pil] (buffer1up.north);
+    % 2
+    \node at (98.5, 98.) (buffer2up) {};
+    \node at (98.5, 98.96) (thread2) {}
+        edge[pil] (buffer2up.north);
+    % 3
+    \node at (98.65, 98.) (buffer3up) {};
+    \node at (99.13, 98.96) (thread3) {}
+        edge[pil] (buffer3up.north);
+    % 4
+    \node at (98.8, 98.) (buffer4up) {};
+    \node at (99.76, 98.96) (thread4) {}
+        edge[pil] (buffer4up.north);                
+    % trace file
+    \draw [blue, fill=gray, line width=.3mm, rounded corners]
+        (99.8,95.6) rectangle (97.2,94.5);
+    \node at (98.5, 95.6) (trace) {};
+    \node at (98.5, 96.4) (bufferdown) {}
+        edge[pild] (trace.north);
+    \draw [blue, fill=white, line width=.3mm, rounded corners]
+        (99.8,95.3) rectangle (97.2,94.5);    
+    \node at (98.5, 94.9) {Trace File};
+    \end{tikzpicture}
+}\hspace*{8mm}
+\subfigure[\litl]{
+    \label{fig:event_recording_litl}
+    \begin{tikzpicture}[scale=.88]
+    % threads
+    \node at (98.5, 100.3) {Process};
+    \node[rotate=-90] at (100.3, 99.4) {Threads};
+    \draw [blue, line width=.3mm, rounded corners]
+        (100.,100.) rectangle (97.,98.8);
+    \foreach \x in {99.7,99.1,...,97.}
+        \draw [line width=.24mm, decorate,decoration={snake,post length=1mm}] (\x,99.9) -- (\x,98.9);        
+    % buffers
+    % 0
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (101.,98.) rectangle (100.3,96.4);
+    \node at (100.55, 98.) (buffer0up) {};
+    \node at (99.66, 98.96) (thread0) {}
+        edge[pil] (buffer0up.north);
+    % 1
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (100.,98.) rectangle (99.3,96.4);
+    \node at (99.6, 98.) (buffer1up) {};
+    \node at (99.06, 98.96) (thread1) {}
+        edge[pil] (buffer1up.north);
+    % dots
+    \node at (98.9,97.2) {$\dots$};
+    % 2
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (98.5,98.) rectangle (97.8,96.4);
+    \node at (98.13, 98.) (buffer2up) {};
+    \node at (98.53, 98.96) (thread2) {}
+        edge[pil] (buffer2up.north);    
+    % 3
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (97.5,98.) rectangle (96.8,96.4);
+    \node at (97.15, 98.) (buffer3up) {};
+    \node at (97.95, 98.96) (thread3) {}
+        edge[pil] (buffer3up.north);    
+    % 4
+    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        (96.5,98.) rectangle (95.8,96.4);
+    \node at (96.15, 98.) (buffer4up) {};
+    \node at (97.33, 98.95) (thread4) {}
+        edge[pil] (buffer4up.north);
+        
+    \node[rotate=-90] at (101.35, 97.2) {BUFFERS};
+    % trace file
+    \draw [blue, fill=gray, line width=.3mm, rounded corners]
+        (99.8,95.6) rectangle (97.2,94.5);
+    \draw [blue, fill=white, line width=.3mm, rounded corners]
+        (99.8,95.3) rectangle (97.2,94.5);    
+    \node at (98.5, 94.9) {Trace File};
+    % arrows
+    \node at (98.75, 95.6) (trace0) {};
+    \node at (100.65, 96.4) (buffer0down) {}
+        edge[pil] (trace0.north);
+    \node at (98.55, 95.6) (trace1) {};
+    \node at (99.7, 96.4) (buffer1down) {}
+        edge[pil] (trace1.north);
+    \node at (98.5, 95.6) (trace2) {};
+    \node at (98.13, 96.4) (buffer2down) {}
+        edge[pil] (trace2.north);
+    \node at (98.4, 95.6) (trace3) {};
+    \node at (97.1, 96.4) (buffer3down) {}
+        edge[pil] (trace3.north);
+    \node at (98.2, 95.6) (trace4) {};            
+    \node at (96.1, 96.4) (buffer4down) {}
+        edge[pil] (trace4.north);        
+    \end{tikzpicture}
+    }
+  \end{footnotesize}  
+\caption{Event recording mechanism on multi-threaded applications.}
+\label{fig:event_recording_all}
+\end{center}
+\end{figure}

@@ -1,0 +1,98 @@
+
+\begin{figure*}[!t]
+\begin{center}
+  \begin{footnotesize}
+    \hspace*{-1mm}
+    \begin{tikzpicture}[scale=1.2]
+    \draw [blue, fill=MatrixElementsDark, line width=.35mm, rounded corners]
+        (0.,0.) rectangle (18.5,1.);
+    % header
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (0.1,0.1) rectangle (7.71,.9);
+    \draw [MyGreen, line width=.3mm] (.1, .6) -- (7.71, .6);
+    \node at (3.7, .73) {H    E    A    D    E    R};
+    % #trace files
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (.15,0.15) rectangle (1.15,.55);
+    \node at (.65, .35) {\#traces};    
+    
+    % fids and offsets
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (1.2,0.15) rectangle (3.32,.55);
+    \node at (1.5, .35) {fid0};
+    \draw [gray, line width=.3mm] (1.76, .15) -- (1.76, .55);
+    \node at (2.1, .35) {size0};
+    \draw [gray, line width=.3mm] (2.43, .15) -- (2.43, .55);
+    \node at (2.86, .35) {offset0};
+    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (3.37,0.15) rectangle (5.49,.55);
+    \node at (3.66, .35) {fid1};
+    \draw [gray, line width=.3mm] (3.91, .15) -- (3.91, .55);
+    \node at (4.27, .35) {size1};
+    \draw [gray, line width=.3mm] (4.59, .15) -- (4.59, .55);
+    \node at (5.04, .35) {offset1};
+
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (5.54,0.15) rectangle (7.66,.55);
+    \node at (5.83, .35) {fid2};
+    \draw [gray, line width=.3mm] (6.09, .15) -- (6.09, .55);
+    \node at (6.43, .35) {size2};
+    \draw [gray, line width=.3mm] (6.76, .15) -- (6.76, .55);
+    \node at (7.2, .35) {offset2};
+    
+    % trace0
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (7.81,0.1) rectangle (11.27,.9);
+    \draw [MyGreen, line width=.3mm] (7.81, .6) -- (11.27, .6);
+    \node at (9.51, .73) {Trace0};
+    \node at (7.94,.9) (trace0) {};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (7.86,0.15) rectangle (9.56,.55);
+    \node at (8.71, .37) {\textsc{header0}};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (9.61,0.15) rectangle (11.22,.55);
+    \node at (10.42, .35) {\textsc{events}};    
+              
+    % trace1
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (11.37,0.1) rectangle (14.83,.9);
+    \draw [MyGreen, line width=.3mm] (11.37, .6) -- (14.83, .6);
+    \node at (13.07, .73) {Trace1};
+    \node at (11.5,.9) (trace1) {};    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (11.42,0.15) rectangle (13.07,.55);    
+    \node at (12.25, .37) {\textsc{header1}};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (13.12,0.15) rectangle (14.77,.55);
+    \node at (13.95, .35) {\textsc{events}};        
+    
+    % trace2
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (14.93,0.1) rectangle (18.39,.9);
+    \draw [MyGreen, line width=.3mm] (14.93, .6) -- (18.39, .6);
+    \node at (16.63, .73) {Trace2};
+    \node at (15.06,.9) (trace2) {};        
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (14.98,0.15) rectangle (16.67,.55);    
+    \node at (15.82, .37) {\textsc{header2}};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (16.72,0.15) rectangle (18.34,.55);
+    \node at (17.53, .35) {\textsc{events}};
+    
+    % arrows
+    \node at (2.74, .45) (offset0) {}
+          edge[pil, densely dotted, bend right=-40] (trace0.west);
+    \node at (4.92, .45) (offset1) {}
+          edge[pil, bend right=-40] (trace1.west);
+    \node at (7.08, .45) (offset2) {}
+          edge[pil, dashed, bend right=-40] (trace2.west);
+    
+    \end{tikzpicture}
+  \end{footnotesize} 
+\caption{The structure of an archive composed of multiple trace files. In the 
+figure, \emph{fid} stands for the trace file name; \emph{size} is the size of a 
+merged trace file.}
+\label{fig:storage_trace_merge}
+\end{center}
+\end{figure*}
