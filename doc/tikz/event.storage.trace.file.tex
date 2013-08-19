@@ -1,0 +1,127 @@
+
+\begin{figure*}[!t]
+\begin{center}
+  \begin{footnotesize}
+    \hspace*{-1mm}
+    \begin{tikzpicture}[scale=1.2]
+    \draw [blue, fill=MatrixElementsDark, line width=.35mm, rounded corners]
+        (0.,0.) rectangle (18.5,1.);
+    % header
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (0.1,0.1) rectangle (8.4,.9);
+    \draw [MyGreen, line width=.3mm] (.1, .6) -- (8.4, .6);
+    \draw (4.2, .73) -- (4.2, .73) node{H    E    A    D    E    R};
+    % litl version and OS
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (.15,0.15) rectangle (1.15,.55);
+    %\draw (.65, .35) -- (.65, .35) node{\litl{\_}v};    
+    \node at (.65, .35) {\litl{\_}v};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (1.2,0.15) rectangle (1.6,.55);
+    \draw (1.4, .35) -- (1.4, .35) node{OS};        
+    % buffer size and #threads
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (1.65,0.15) rectangle (2.75,.55);
+    \draw (2.2, .35) -- (2.2, .35) node{\#threads};    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (2.8,0.15) rectangle (3.85,.55);
+    \draw (3.33, .35) -- (3.33, .35) node{buf\_size};
+    % tids and offsets
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (3.9,0.15) rectangle (5.35,.55);
+    \draw (4.2, .35) -- (4.2, .35) node{tid0};
+    \draw [gray, line width=.3mm] (4.46, .15) -- (4.46, .55);
+    \node at (4.93, .35) {offset0};
+    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (5.4,0.15) rectangle (6.85,.55);
+    \draw (5.7, .35) -- (5.7, .35) node{tid1};
+    \draw [gray, line width=.3mm] (5.96, .15) -- (5.96, .55);
+    \draw (6.43, .35) -- (6.43, .35) node{offset1};
+    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (6.9,0.15) rectangle (8.35,.55);
+    \draw (7.2, .35) -- (7.2, .35) node{tid2};
+    \draw [gray, line width=.3mm] (7.46, .15) -- (7.46, .55);
+    \draw (7.93, .35) -- (7.93, .35) node{offset2};
+    % chunk00
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (8.5,0.1) rectangle (10.4,.9);
+    \draw [MyGreen, line width=.3mm] (8.5, .6) -- (10.4, .6);
+    \node at (8.65,0.9) (chunk00) {};
+    \draw (9.45, .73) -- (9.45, .73) node{chunk00};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (8.55,0.15) rectangle (9.35,.55);
+    \draw (8.95, .35) -- (8.95, .35) node{events};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (9.4,0.15) rectangle (10.35,.55);
+    \draw (9.88, .35) -- (9.88, .35) node{offset01};
+    % chunk20
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (10.5,0.1) rectangle (12.4,.9);
+    \draw [MyGreen, line width=.3mm] (10.5, .6) -- (12.4, .6);
+    \draw (11.45, .73) -- (11.45, .73) node{chunk20};
+    \node at (10.65,0.9) (chunk20) {};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (10.55,0.15) rectangle (11.35,.55);
+    \draw (10.95, .35) -- (10.95, .35) node{events};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (11.4,0.15) rectangle (12.35,.55);
+    \draw (11.88, .35) -- (11.88, .35) node{offset21};
+    % chunk01
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (12.5,0.1) rectangle (14.4,.9);
+    \draw [MyGreen, line width=.3mm] (12.5, .6) -- (14.4, .6);
+    \draw (13.45, .73) -- (13.45, .73) node{chunk01};
+    \node at (12.65,0.9) (chunk01) {};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (12.55,0.15) rectangle (13.35,.55);
+    \draw (12.95, .35) -- (12.95, .35) node{events};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (13.4,0.15) rectangle (14.35,.55);
+    \draw (13.88, .35) -- (13.88, .35) node{offset02};
+    % chunk10
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (14.5,0.1) rectangle (16.4,.9);
+    \draw [MyGreen, line width=.3mm] (14.5, .6) -- (16.4, .6);
+    \draw (15.45, .73) -- (15.45, .73) node{chunk10};
+    \node at (14.65,0.9) (chunk10) {};    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (14.55,0.15) rectangle (15.35,.55);
+    \draw (14.95, .35) -- (14.95, .35) node{events};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (15.4,0.15) rectangle (16.35,.55);
+    \draw (15.88, .35) -- (15.88, .35) node{offset11};
+    % chunk02
+    \draw [MyGreen, fill=white, line width=.3mm, rounded corners]
+        (16.5,0.1) rectangle (18.4,.9);
+    \draw [MyGreen, line width=.3mm] (16.5, .6) -- (18.4, .6);
+    \draw (17.45, .73) -- (17.45, .73) node{chunk02};
+    \node at (16.65,0.9) (chunk02) {};    
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (16.55,0.15) rectangle (17.35,.55);
+    \draw (16.95, .35) -- (16.95, .35) node{events};
+    \draw [gray, fill=white, line width=.3mm, rounded corners]
+        (17.4,0.15) rectangle (18.35,.55);
+    \draw (17.88, .35) -- (17.88, .35) node{offset03};    
+    
+    % arrows
+    \node at (4.8, .45) (offset0) {}
+          edge[pil, bend right=-40] (chunk00.west);
+    \node at (6.3, .45) (offset1) {}
+          edge[pil, dashed, bend right=-40] (chunk10.west);
+    \node at (7.8, .45) (offset2) {}
+          edge[pil, densely dotted, bend right=-40] (chunk20.west);
+    \node at (9.75, .45) (offset01) {}
+          edge[pil, bend right=-40] (chunk01.west);          
+    \node at (13.75, .45) (offset02) {}
+          edge[pil, bend right=-40] (chunk02.west);                    
+    \end{tikzpicture}
+  \end{footnotesize}  
+\caption{Storage of events recorded by \litl{} on multi-threaded 
+applications. In the figure, \emph{\litl{\_}v} contains information about \litl{}; 
+\emph{OS}\dash{}about OS and architecture; \emph{\#threads} stands for the 
+number of threads; \emph{buf\_size}\dash{}the buffer size.}
+\label{fig:event_storage_trace}
+\end{center}
+\end{figure*}

@@ -14,4 +14,4 @@ bib:
 
 .PHONY: clean
 clean:
-	rm -f ._* *.log *.aux *.blg *.bbl *.toc *.snm *.nav *.out *.backup *~
+	rm -f ._* *.log *.aux *.blg *.bbl *.toc *.snm *.nav *.out *.backup *~ *auxlock

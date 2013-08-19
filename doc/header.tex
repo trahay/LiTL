@@ -21,16 +21,18 @@
 \usepackage{etex}
 \usepackage{savesym}
 \usepackage[utf8]{inputenc}
+\usepackage{pdflscape}
 
 \usepackage[T1]{fontenc}
 \usepackage[small,bf]{caption}
 
+\usepackage{multirow}
+\usepackage{multicol}
+
 % for plotting 
-\usepackage{tikz}
-\usepackage{pgfplots}
 \usepackage{subfigure}
 \usepackage{graphicx}
-\usepackage{color}
+\usepackage{color}  
 \usepackage{xcolor}
     \definecolor{ListingsKeywordColor}{rgb}{0,0,0.4}
     \definecolor{ListingsIdentifierColor}{rgb}{0,0.5,0}
@@ -44,11 +46,61 @@
     \definecolor{MathsVectorColor}{rgb}{0,0,0}
     \definecolor{MathsMatrixColor}{rgb}{0,0,0}
     \definecolor{MyGreen}{HTML}{228B22}
-%     \definecolor{TikzGreen}{HTML}{}
     \definecolor{MyBlue}{HTML}{0000FF}
     \colorlet{MatrixElementsLight}{gray!20!white}
     \colorlet{MatrixElementsDark}{gray!40}
 
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{
+  external,
+  arrows,
+  positioning,
+  decorations.pathmorphing,
+  3d
+}
+\tikzexternalize
+\tikzsetexternalprefix{imgs/tikz/}
+\tikzset{
+    external/export=false,
+    %Define standard arrow tip
+    >=stealth',
+    %Define style for boxes
+    punkt/.style={
+           rectangle,
+           rounded corners,
+           draw=black, very thick,
+           text width=6.5em,
+           minimum height=2em,
+           text centered},
+    % Define arrow style
+    pil/.style={
+           ->,
+           semithick,
+           shorten <= 0pt,
+           shorten >= 0pt,},
+    pild/.style={
+           ->,
+           thick,
+           %>=angle 90,
+           shorten <= 0pt,
+           shorten >= 0pt,}
+}
+
+\pgfkeys{
+    /tikz/external/mode=list and make
+}
+\pgfplotsset{
+  xtick scale label code/.code={$\times 10^{#1}$}
+}
+\pgfplotsset{
+ytick scale label code/.code={$\times 10^{#1}$}
+}
+\pgfplotsset{
+  invoke before crossref tikzpicture={\tikzexternaldisable},
+  invoke after crossref tikzpicture={\tikzexternalenable},
+}
+    
 % for listing
 \usepackage{listings}
   \lstset{

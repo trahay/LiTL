@@ -44,19 +44,20 @@ issues:
  \item Scalability and the number of recorded traces;
  \item Optimization in the storage capacity usage.
 \end{itemize}
-As a results, \litl{} provides similar functionality to standard event recording 
+As a result, \litl{} provides similar functionality to standard event recording 
 libraries and records events only from user-space. \litl{} minimizes the usage 
 of the CPU time and memory space in order to avoid disturbing the application 
 that is being analyzed. Also, \litl{} is fully thread-safe that allows to record 
 events from multi-threaded applications. Finally, \litl{} is a generic library 
-that can be used in conjunction with many performance analysis tools. 
+that can be used in conjunction with many performance analysis tools and 
+frameworks. 
 
 
 \chapter{Installation}
 \section{Requirements}
-In order to use \litl{}, the following software is needed:
+In order to use \litl{}, the following software is required:
 \begin{enumerate}
- \item autoconf 2.63;
+ \item autoconf of version 2.63;
  
  \item libelf or libbfd. On Debian, libelf can be installed from command line by 
        the following command:\\
@@ -67,18 +68,20 @@ In order to use \litl{}, the following software is needed:
 Current development version of \litl{} is available via Git\\
     \hspace*{0.9cm}\texttt{git clone git+ssh://fusionforge.int-evry.fr//var/lib/}\\
     \hspace*{0.9cm}\texttt{gforge/chroot/scmrepos/git/litl/litl.git}\\
-After getting the latest development version from Git,\\
+After getting the latest development version from Git, the following command 
+should be run\\
 \hspace*{0.9cm}\texttt{./bootstrap}\\ 
-should be run in the root directory and only then the tool can be built.
+And, only afterwards the tool can be built.
 
 \section{Building \eztrace{}}
 At first, to configure \litl{} the following configure script should be 
-invoked:\\
-    \hspace*{0.9cm}\texttt{./configure --prefix=<LITL\_INSTALL\_DIR>}\\
+invoked\\
+    \hspace*{0.9cm}\texttt{./configure -\,-prefix=<LITL\_INSTALL\_DIR>}\\
 The configuration script contains many different options that can be set. 
 However, during the first try we recommend to use the default settings.
 
-Once \litl{} is configured, the next two commands should be executed:\\
+Once \litl{} is configured, the next two commands should be executed to complete  
+the building\\
     \hspace*{0.9cm}\texttt{make}\\
     \hspace*{0.9cm}\texttt{make install}
 
@@ -86,8 +89,7 @@ In order to check whether \litl{} was installed correctly, a set of tests can be
 run as\\
     \hspace*{0.9cm}\texttt{make check}
 
-\chapter{\litl{} in Details}
-    
+
 \chapter{How to Use \litl{}}
 \section{Reading Events}
 After the application was traced and events were recorded into binary trace 
@@ -109,37 +111,36 @@ further processing by the following command\\
     \hspace*{0.9cm}\texttt{litl\_read  -o archive.trace trace.0 trace.1 ... trace.n}
 
 \section{Splitting Traces}
-If there is a need for a detail analysis of a particular trace files, an archive
-of traces can be split back into separate trace files by\\
+In case of a need for a detailed analysis of a particular trace files, an archive
+of traces can be split back into separate traces by\\
 \hspace*{0.9cm}\texttt{litl\_read  -f archive.trace -d output.dir}
 
-
-\chapter{Environment Variables}
-For a more flexible and comfortable usage of \litl{}, we provide three 
+\section{Environment Variables}
+For a more flexible and comfortable usage of \litl{}, we provide the following 
 environment variables:
 \begin{itemize}
  \item \texttt{LITL\_BUFFER\_FLUSH} specifies the behavior of \litl{} when the 
        event buffer is full. If it is set to one, which is a default option, 
        the buffer is flushed. This permits to record traces that are larger 
-       than the buffer size. Otherwise, if it is set to zero any additional 
-       event will be recorded. The trace is, thus, truncated and there is no 
+       than the buffer size. Otherwise, if it is set to zero, any additional 
+       event will not be recorded. The trace is, thus, truncated and there is no 
        impact on the application performance;
 
  \item \texttt{LITL\_THREAD\_SAFETY} specifies the behavior of \litl{} while
        tracing multi-threaded applications. If it is set to one, which is a 
-       default value, the thread safety is enabled. Otherwise, when it is set 
-       to zero, the event recording is not thread safe;
+       default value, the thread safety is enabled. Otherwise, when it is zero, 
+       the event recording is not thread safe;
  
  \item \texttt{LITL\_TIMING\_METHOD} specifies the timing method that will be 
        used during the recording phase. The \litl{} timing methods can be 
        divided into two groups: those that measure time in clock ticks and 
-       those that rely on \texttt{clock\_gettime()} function. The first has one 
-       method:
+       those that rely on the \texttt{clock\_gettime()} function. The first 
+       group has only one method:
        \begin{itemize}
         \item \texttt{ticks} that uses the CPU specific register, e.g. rdtsc 
         on X86 and X86\_64 architectures.
        \end{itemize}     
-       The second has five different possibilities:
+       The second group comprises of the other five different methods:
        \begin{itemize}
         \item \texttt{monotonic} that corresponds to \texttt{CLOCK\_MONOTONIC};
         \item \texttt{monotonic\_raw}\dash{}\texttt{CLOCK\_MONOTONIC\_RAW};
@@ -152,6 +153,172 @@ environment variables:
 \end{itemize}
 
 
+\chapter{\litl{} in Details}
+\section{Event Types and The Storage Usage}
+Each event in the \litl{} library consists of two parts: the event core (the 
+event code, the time when the event occurred, the thread identifier, and the 
+number of parameters) and event parameters. The number of event parameters 
+recorded by \litl{} varies from zero to ten. 
+
+The parameters passed to each event have different data type. In order to handle
+the variety of possible cases, event's parameters in \litl{} can be represented 
+by the largest data type, which is \texttt{uint64\_t} on x86\_64 architectures.
+Hence, any parameter -- no matter whether it is a \texttt{char}, an 
+\texttt{int} or a \texttt{long int} -- can be recorded without being truncated. 
+However, the reserved slot for each parameter is often bigger than its actual 
+size. Thus, this leads to the non-optimal usage of resources.
+Our goal is to keep trace files as small as possible without 
+losing any of the recorded data. Therefore, we propose to use the compacted 
+event storage that aims at utilizing every byte from the allocated space.
+
+In our approach, we introduce three different types of events: regular, raw, and
+packed. The regular event is without any major optimization being involved. 
+The raw event stores parameters in the string format. Its purpose is to gather 
+either the regular parameters in a string format or the information about the 
+abnormal behavior of applications like thrown exceptions.
+The packed event represents the optimized versions of storing events, where 
+each parameter can be saved as a group of bytes. Accordingly, by using the 
+event type packed for recording and storing events, we theoretically are 
+capable to save up to 65\,\% of the disk space compare to the regular \litl{}.
+
+\Cref{fig:event_storage_fxt} shows, on an example of three regular events with 
+different number of parameters, the occupied space of events within the trace 
+file recorded by \eztrace\ with \litl{}. We symbolically partitioned the trace 
+file into bytes and also chunks of bytes, which store event's components. The 
+space occupied by each event is highlighted with parentheses.
+
+\begin{landscape}
+\input{tikz/event.storage.all.line.packed}
+\input{tikz/event.storage.trace.file}
+\end{landscape}
+
+\Cref{fig:event_storage_litl} shows the storage of the recorded packed events in 
+the trace file while using \eztrace\ with \litl{}. We consider one particular 
+scenario when each event's parameter can be represented by \texttt{uint8\_t};
+this requires only one byte for the storage. To store larger event's parameters 
+we use arrays of \texttt{uint8\_t}. This scenario corresponds to the optimal 
+performance in terms of the memory and disk space usage. Under this approach, 
+not only the size of the core event's components is shrunk, but also the size 
+of event's parameters is reduced significantly. The gained performance, e.i. 
+the reduced space, can be characterized by the gray area that corresponds to the 
+difference in storage between the regular and packed events. The size of three 
+packed events is smaller than the size of one regular event with five 
+parameters. This figure confirms our assumption regarding the possibility of 
+reducing the size of both the recorded events and trace files.
+
+
+\section{Scalability vs. the Number of Threads}
+The advent of multi-core processor have led to the increase in the number of 
+processing units per machine. It becomes usual to equip a typical high 
+performance computing platform with 8, 16, or even more cores per node. 
+In order to exploit efficiently such facilities, developers can use hybrid 
+programming models that mix \openmp{} (or \pthread) threads and \mpi{} 
+processes within one application. Hence, the number of threads per node, which 
+executes the same application, can be quite large\dash{}8, 16, or even more
+threads. The number of threads per node is the scalability issue for the 
+conventional binary tracing libraries such as \fxt{}~\cite{Danjean05FxT}, 
+because in its implementation all threads within one process record events into 
+a single buffer, see~\Cref{fig:event_recording_fxt}. 
+This recording mechanism causes a {\em contention} problem\dash{}when 
+multiple threads record events simultaneously, the pointer to the next
+available slot in the buffer is changed concurrently. The modifications of the 
+pointer can be done atomically in order to preserve the data consistency. 
+However, the atomic operation does not scale quite well when it is performed by 
+a large number of threads at the same time. Thus, analyzing \openmp{} 
+applications that run lots of threads using such tracing libraries may result 
+in the high overhead.
+
+\input{tikz/event.recording.all}
+
+\subsection{Recording Events}
+While designing \litl{}, we aim at resolving the above-mentioned limitation of 
+\fxt{}. Thus, we propose to record events into separate buffers, meaning to 
+have one buffer per thread instead of one buffer per process. This approach is
+illustrated on~\Cref{fig:event_recording_litl}.
+
+To keep multiple buffers in order within the trace file, we add a header into 
+the trace file with the information regarding the number of threads and pairs 
+\emph{<tid, offset>}; \emph{tid} stands for the thread identifier; 
+\emph{offset} corresponds to the position of the first chunk of events for a 
+given thread within the trace starting from its beginning. The last event 
+of each chunk contains either an \emph{offset} to the next chunk of events 
+or a symbol specifying the end of recording for a given thread. While flushing 
+the current buffer to the trace file, the following two actions are performed:
+\begin{enumerate}
+ \item Setting the offset of the current chunk to specify the end of the 
+recording;
+ \item Update the offset from the previous chunk to point to the current one.
+\end{enumerate}
+\Cref{fig:event_storage_trace} demonstrates the storage mechanism on an example 
+of three threads, including the positioning of chunks of events as well as 
+the way of linking those chunks into one chain of the corresponding thread 
+using offsets.
+
+During the application execution, it may occur that some threads start 
+recording events later than others. This scenario requires appropriate 
+modifications and adjustments to the above approach. According to the previous 
+approach, the header is the first block of data that is added to the trace file;
+it is written before flushing the first chunk of events. Thus, the header 
+contains the information only regarding the started threads. In order to add 
+pairs \emph{<tid, offset>} of the late threads, we reserve a space for $64$ 
+pairs (chunk of pairs) between chunks of events within the trace file. So, when 
+one among those late threads wants to flush its buffer to the trace file, we add 
+its pair \emph{<tid, offset>} directly to the next free spot in the chunk of  
+pairs. The chunks of pairs are binded with offset in the same way as chunks of 
+events. Therefore, \eztrace{} does not have limitations on the number of threads 
+per process and also processes.
+
+\subsection{Post-Mortem Analysis}
+We develop the functionality for analyzing the generated traces by capturing the
+procedure of the event recording mechanism.
+At first, \litl{} reads the trace header with the information 
+regarding the buffer size, threads (the number of threads, tids, and 
+offsets), and also pairs \emph{<tid, offset>} that correspond to the late 
+threads. Using this preliminary information, \litl{} allocates memory buffers for 
+reading; the number of buffers equals the number of threads used during the 
+recording phase, meaning one buffer per thread. Then, \litl{} loads chunks of events 
+from the trace file into these buffers using pairs \emph{<tid, offset>}. 
+After processing the first chunks of events, \litl{} loads the buffers with the next 
+ones using the information concerning their positions in the trace, which is 
+given by the offsets. This procedure is recursive and stops when the symbol 
+specifying the end of recording is reached.
+
+\section{Scalability vs. the Number of Traces}
+Usually binary tracing libraries generate one trace file per process. This means
+that for parallel applications with hundreds of \mpi{} processes the equal 
+amount of trace files is created. This is one side of the problem. The other 
+side appears while analyzing the applications execution due to the limitation 
+on the number of trace files that can be opened and processed at the same time. 
+Therefore, often those tracing libraries do not perform well and even crashes 
+when the number of traces exceeds the Linux OS limit on the number of 
+simultaneously opened files.
+
+In order to overcome the opened files limitation imposed by the Linux OS, one 
+may increase the limit to the maximum possible value. However, this would 
+temporarily solve the problem. Instead, we propose to create archives of traces 
+during the post-mortem phase. More precisely, we suggest to merge multiple 
+traces into a trace archive using the \texttt{litl\_merge} utility from \litl. 
+\Cref{fig:storage_trace_merge} illustrates the structure of the new combined 
+trace created by \texttt{litl\_merge}. The archives of traces preserve all 
+information concerning each trace: headers, pairs \emph{<tid, offset>}, 
+and positioning of events chunks. They also contain new global headers that 
+store the information regarding the amount of trace files in the archive and 
+triples \emph{<fid, size, offset>}; \emph{fid} stands for a file identifier; 
+\emph{size} is a size of a particular trace file; \emph{offset} holds the 
+position of a trace file within the archive of traces. Therefore, archives of 
+traces not only solve the performance analysis problem, but also make the 
+further analysis of the applications performance more convenient.
+
+One more useful feature provided by \litl{}, which is the opposite of 
+\texttt{litl\_merge}, is a possibility to extract trace files from archives 
+with the \texttt{litl\_split} utility. This utility can be applied when there is 
+a need to analyze a particular trace or a set of traces among the merged ones.
+
+\begin{landscape}
+\input{tikz/event.storage.trace.file.merge}
+\end{landscape}  
+    
+    
 \chapter{Troubleshooting}
 If you encounter a bug or want some explanation about \litl{}, please contact 
 and ask our development team on the development mailing list
