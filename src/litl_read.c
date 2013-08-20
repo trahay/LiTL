@@ -16,29 +16,29 @@
 
 static char* __input_filename = "trace";
 
-static void __usage(int argc __attribute__((unused)), char **argv) {
+static void __litl_read_usage(int argc __attribute__((unused)), char **argv) {
     fprintf(stderr, "Usage: %s [-f input_filename] \n", argv[0]);
     printf("       -?, -h:    Display this help and exit\n");
 }
 
-static void __parse_args(int argc, char **argv) {
+static void __litl_read_parse_args(int argc, char **argv) {
     int i;
 
     for (i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-f") == 0)) {
             __input_filename = argv[++i];
         } else if ((strcmp(argv[i], "-h") || strcmp(argv[i], "-?")) == 0) {
-            __usage(argc, argv);
+            __litl_read_usage(argc, argv);
             exit(-1);
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "Unknown option %s\n", argv[i]);
-            __usage(argc, argv);
+            __litl_read_usage(argc, argv);
             exit(-1);
         }
     }
 
     if (strcmp(__input_filename, "trace") == 0) {
-        __usage(argc, argv);
+        __litl_read_usage(argc, argv);
         exit(-1);
     }
 }
@@ -46,7 +46,7 @@ static void __parse_args(int argc, char **argv) {
 /*
  * Initializes the archive header
  */
-static void __init_header(litl_trace_read_t* arch) {
+static void __litl_read_init_header(litl_trace_read_t* arch) {
     int res;
 
     // at first, the header is small 'cause it stores only nb_traces and
@@ -90,7 +90,7 @@ static void __init_header(litl_trace_read_t* arch) {
 /*
  * Initializes the trace header, meaning it reads chunks with all pairs
  */
-static void __init_trace_header(litl_trace_read_t* arch,
+static void __litl_read_init_trace_header(litl_trace_read_t* arch,
         litl_trace_read_process_t* trace) {
 
     // init the header structure
@@ -142,7 +142,7 @@ static void __init_trace_header(litl_trace_read_t* arch,
 /*
  * Reads another portion of pairs(tid, offset) from the trace file
  */
-static void __next_pairs_buffer(litl_trace_read_t* arch,
+static void __litl_read_next_pairs_buffer(litl_trace_read_t* arch,
         litl_trace_read_process_t* trace, litl_offset_t offset) {
 
     lseek(arch->f_handle, offset, SEEK_SET);
@@ -166,7 +166,7 @@ static void __next_pairs_buffer(litl_trace_read_t* arch,
 /*
  * Initializes buffer of each recorded thread. One buffer per thread.
  */
-static void __init_buffers(litl_trace_read_t* arch,
+static void __litl_read_init_buffers(litl_trace_read_t* arch,
         litl_trace_read_process_t* trace) {
     litl_med_size_t i, size;
     litl_header_tids_t *tids;
@@ -188,7 +188,7 @@ static void __init_buffers(litl_trace_read_t* arch,
 
         // deal with slots of pairs
         if ((tids->tid == 0) && (tids->offset != 0)) {
-            __next_pairs_buffer(arch, trace,
+            __litl_read_next_pairs_buffer(arch, trace,
                     trace->triples->offset + tids->offset);
             tids = (litl_header_tids_t *) trace->header_buffer;
         }
@@ -234,7 +234,7 @@ static void __init_buffers(litl_trace_read_t* arch,
 /*
  * Opens an archive of traces
  */
-litl_trace_read_t *litl_open_trace(const char* filename) {
+litl_trace_read_t *litl_read_open_trace(const char* filename) {
     litl_trace_read_t *arch = malloc(sizeof(litl_trace_read_t));
 
     // open a trace file
@@ -244,7 +244,7 @@ litl_trace_read_t *litl_open_trace(const char* filename) {
     }
 
     // init the archive header
-    __init_header(arch);
+    __litl_read_init_header(arch);
 
     return arch;
 }
@@ -252,7 +252,7 @@ litl_trace_read_t *litl_open_trace(const char* filename) {
 /*
  * Initializes the archive's traces
  */
-void litl_init_traces(litl_trace_read_t* arch) {
+void litl_read_init_traces(litl_trace_read_t* arch) {
 
     arch->traces = (litl_trace_read_process_t *) malloc(
             arch->nb_traces * sizeof(litl_trace_read_process_t));
@@ -275,10 +275,10 @@ void litl_init_traces(litl_trace_read_t* arch) {
             arch->traces[i].initialized = 0;
 
             // init the trace header
-            __init_trace_header(arch, &arch->traces[i]);
+            __litl_read_init_trace_header(arch, &arch->traces[i]);
 
             // init buffers of events: one buffer per thread
-            __init_buffers(arch, &arch->traces[i]);
+            __litl_read_init_buffers(arch, &arch->traces[i]);
         }
     } else {
         // regular trace
@@ -290,24 +290,24 @@ void litl_init_traces(litl_trace_read_t* arch) {
         arch->traces->initialized = 0;
 
         // init the trace header
-        __init_trace_header(arch, arch->traces);
+        __litl_read_init_trace_header(arch, arch->traces);
 
         // init buffers of events: one buffer per thread
-        __init_buffers(arch, arch->traces);
+        __litl_read_init_buffers(arch, arch->traces);
     }
 }
 
 /*
  * Returns a pointer to the trace header
  */
-litl_header_t* litl_get_trace_header(litl_trace_read_t* arch) {
+litl_header_t* litl_read_get_trace_header(litl_trace_read_t* arch) {
     return arch->traces[0].header;
 }
 
 /*
  * Sets the buffer size
  */
-void litl_set_buffer_size(litl_trace_read_t* arch, const litl_size_t buf_size) {
+void litl_read_set_buffer_size(litl_trace_read_t* arch, const litl_size_t buf_size) {
     litl_med_size_t i;
 
     for (i = 0; i < arch->nb_traces; i++)
@@ -317,14 +317,14 @@ void litl_set_buffer_size(litl_trace_read_t* arch, const litl_size_t buf_size) {
 /*
  * Returns the buffer size
  */
-litl_size_t litl_get_buffer_size(litl_trace_read_t* arch) {
+litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch) {
     return arch->traces[0].buffer_size;
 }
 
 /*
  * Reads another portion of data from the trace file to the buffer
  */
-static void __next_buffer(litl_trace_read_t* arch, litl_med_size_t trace_index,
+static void __litl_read_next_buffer(litl_trace_read_t* arch, litl_med_size_t trace_index,
         litl_med_size_t buffer_index) {
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
@@ -352,7 +352,7 @@ static void __next_buffer(litl_trace_read_t* arch, litl_med_size_t trace_index,
 /*
  * Resets the trace buffer
  */
-void litl_reset_trace(litl_trace_read_t* arch, litl_med_size_t trace_index) {
+void litl_read_reset_trace(litl_trace_read_t* arch, litl_med_size_t trace_index) {
     litl_med_size_t i;
     litl_trace_read_process_t* trace = &arch->traces[trace_index];
 
@@ -363,7 +363,7 @@ void litl_reset_trace(litl_trace_read_t* arch, litl_med_size_t trace_index) {
 /*
  * Reads an event
  */
-static litl_read_t* __read_event(litl_trace_read_t* arch,
+static litl_read_t* __litl_read_event(litl_trace_read_t* arch,
         litl_med_size_t trace_index, litl_med_size_t buffer_index) {
     uint8_t to_be_loaded;
     litl_t* event;
@@ -417,7 +417,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
 
     // fetch the next block of data from the trace
     if (to_be_loaded) {
-        __next_buffer(arch, trace_index, buffer_index);
+        __litl_read_next_buffer(arch, trace_index, buffer_index);
         buffer = &trace->buffers[buffer_index].buffer;
         event = (litl_t *) *buffer;
     }
@@ -436,7 +436,7 @@ static litl_read_t* __read_event(litl_trace_read_t* arch,
 /*
  * Searches for the next event inside the trace
  */
-litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
+litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
         litl_med_size_t trace_index) {
     litl_med_size_t i;
     litl_time_t min_time = -1;
@@ -444,7 +444,7 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
 
     if (!trace->initialized) {
         for (i = 0; i < trace->nb_buffers; i++)
-            __read_event(arch, trace_index, i);
+            __litl_read_event(arch, trace_index, i);
 
         trace->cur_index = -1;
         trace->initialized = 1;
@@ -452,20 +452,20 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
 
     // read the next event from the buffer
     if (trace->cur_index != -1)
-        __read_event(arch, trace_index, trace->cur_index);
+        __litl_read_event(arch, trace_index, trace->cur_index);
 
     int found = 0;
     for (i = 0; i < trace->nb_buffers; i++) {
-        litl_read_t *evt = LITL_GET_CUR_EVENT_PER_THREAD(trace, i);
-        if ( evt && evt->event && (LITL_GET_TIME(evt) < min_time)) {
+        litl_read_t *evt = LITL_READ_GET_CUR_EVENT_PER_THREAD(trace, i);
+        if ( evt && evt->event && (LITL_READ_GET_TIME(evt) < min_time)) {
             found = 1;
-            min_time = LITL_GET_TIME(evt);
+            min_time = LITL_READ_GET_TIME(evt);
             trace->cur_index = i;
         }
     }
 
     if (found)
-        return LITL_GET_CUR_EVENT(trace);
+        return LITL_READ_GET_CUR_EVENT(trace);
 
     return NULL ;
 }
@@ -473,12 +473,12 @@ litl_read_t* litl_next_trace_event(litl_trace_read_t* arch,
 /*
  * Reads the next event either from an archive or a regular trace
  */
-litl_read_t* litl_next_event(litl_trace_read_t* arch) {
+litl_read_t* litl_read_next_event(litl_trace_read_t* arch) {
     litl_med_size_t i;
     litl_read_t* event = NULL;
 
     for (i = 0; i < arch->nb_traces; i++) {
-        event = litl_next_trace_event(arch, i);
+        event = litl_read_next_trace_event(arch, i);
 
         if (event != NULL )
             break;
@@ -490,7 +490,7 @@ litl_read_t* litl_next_event(litl_trace_read_t* arch) {
 /*
  * Closes the trace and frees the buffer
  */
-void litl_close_trace(litl_trace_read_t* arch) {
+void litl_read_close_trace(litl_trace_read_t* arch) {
     litl_med_size_t i, j;
 
     // close the file
@@ -527,13 +527,13 @@ int main(int argc, char **argv) {
     litl_header_t* header;
 
     // parse the arguments passed to this program
-    __parse_args(argc, argv);
+    __litl_read_parse_args(argc, argv);
 
-    arch = litl_open_trace(__input_filename);
+    arch = litl_read_open_trace(__input_filename);
 
-    litl_init_traces(arch);
+    litl_read_init_traces(arch);
 
-    header = litl_get_trace_header(arch);
+    header = litl_read_get_trace_header(arch);
 
     // print the header
     printf(" LiTL v.%s\n", header->litl_ver);
@@ -547,36 +547,36 @@ int main(int argc, char **argv) {
     printf(
             "[Timestamp]\t[ThreadID]\t[EventType]\t[EventCode]\t[NbParam]\t[Parameters]\n");
     while (1) {
-        event = litl_next_event(arch);
+        event = litl_read_next_event(arch);
 
         if (event == NULL )
             break;
 
-        switch (LITL_GET_TYPE(event)) {
+        switch (LITL_READ_GET_TYPE(event)) {
         case LITL_TYPE_REGULAR: { // regular event
             printf("%"PRTIu64" \t%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu32,
-                    LITL_GET_TIME(event), LITL_GET_TID(event),
-                    LITL_GET_CODE(event), LITL_REGULAR(event)->nb_params);
+                    LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+                    LITL_READ_GET_CODE(event), LITL_READ_REGULAR(event)->nb_params);
 
-            for (i = 0; i < LITL_REGULAR(event)->nb_params; i++)
-                printf("\t %"PRTIx64, LITL_REGULAR(event)->param[i]);
+            for (i = 0; i < LITL_READ_REGULAR(event)->nb_params; i++)
+                printf("\t %"PRTIx64, LITL_READ_REGULAR(event)->param[i]);
             break;
         }
         case LITL_TYPE_RAW: { // raw event
-            LITL_GET_CODE(event) = clear_bit(LITL_GET_CODE(event));
+            LITL_READ_GET_CODE(event) = clear_bit(LITL_READ_GET_CODE(event));
             printf("%"PRTIu64"\t%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu32,
-                    LITL_GET_TIME(event), LITL_GET_TID(event),
-                    LITL_GET_CODE(event), LITL_RAW(event)->size);
-            printf("\t %s", (litl_data_t *) LITL_RAW(event)->data);
+                    LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+                    LITL_READ_GET_CODE(event), LITL_READ_RAW(event)->size);
+            printf("\t %s", (litl_data_t *) LITL_READ_RAW(event)->data);
             break;
         }
         case LITL_TYPE_PACKED: { // packed event
             printf(
                     "%"PRTIu64" \t%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu32"\t",
-                    LITL_GET_TIME(event), LITL_GET_TID(event),
-                    LITL_GET_CODE(event), LITL_PACKED(event)->size);
-            for (i = 0; i < LITL_PACKED(event)->size; i++) {
-                printf(" %x", LITL_PACKED(event)->param[i]);
+                    LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+                    LITL_READ_GET_CODE(event), LITL_READ_PACKED(event)->size);
+            for (i = 0; i < LITL_READ_PACKED(event)->size; i++) {
+                printf(" %x", LITL_READ_PACKED(event)->param[i]);
             }
             break;
         }
@@ -584,7 +584,7 @@ int main(int argc, char **argv) {
             continue;
         }
         default: {
-            fprintf(stderr, "Unknown event type %d\n", LITL_GET_TYPE(event));
+            fprintf(stderr, "Unknown event type %d\n", LITL_READ_GET_TYPE(event));
             abort();
         }
         }
@@ -592,7 +592,7 @@ int main(int argc, char **argv) {
         printf("\n");
     }
 
-    litl_close_trace(arch);
+    litl_read_close_trace(arch);
 
     return EXIT_SUCCESS;
 }
