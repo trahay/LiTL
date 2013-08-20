@@ -302,4 +302,18 @@ typedef struct {
 #define PRTIx64 "x"
 #endif
 
+
+/*
+ * For internal use only.
+ * Computes the offset of MEMBER in structure TYPE
+ */
+#define __litl_offset_of(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
+
+/*
+ * For internal use only.
+ * Computes the offset of the first parameter in an event
+ */
+#define LITL_BASE_SIZE __litl_offset_of(litl_t, parameters.regular.param)
+
+
 #endif /* LITL_TYPES_H_ */
