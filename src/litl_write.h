@@ -55,16 +55,6 @@ void litl_write_resume_recording(litl_trace_write_t*);
  */
 void litl_write_set_filename(litl_trace_write_t* trace, char* filename);
 
-/*
- * Writes the recorded events from the buffer to the trace file
- */
-void litl_write_flush_buffer(litl_trace_write_t* trace, litl_med_size_t index);
-
-/*
- * Records an event with offset only
- */
-void litl_write_probe_offset(litl_trace_write_t* trace, litl_med_size_t index);
-
 
 /*** Regular events ***/
 
@@ -76,66 +66,74 @@ void litl_write_probe_reg_0(litl_trace_write_t* trace, litl_code_t code);
 /*
  * Records a regular event with 1 parameter
  */
-void litl_write_probe_reg_1(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1);
+void litl_write_probe_reg_1(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1);
 
 /*
  * Records a regular event with 2 parameters
  */
-void litl_write_probe_reg_2(litl_trace_write_t*trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2);
+void litl_write_probe_reg_2(litl_trace_write_t*trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2);
 
 /*
  * Records a regular event with 3 parameters
  */
-void litl_write_probe_reg_3(litl_trace_write_t*trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3);
+void litl_write_probe_reg_3(litl_trace_write_t*trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3);
 
 /*
  * Records a regular event with 4 parameters
  */
-void litl_write_probe_reg_4(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4);
+void litl_write_probe_reg_4(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4);
 
 /*
  * Records a regular event with 5 parameters
  */
-void litl_write_probe_reg_5(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5);
+void litl_write_probe_reg_5(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5);
 
 /*
  * Records a regular event with 6 parameters
  */
-void litl_write_probe_reg_6(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-	litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5, litl_param_t param6);
+void litl_write_probe_reg_6(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6);
 
 /*
  * Records a regular event with 7 parameters
  */
-void litl_write_probe_reg_7(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5, litl_param_t param6,
+void litl_write_probe_reg_7(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7);
 
 /*
  * Records a regular event with 8 parameters
  */
-void litl_write_probe_reg_8(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5, litl_param_t param6,
+void litl_write_probe_reg_8(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7, litl_param_t param8);
 
 /*
  * Records a regular event with 9 parameters
  */
-void litl_write_probe_reg_9(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5, litl_param_t param6,
+void litl_write_probe_reg_9(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7, litl_param_t param8, litl_param_t param9);
 
 /*
  * Records a regular event with 10 parameters
  */
-void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code, litl_param_t param1,
-        litl_param_t param2, litl_param_t param3, litl_param_t param4, litl_param_t param5, litl_param_t param6,
-        litl_param_t param7, litl_param_t param8, litl_param_t param9, litl_param_t param10);
-
+void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
+        litl_param_t param7, litl_param_t param8, litl_param_t param9,
+        litl_param_t param10);
 
 /*** Raw events ***/
 
@@ -143,9 +141,8 @@ void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code, litl_p
  * Records an event in a raw state, where the size is #args in the void* array.
  * That helps to discover places where the application has crashed
  */
-void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code, litl_size_t size,
-        litl_data_t data[]);
-
+void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
+        litl_size_t size, litl_data_t data[]);
 
 /*** Internal-use macros ***/
 
@@ -165,7 +162,6 @@ litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
     memcpy(_ptr_, &_arg, sizeof(_arg));		\
     _ptr_ = ((char*)_ptr_)+sizeof(_arg);	\
   } while(0)
-
 
 /*** Packed events ***/
 

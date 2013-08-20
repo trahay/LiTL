@@ -8,16 +8,14 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include "litl_macro.h"
+#include "litl_tools.h"
 #include "litl_write.h"
-
-#define BITS_IN_BITE 8
 
 /*
  * Returns the size in bytes of a REGULAR event depending on
  *   the number of arguments
  */
-litl_med_size_t litl_get_reg_event_size(litl_tiny_size_t nb_params) {
+litl_med_size_t __litl_get_reg_event_size(litl_tiny_size_t nb_params) {
     return nb_params * sizeof(litl_param_t)
             + (litl_med_size_t) ceil(
                     LITL_BASE_SIZE / (double) sizeof(litl_param_t))
@@ -27,7 +25,7 @@ litl_med_size_t litl_get_reg_event_size(litl_tiny_size_t nb_params) {
 /*
  * Returns the size in bytes of an event of any type
  */
-litl_med_size_t litl_get_gen_event_size(litl_t *p_evt) {
+litl_med_size_t __litl_get_gen_event_size(litl_t *p_evt) {
     switch (p_evt->type) {
     case LITL_TYPE_REGULAR:
         return p_evt->parameters.regular.nb_params * sizeof(litl_param_t)

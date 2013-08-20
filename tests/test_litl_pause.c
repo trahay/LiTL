@@ -15,9 +15,9 @@
 #include <string.h>
 
 #include "litl_types.h"
+#include "litl_tools.h"
 #include "litl_write.h"
 #include "litl_read.h"
-#include "litl_macro.h"
 
 void write_trace(char* filename, int nb_iter, int skipped_iter) {
     int i;

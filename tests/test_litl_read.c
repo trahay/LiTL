@@ -14,8 +14,8 @@
 #include <string.h>
 
 #include "litl_types.h"
+#include "litl_tools.h"
 #include "litl_read.h"
-#include "litl_macro.h"
 
 int main(int argc, const char **argv) {
     litl_tiny_size_t i;

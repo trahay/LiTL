@@ -1,7 +1,14 @@
+/* -*- c-file-style: "GNU" -*- */
+/*
+ * Copyright © Télécom SudParis.
+ * See COPYING in top-level directory.
+ */
+
 #include <string.h>
 #include <stdlib.h>
+
+#include "litl_tools.h"
 #include "litl_read.h"
-#include "litl_macro.h"
 
 static char* __input_filename = "trace";
 
@@ -54,7 +61,9 @@ int main(int argc, char **argv) {
         printf(" nb_traces \t %d\n", arch->nb_traces);
     else
         printf(" nb_threads \t %d\n", header->nb_threads);
-    printf(" buffer_size \t %d\n", header->buffer_size);
+    printf(" buffer_size \t %d\n",
+            header->buffer_size - __litl_get_reg_event_size(LITL_MAX_PARAMS)
+                    - __litl_get_reg_event_size(0));
 
     printf(
             "[Timestamp]\t[ThreadID]\t[EventType]\t[EventCode]\t[NbParam]\t[Parameters]\n");
