@@ -12,10 +12,6 @@ Requirements
 =============================================
 In order to use LiTL, the following software is needed:
     * autoconf 2.63;
-    
-    * libelf or libbfd. On Debian, libelf can be installed from command line by 
-      the following command:
-        apt-get install libelf-dev
 
 Getting LiTL
 =============================================
