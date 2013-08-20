@@ -94,11 +94,6 @@ void read_trace(char* filename, uint32_t left_bound, uint32_t right_bound) {
         if (event == NULL )
             break;
 
-        if (litl_get_bit(LITL_READ_GET_CODE(event)) == 1)
-            // raw event
-            LITL_READ_GET_CODE (event) = litl_clear_bit(
-                    LITL_READ_GET_CODE(event));
-
         // check whether some events were skipped
         if ((left_bound < LITL_READ_GET_CODE(event))&& (LITL_READ_GET_CODE(event) < right_bound)){
         nbevents++;

@@ -43,24 +43,3 @@ litl_med_size_t litl_get_gen_event_size(litl_t *p_evt) {
 
     return 0;
 }
-
-/*
- * Sets the bit of the higher order to one
- */
-litl_code_t litl_set_bit(litl_code_t val) {
-    return val = val | 1UL << (BITS_IN_BITE * sizeof(litl_code_t) - 1);
-}
-
-/*
- * Sets the bit of the higher order to zero
- */
-litl_code_t litl_clear_bit(litl_code_t val) {
-    return val = val & ~(1UL << (BITS_IN_BITE * sizeof(litl_code_t) - 1));
-}
-
-/*
- * Returns the bit of the higher order
- */
-uint8_t litl_get_bit(litl_code_t val) {
-    return (uint8_t) (val >> (BITS_IN_BITE * sizeof(litl_code_t) - 1));
-}

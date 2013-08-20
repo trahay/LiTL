@@ -935,7 +935,6 @@ void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
 
     if (__litl_write_get_buffer_size(trace, index) < trace->buffer_size) {
         cur_ptr->time = litl_get_time();
-        code = litl_set_bit(code);
         cur_ptr->code = code;
         cur_ptr->type = LITL_TYPE_RAW;
         cur_ptr->parameters.raw.size = size;
