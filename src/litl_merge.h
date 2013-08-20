@@ -8,6 +8,7 @@
 #define LITL_MERGE_H_
 
 #include "litl_types.h"
+#include "litl_queue.h"
 
 /*
  * Sets a new name for the archive
@@ -18,7 +19,7 @@ void litl_set_archive_name(litl_trace_merge_t *, char *);
  * Creates and opens an archive for traces.
  * Allocates memory for the buffer
  */
-litl_trace_merge_t litl_init_archive();
+litl_trace_merge_t litl_init_archive(char *, litl_size_t, litl_queue_t*);
 
 /*
  * Merges trace files. This is a modified version of the cat implementation

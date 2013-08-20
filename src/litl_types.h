@@ -38,7 +38,7 @@ typedef uint8_t litl_tiny_size_t;
 typedef uint16_t litl_med_size_t;
 typedef uint32_t litl_size_t;
 typedef uint64_t litl_param_t;
-typedef uint8_t* litl_buffer_t; // data structure for holding a set of events
+typedef uint8_t* litl_buffer_t;// data structure for holding a set of events
 typedef uint64_t litl_offset_t;
 
 #elif defined __arm__
@@ -259,6 +259,8 @@ typedef struct {
     int f_handle;
     char* filename;
 
+    litl_med_size_t nb_traces;
+
     litl_buffer_t buffer;
     litl_size_t buffer_size;
 
@@ -300,7 +302,6 @@ typedef struct {
 #define PRTIx64 "x"
 #endif
 
-
 /*
  * For internal use only.
  * Computes the offset of MEMBER in structure TYPE
@@ -312,6 +313,5 @@ typedef struct {
  * Computes the offset of the first parameter in an event
  */
 #define LITL_BASE_SIZE __litl_offset_of(litl_t, parameters.regular.param)
-
 
 #endif /* LITL_TYPES_H_ */

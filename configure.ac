@@ -87,4 +87,5 @@ AC_SUBST(includedir)
 
 AC_OUTPUT([Makefile litl.pc \
            src/Makefile \
+           utils/Makefile \
            tests/Makefile ])

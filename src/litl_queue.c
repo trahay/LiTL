@@ -10,17 +10,18 @@
 
 #include "litl_queue.h"
 
-void litl_init_queue(litl_queue* queue) {
+void litl_init_queue(litl_queue_t* queue) {
     queue->head = NULL;
     queue->tail = NULL;
 }
 
-void litl_enqueue(litl_queue* queue, char* val) {
+void litl_enqueue(litl_queue_t* queue, char* val) {
     int length;
     length = strlen(val) + 1;
 
-    if (queue->tail == NULL ) {
-        queue->tail = (struct litl_queue_node *) malloc(sizeof(struct litl_queue_node));
+    if (queue->tail == NULL) {
+        queue->tail = (struct litl_queue_node *) malloc(
+                sizeof(struct litl_queue_node));
         queue->tail->filename = (char *) malloc(length);
         strcpy(queue->tail->filename, val);
         queue->tail->next = NULL;
@@ -36,9 +37,9 @@ void litl_enqueue(litl_queue* queue, char* val) {
     }
 }
 
-char* litl_dequeue(litl_queue* queue) {
-    if (queue->head == NULL )
-        return NULL ;
+char* litl_dequeue(litl_queue_t* queue) {
+    if (queue->head == NULL)
+        return NULL;
 
     char* val;
     val = queue->head->filename;
@@ -47,18 +48,18 @@ char* litl_dequeue(litl_queue* queue) {
     return val;
 }
 
-void litl_print(litl_queue *queue) {
-    while (queue->head != NULL ) {
+void litl_print(litl_queue_t *queue) {
+    while (queue->head != NULL) {
         printf("%s \n", queue->head->filename);
         queue->head = queue->head->next;
     }
 
 }
 
-void litl_delqueue(litl_queue* queue) {
+void litl_delqueue(litl_queue_t* queue) {
     struct litl_queue_node *tmp;
 
-    while (queue->head != NULL ) {
+    while (queue->head != NULL) {
         tmp = queue->head;
         queue->head = queue->head->next;
         free(tmp->filename);

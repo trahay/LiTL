@@ -2,6 +2,7 @@
 # See COPYING in top-level directory.
 
 SUBDIRS = src \
+          utils \
 	  	  tests
 
 pkgconfigdir = $(libdir)/pkgconfig
