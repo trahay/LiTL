@@ -12,6 +12,6 @@
 /*
  * Writes each trace from an archive into a separate trace file
  */
-void litl_split_archive(const char *);
+void litl_split_archive(const char * dir);
 
 #endif /* LITL_SPLIT_H_ */

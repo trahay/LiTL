@@ -151,7 +151,7 @@ static void __litl_read_init_buffers(litl_trace_read_t* arch,
     // increase a bit the buffer size 'cause of the possible event's tail and
     //   the offset
     trace->buffer_size = trace->header->buffer_size
-            + get_reg_event_size(LITL_MAX_PARAMS) + get_reg_event_size(0);
+            + litl_get_reg_event_size(LITL_MAX_PARAMS) + litl_get_reg_event_size(0);
 
     for (i = 0; i < trace->nb_buffers; i++) {
         /* read pairs (tid, offset) */
@@ -361,13 +361,13 @@ static litl_read_t* __litl_read_event(litl_trace_read_t* arch,
     // the current event is loaded to the buffer
     litl_size_t remaining_size = trace->buffers[buffer_index].tracker
             - trace->buffers[buffer_index].offset;
-    if (remaining_size < get_reg_event_size(0)) {
+    if (remaining_size < litl_get_reg_event_size(0)) {
         // this event is truncated. We can't even read the nb_param field
         to_be_loaded = 1;
     } else {
         // The nb_param (or size) field is available. Let's check whether
         //   the event is truncated
-        litl_med_size_t event_size = get_gen_event_size(event);
+        litl_med_size_t event_size = litl_get_gen_event_size(event);
         if (remaining_size < event_size)
             to_be_loaded = 1;
     }
@@ -394,7 +394,7 @@ static litl_read_t* __litl_read_event(litl_trace_read_t* arch,
     }
 
     // move pointer to the next event and update __offset
-    unsigned evt_size = get_gen_event_size(event);
+    unsigned evt_size = litl_get_gen_event_size(event);
     trace->buffers[buffer_index].buffer += evt_size;
     trace->buffers[buffer_index].offset += evt_size;
 

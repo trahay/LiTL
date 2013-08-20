@@ -9,14 +9,14 @@
 
 // data structure for holding the trace file names in the same order as they
 //    arrived
-struct node {
+struct litl_queue_node {
     char* filename;
-    struct node* next;
+    struct litl_queue_node* next;
 };
 
 typedef struct litl_queue_t{
-    struct node *head;
-    struct node *tail;
+    struct litl_queue_node *head;
+    struct litl_queue_node *tail;
 } litl_queue;
 
 void litl_init_queue(litl_queue* queue);

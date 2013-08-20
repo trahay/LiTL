@@ -14,27 +14,27 @@
  * Returns the size of a particular event in bytes depending on
  * the number of arguments
  */
-litl_med_size_t get_reg_event_size(litl_tiny_size_t);
+litl_med_size_t litl_get_reg_event_size(litl_tiny_size_t nb_params);
 
 /*
  * Returns the size of a particular event in bytes depending on
  * the number of arguments
  */
-litl_med_size_t get_gen_event_size(litl_t *p_evt);
+litl_med_size_t litl_get_gen_event_size(litl_t *p_evt);
 
 /*
  * Sets the bit of the higher order to one
  */
-litl_code_t set_bit(litl_code_t);
+litl_code_t litl_set_bit(litl_code_t val);
 
 /*
  * Sets the bit of the higher order to zero
  */
-litl_code_t clear_bit(litl_code_t);
+litl_code_t litl_clear_bit(litl_code_t val);
 
 /*
  * Returns the bit of the higher order
  */
-uint8_t get_bit(litl_code_t);
+uint8_t litl_get_bit(litl_code_t val);
 
 #endif /* LITL_MACRO_H_ */

@@ -13,6 +13,6 @@
  * Merges trace files. This is a modified version of the cat implementation
  *   from the Kernighan & Ritchie book
  */
-void litl_merge_file(const int, const char *);
+void litl_merge_file(const int file_id, const char * file_name_in);
 
 #endif /* LITL_MERGE_H_ */

@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
             break;
         }
         case LITL_TYPE_RAW: { // raw event
-            LITL_READ_GET_CODE(event) = clear_bit(LITL_READ_GET_CODE(event));
+            LITL_READ_GET_CODE(event) = litl_clear_bit(LITL_READ_GET_CODE(event));
             printf("%"PRTIu64"\t%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu32,
                     LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
                     LITL_READ_GET_CODE(event), LITL_READ_RAW(event)->size);

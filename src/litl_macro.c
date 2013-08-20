@@ -17,7 +17,7 @@
  * Returns the size in bytes of a REGULAR event depending on
  *   the number of arguments
  */
-litl_med_size_t get_reg_event_size(litl_tiny_size_t nb_params) {
+litl_med_size_t litl_get_reg_event_size(litl_tiny_size_t nb_params) {
     return nb_params * sizeof(litl_param_t)
             + (litl_med_size_t) ceil(
                     LITL_BASE_SIZE / (double) sizeof(litl_param_t))
@@ -27,7 +27,7 @@ litl_med_size_t get_reg_event_size(litl_tiny_size_t nb_params) {
 /*
  * Returns the size in bytes of an event of any type
  */
-litl_med_size_t get_gen_event_size(litl_t *p_evt) {
+litl_med_size_t litl_get_gen_event_size(litl_t *p_evt) {
     switch (p_evt->type) {
     case LITL_TYPE_REGULAR:
         return p_evt->parameters.regular.nb_params * sizeof(litl_param_t)
@@ -47,20 +47,20 @@ litl_med_size_t get_gen_event_size(litl_t *p_evt) {
 /*
  * Sets the bit of the higher order to one
  */
-litl_code_t set_bit(litl_code_t val) {
+litl_code_t litl_set_bit(litl_code_t val) {
     return val = val | 1UL << (BITS_IN_BITE * sizeof(litl_code_t) - 1);
 }
 
 /*
  * Sets the bit of the higher order to zero
  */
-litl_code_t clear_bit(litl_code_t val) {
+litl_code_t litl_clear_bit(litl_code_t val) {
     return val = val & ~(1UL << (BITS_IN_BITE * sizeof(litl_code_t) - 1));
 }
 
 /*
  * Returns the bit of the higher order
  */
-uint8_t get_bit(litl_code_t val) {
+uint8_t litl_get_bit(litl_code_t val) {
     return (uint8_t) (val >> (BITS_IN_BITE * sizeof(litl_code_t) - 1));
 }

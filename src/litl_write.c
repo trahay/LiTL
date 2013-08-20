@@ -415,8 +415,8 @@ static void __litl_write_allocate_buffer(litl_trace_write_t* trace) {
     pthread_mutex_unlock(&trace->lock_buffer_init);
 
     trace->buffers[*pos]->buffer_ptr = malloc(
-            trace->buffer_size + get_reg_event_size(LITL_MAX_PARAMS)
-                    + get_reg_event_size(1));
+            trace->buffer_size + litl_get_reg_event_size(LITL_MAX_PARAMS)
+                    + litl_get_reg_event_size(1));
     if (!trace->buffers[*pos]->buffer_ptr) {
         perror("Could not allocate memory for the buffer!");
         exit(EXIT_FAILURE);
@@ -922,7 +922,7 @@ void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
 
     if (__litl_write_get_buffer_size(trace, index) < trace->buffer_size) {
         cur_ptr->time = litl_get_time();
-        code = set_bit(code);
+        code = litl_set_bit(code);
         cur_ptr->code = code;
         cur_ptr->type = LITL_TYPE_RAW;
         cur_ptr->parameters.raw.size = size;
