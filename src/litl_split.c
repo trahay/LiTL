@@ -128,7 +128,7 @@ void litl_split_archive(const char *dir) {
         lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
 
         // create and open a new trace file
-        res = asprintf(&trace_name, "%s/%s_litl_log_rank_%ld", dir, user,
+        res = asprintf(&trace_name, "%s/%s_litl_log_rank_%d", dir, user,
                 __archive->triples->fid);
         if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
             fprintf(stderr, "Cannot open %s\n", trace_name);
