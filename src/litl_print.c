@@ -3,7 +3,6 @@
 #include "litl_read.h"
 #include "litl_macro.h"
 
-
 static char* __input_filename = "trace";
 
 static void __litl_read_usage(int argc __attribute__((unused)), char **argv) {
@@ -33,8 +32,6 @@ static void __litl_read_parse_args(int argc, char **argv) {
     }
 }
 
-
-
 int main(int argc, char **argv) {
     litl_med_size_t i;
     litl_read_t* event;
@@ -53,7 +50,7 @@ int main(int argc, char **argv) {
     // print the header
     printf(" LiTL v.%s\n", header->litl_ver);
     printf(" %s\n", header->sysinfo);
-    if (arch->is_trace_archive)
+    if (arch->header->is_trace_archive)
         printf(" nb_traces \t %d\n", arch->nb_traces);
     else
         printf(" nb_threads \t %d\n", header->nb_threads);
@@ -71,7 +68,8 @@ int main(int argc, char **argv) {
         case LITL_TYPE_REGULAR: { // regular event
             printf("%"PRTIu64" \t%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu32,
                     LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
-                    LITL_READ_GET_CODE(event), LITL_READ_REGULAR(event)->nb_params);
+                    LITL_READ_GET_CODE(event),
+                    LITL_READ_REGULAR(event)->nb_params);
 
             for (i = 0; i < LITL_READ_REGULAR(event)->nb_params; i++)
                 printf("\t %"PRTIx64, LITL_READ_REGULAR(event)->param[i]);
@@ -99,7 +97,8 @@ int main(int argc, char **argv) {
             continue;
         }
         default: {
-            fprintf(stderr, "Unknown event type %d\n", LITL_READ_GET_TYPE(event));
+            fprintf(stderr, "Unknown event type %d\n",
+                    LITL_READ_GET_TYPE(event));
             abort();
         }
         }
@@ -107,7 +106,7 @@ int main(int argc, char **argv) {
         printf("\n");
     }
 
-    litl_read_close_trace(arch);
+    litl_read_finalize_trace(arch);
 
     return EXIT_SUCCESS;
 }

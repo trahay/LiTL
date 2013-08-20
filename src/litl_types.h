@@ -99,6 +99,9 @@ typedef struct {
  */
 typedef struct {
     litl_med_size_t nb_threads; // the total number of threads
+    // indicates whether a trace is:
+    //   (=0) a regular trace;
+    //   (=1) an archive of traces;
     litl_tiny_size_t is_trace_archive;
     litl_size_t buffer_size;
     litl_med_size_t header_nb_threads; // the number of threads in the header
@@ -139,7 +142,7 @@ typedef struct {
 } litl_write_buffer_t;
 
 typedef struct {
-    int ftrace;
+    int f_handle;
     char* filename;
 
     litl_offset_t general_offset; // offset from the beginning of the trace file
@@ -207,7 +210,6 @@ typedef struct {
 
     litl_buffer_t buffer; // pointer to the current position in the buffer
     litl_buffer_t buffer_ptr; // pointer to the beginning of the buffer
-    litl_size_t buffer_size;
 
     litl_offset_t offset; // offset from the beginning of the buffer
     // indicator of the end of the buffer = offset + buffer_size
@@ -223,18 +225,16 @@ typedef struct {
 typedef struct {
     litl_header_triples_t* triples;
 
-    litl_size_t header_size;
     litl_header_t* header;
+    litl_size_t header_size;
     litl_buffer_t header_buffer;
     litl_buffer_t header_buffer_ptr;
 
     litl_med_size_t nb_buffers;
-    litl_size_t buffer_size;
     litl_trace_read_thread_t *buffers;
 
     int cur_index; // index of the thread of the current event
     int initialized; // set to 1 when initialized
-
 } litl_trace_read_process_t;
 
 /*
@@ -243,14 +243,11 @@ typedef struct {
 typedef struct {
     int f_handle;
 
+    litl_header_t* header;
     litl_size_t header_size;
     litl_buffer_t header_buffer;
+    litl_buffer_t header_buffer_ptr;
 
-    // indicates whether a trace is:
-    //   (=0) a regular trace;
-    //   (=1) an archive of traces;
-    //   (=2) an archive of archives
-    litl_tiny_size_t is_trace_archive;
     litl_med_size_t nb_traces;
     litl_trace_read_process_t *traces;
 } litl_trace_read_t;
@@ -259,7 +256,8 @@ typedef struct {
  * Data structure for merging traces in the archive
  */
 typedef struct {
-    int f_arch;
+    int f_handle;
+    char* filename;
 
     litl_buffer_t buffer;
     litl_size_t buffer_size;

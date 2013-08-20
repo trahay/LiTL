@@ -27,7 +27,8 @@ litl_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
 /*
  * Sets the buffer size
  */
-void litl_read_set_buffer_size(litl_trace_read_t* arch, const litl_size_t buf_size);
+void litl_read_set_buffer_size(litl_trace_read_t* arch,
+        const litl_size_t buf_size);
 
 /*
  * Returns the buffer size
@@ -37,12 +38,14 @@ litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch);
 /*
  * Resets the trace
  */
-void litl_read_reset_trace(litl_trace_read_t* arch, litl_med_size_t trace_index);
+void litl_read_reset_trace(litl_trace_read_t* arch,
+        litl_med_size_t trace_index);
 
 /*
  * Searches for the next event inside the trace
  */
-litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch, litl_med_size_t trace_index);
+litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
+        litl_med_size_t trace_index);
 
 /*
  * Reads the next event either from an archive or a regular trace
@@ -52,7 +55,7 @@ litl_read_t* litl_read_next_event(litl_trace_read_t* arch);
 /*
  * Closes the trace and frees the allocated memory
  */
-void litl_read_close_trace(litl_trace_read_t* arch);
+void litl_read_finalize_trace(litl_trace_read_t* arch);
 
 /*** Internal-use macros ***/
 

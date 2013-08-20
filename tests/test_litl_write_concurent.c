@@ -26,7 +26,7 @@
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
-litl_trace_write_t trace;
+litl_trace_write_t __trace;
 
 /*
  * This test records several traces at the same time
@@ -37,32 +37,34 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
     litl_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     for (i = 0; i < NBITER; i++) {
-        litl_probe_reg_0(&trace, 0x100 * (i + 1) + 1);
+        litl_write_probe_reg_0(&__trace, 0x100 * (i + 1) + 1);
         usleep(100);
-        litl_probe_reg_1(&trace, 0x100 * (i + 1) + 2, 1);
+        litl_write_probe_reg_1(&__trace, 0x100 * (i + 1) + 2, 1);
         usleep(100);
-        litl_probe_reg_2(&trace, 0x100 * (i + 1) + 3, 1, 3);
+        litl_write_probe_reg_2(&__trace, 0x100 * (i + 1) + 3, 1, 3);
         usleep(100);
-        litl_probe_reg_3(&trace, 0x100 * (i + 1) + 4, 1, 3, 5);
+        litl_write_probe_reg_3(&__trace, 0x100 * (i + 1) + 4, 1, 3, 5);
         usleep(100);
-        litl_probe_reg_4(&trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
+        litl_write_probe_reg_4(&__trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
         usleep(100);
-        litl_probe_reg_5(&trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
+        litl_write_probe_reg_5(&__trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
         usleep(100);
-        litl_probe_reg_6(&trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
+        litl_write_probe_reg_6(&__trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11,
+                13);
         usleep(100);
-        litl_probe_reg_7(&trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
+        litl_write_probe_reg_7(&__trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11,
+                13, 17);
         usleep(100);
-        litl_probe_reg_8(&trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-                19);
+        litl_write_probe_reg_8(&__trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11,
+                13, 17, 19);
         usleep(100);
-        litl_probe_reg_9(&trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17,
-                19, 23);
+        litl_write_probe_reg_9(&__trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11,
+                13, 17, 19, 23);
         usleep(100);
-        litl_probe_reg_10(&trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17,
-                19, 23, 29);
+        litl_write_probe_reg_10(&__trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11,
+                13, 17, 19, 23, 29);
         usleep(100);
-        litl_probe_raw(&trace, 0x100 * (i + 1) + 12, sizeof(val), val);
+        litl_write_probe_raw(&__trace, 0x100 * (i + 1) + 12, sizeof(val), val);
         usleep(100);
     }
 
@@ -75,12 +77,12 @@ void read_trace(char* filename) {
     litl_read_t* event;
     litl_trace_read_t *arch;
 
-    arch = litl_open_trace(filename);
+    arch = litl_read_open_trace(filename);
 
-    litl_init_traces(arch);
+    litl_read_init_traces(arch);
 
     while (1) {
-        event = litl_next_event(arch);
+        event = litl_read_next_event(arch);
 
         if (event == NULL )
             break;
@@ -88,7 +90,7 @@ void read_trace(char* filename) {
         nb_events++;
     }
 
-    litl_close_trace(arch);
+    litl_read_finalize_trace(arch);
 
     if (nb_events != NBEVENT * NBTHREAD) {
         fprintf(stderr,
@@ -107,8 +109,8 @@ int main() {
     printf("Recording events by %d threads\n\n", NBTHREAD);
     res = asprintf(&filename, "/tmp/test_litl_write_concurent.trace");
 
-    trace = litl_init_trace(buffer_size);
-    litl_set_filename(&trace, filename);
+    __trace = litl_write_init_trace(buffer_size);
+    litl_write_set_filename(&__trace, filename);
 
     for (i = 0; i < NBTHREAD; i++) {
         pthread_create(&tid[i], NULL, write_trace, &i);
@@ -117,8 +119,8 @@ int main() {
     for (i = 0; i < NBTHREAD; i++)
         pthread_join(tid[i], NULL );
 
-    printf("All events are stored in %s\n\n", trace.filename);
-    litl_fin_trace(&trace);
+    printf("All events are stored in %s\n\n", __trace.filename);
+    litl_write_finalize_trace(&__trace);
 
     printf("Checking the recording of events\n\n");
 
