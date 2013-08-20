@@ -44,10 +44,10 @@ run as
 
 Using LiTL
 =============================================
-litl_read
+litl_print
 ----------
   This tool is used to analyze trace files produced by LiTL as
-    $ litl_read -f trace.file
+    $ litl_print -f trace.file
 
 litl_merge
 ----------
