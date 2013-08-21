@@ -12,10 +12,8 @@
 
 #include "litl_split.h"
 
-static litl_trace_split_t* __archive;
-
-static char *__archive_name = "archive";
-static char *__output_dir = "dir";
+static char *__archive_name = "";
+static char *__output_dir = "";
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
     fprintf(stderr, "Usage: %s [-f archive_traces] [-d output_dir] \n",
@@ -41,131 +39,13 @@ static void __parse_args(int argc, char **argv) {
         }
     }
 
-    if (strcmp(__archive_name, "archive") == 0) {
+    if (strcmp(__archive_name, "") == 0) {
         __usage(argc, argv);
         exit(-1);
-    } else if (strcmp(__output_dir, "dir") == 0) {
+    } else if (strcmp(__output_dir, "") == 0) {
         __usage(argc, argv);
         exit(-1);
     }
-}
-
-/*
- * Opens an archive of traces
- */
-static void __open_archive(const char *archive_name) {
-    __archive = malloc(sizeof(litl_trace_split_t));
-
-    // open an archive of traces
-    if ((__archive->f_arch = open(archive_name, O_RDONLY)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", archive_name);
-        exit(EXIT_FAILURE);
-    }
-
-    // allocate buffer for read/write ops
-    __archive->buffer_size = 16 * 1024 * 1024; // 16 MB
-    __archive->buffer = (litl_buffer_t) malloc(__archive->buffer_size);
-}
-
-/*
- * Initializes a structure that stores triples from the archive's header
- */
-static void __read_archive_header() {
-    int res __attribute__ ((__unused__));
-
-    // at first, the header is small 'cause it stores only nb_traces and
-    //   is_trace_archive values
-    __archive->header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
-    __archive->header_buffer = (litl_buffer_t) malloc(__archive->header_size);
-
-    // read the archive's header
-    res = read(__archive->f_arch, __archive->header_buffer,
-            __archive->header_size);
-
-    // get the number of traces
-    __archive->is_trace_archive =
-            ((litl_header_t *) __archive->header_buffer)->is_trace_archive;
-    __archive->nb_traces =
-            ((litl_header_t *) __archive->header_buffer)->nb_threads;
-
-    if (__archive->is_trace_archive == 0) {
-        printf(
-                "The given trace is not an archive. Therefore, there is nothing to split.\n");
-        exit(EXIT_SUCCESS);
-    }
-
-    // Yes, we work with an archive of trace. So, we increase the header size
-    //   and relocate the header buffer
-    __archive->header_size = __archive->nb_traces
-            * sizeof(litl_header_triples_t); // +1 to allocate slightly more
-    __archive->header_buffer = (litl_buffer_t) realloc(__archive->header_buffer,
-            __archive->header_size);
-
-    // read all triples
-    res = read(__archive->f_arch, __archive->header_buffer,
-            __archive->header_size);
-}
-
-/*
- * Writes each trace from an archive into a separate trace file
- */
-void litl_split_archive(const char *dir) {
-    int trace_out, res __attribute__ ((__unused__));
-    char *trace_name = NULL;
-    char user[32];
-    litl_med_size_t size;
-
-    size = sizeof(litl_header_triples_t);
-
-    strcpy(user, getenv("USER"));
-
-    while (__archive->nb_traces-- != 0) {
-        // get the triples
-        __archive->triples = (litl_header_triples_t *) __archive->header_buffer;
-        __archive->header_buffer += size;
-
-        // set a file pointer to the position of the current trace
-        lseek(__archive->f_arch, __archive->triples->offset, SEEK_SET);
-
-        // create and open a new trace file
-        res = asprintf(&trace_name, "%s/%s_litl_log_rank_%d", dir, user,
-                __archive->triples->fid);
-        if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
-            fprintf(stderr, "Cannot open %s\n", trace_name);
-            exit(EXIT_FAILURE);
-        }
-
-        // read data and write to separate traces
-        while (1) {
-            res = read(__archive->f_arch, __archive->buffer,
-                    __archive->buffer_size);
-
-            if (__archive->triples->trace_size > __archive->buffer_size)
-                res = write(trace_out, __archive->buffer,
-                        __archive->buffer_size);
-            else {
-                res = write(trace_out, __archive->buffer,
-                        __archive->triples->trace_size);
-                break;
-            }
-
-            __archive->triples->trace_size -= __archive->buffer_size;
-        }
-
-        free(trace_name);
-        trace_name = NULL;
-    }
-}
-
-/*
- * Closes the archive and free the allocated memory
- */
-static void __close_archive() {
-    close(__archive->f_arch);
-    __archive->f_arch = -1;
-
-    free(__archive->buffer);
-    free(__archive);
 }
 
 int main(int argc, char **argv) {
@@ -173,17 +53,8 @@ int main(int argc, char **argv) {
     // parse the arguments passed to this program
     __parse_args(argc, argv);
 
-    // open an archive of traces and allocate memory for a buffer
-    __open_archive(__archive_name);
-
-    // get info from the archive's header
-    __read_archive_header();
-
     // split the archive
-    litl_split_archive(__output_dir);
-
-    // close the archive and free the allocated memory
-    __close_archive();
+    litl_split_archive(__archive_name, __output_dir);
 
     return EXIT_SUCCESS;
 }

@@ -38,7 +38,7 @@ typedef uint8_t litl_tiny_size_t;
 typedef uint16_t litl_med_size_t;
 typedef uint32_t litl_size_t;
 typedef uint64_t litl_param_t;
-typedef uint8_t* litl_buffer_t;// data structure for holding a set of events
+typedef uint8_t* litl_buffer_t; // data structure for holding a set of events
 typedef uint64_t litl_offset_t;
 
 #elif defined __arm__
@@ -51,7 +51,7 @@ typedef uint32_t litl_trace_size_t;
 typedef uint32_t litl_size_t;
 typedef uint8_t litl_tiny_size_t;
 typedef uint32_t litl_param_t;
-typedef uint8_t* litl_buffer_t;// data structure for holding a set of events
+typedef uint8_t* litl_buffer_t; // data structure for holding a set of events
 typedef uint32_t litl_offset_t;
 #endif
 typedef uint8_t litl_data_t;
@@ -262,10 +262,9 @@ typedef struct {
     litl_med_size_t nb_traces;
 
     litl_buffer_t buffer;
+    litl_buffer_t buffer_ptr;
     litl_size_t buffer_size;
 
-    // offset from the beginning of the trace header
-    litl_offset_t header_offset;
     // offset from the beginning of the trace file until the current position
     litl_offset_t general_offset;
 } litl_trace_merge_t;
@@ -278,6 +277,7 @@ typedef struct {
 
     litl_size_t header_size;
     litl_buffer_t header_buffer;
+    litl_buffer_t header_buffer_ptr;
 
     litl_tiny_size_t is_trace_archive;
     litl_med_size_t nb_traces;

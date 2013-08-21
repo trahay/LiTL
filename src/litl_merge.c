@@ -13,17 +13,22 @@
 
 #include "litl_merge.h"
 
-static struct litl_queue_t* __trace_queue;
+static litl_trace_merge_t* __arch;
+static litl_header_triples_t** __offsets;
+static char** __filenames;
 
 /*
  * Sets a new name for the archive
  */
-void litl_set_archive_name(litl_trace_merge_t* arch, char* filename) {
-    // check whether the file name was set. If no, set it by default trace name.
-    if (filename == NULL)
-        sprintf(filename, "/tmp/%s_%s", getenv("USER"), "litl_archive_1");
+static void __litl_set_archive_name(const char* filename) {
+    int res __attribute__ ((__unused__));
 
-    if (asprintf(&arch->filename, "%s", filename) == -1) {
+    // check whether the file name was set. If no, set it by default trace name
+    if (filename == NULL )
+        res = asprintf(&__arch->filename, "/tmp/%s_%s", getenv("USER"),
+                "litl_archive_1");
+
+    if (asprintf(&__arch->filename, "%s", filename) == -1) {
         perror("Error: Cannot set the filename for recording events!\n");
         exit(EXIT_FAILURE);
     }
@@ -34,210 +39,234 @@ void litl_set_archive_name(litl_trace_merge_t* arch, char* filename) {
  *   - The number of traces
  *   - Triples: a file id, a file size, and an offset
  */
-static void __add_archive_header(litl_trace_merge_t *arch) {
-    int res __attribute__ ((__unused__));
-    litl_size_t header_size;
+static void __add_archive_header(litl_queue_t* trace_queue) {
+    char *filename;
+    int trace_in, res __attribute__ ((__unused__));
+    litl_trace_size_t trace_size;
+    litl_med_size_t i, j, header_size, header_size_global, nb_traces,
+            nb_traces_global, triples_size;
+    litl_buffer_t header_buffer, header_buffer_ptr;
 
     // add nb_traces and the is_trace_archive flag
-    ((litl_header_t *) arch->buffer)->nb_threads = arch->nb_traces;
-    ((litl_header_t *) arch->buffer)->is_trace_archive = 1;
+    ((litl_header_t *) __arch->buffer)->nb_threads = __arch->nb_traces;
+    ((litl_header_t *) __arch->buffer)->is_trace_archive = 1;
+    header_size_global = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    __arch->buffer += header_size_global;
 
-    header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
-    arch->header_offset += header_size;
-    res = write(arch->f_handle, arch->buffer, header_size);
+    // create a array of arrays of offsets
+    __offsets = (litl_header_triples_t **) malloc(
+            __arch->nb_traces * sizeof(litl_header_triples_t *));
 
-    // we do not add all the information about each trace 'cause it will be
-    // added during packing them, instead we just reserve the space for that
-    // +1 is for the offset for the next portion of triples
-    header_size += (arch->nb_traces + 1) * sizeof(litl_header_triples_t);
-    arch->general_offset += header_size;
-    lseek(arch->f_handle, header_size, SEEK_SET);
+    __filenames = (char **) malloc(__arch->nb_traces * sizeof(char *));
+
+    // read all header of traces and write them to the global header of the archive
+    i = 0;
+    nb_traces_global = 0;
+    triples_size = sizeof(litl_header_triples_t);
+    while ((filename = litl_dequeue(trace_queue)) != NULL ) {
+        res = asprintf(&__filenames[i], "%s", filename);
+
+        if ((trace_in = open(filename, O_RDONLY)) < 0) {
+            fprintf(stderr, "[litl_merge] Cannot open %s to read its header\n",
+                    filename);
+            exit(EXIT_FAILURE);
+        }
+
+        header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+        header_buffer_ptr = (litl_buffer_t) malloc(header_size);
+        header_buffer = header_buffer_ptr;
+
+        // read the header
+        res = read(trace_in, header_buffer, header_size);
+        if (((litl_header_t *) header_buffer)->is_trace_archive) {
+            nb_traces = ((litl_header_t *) header_buffer)->nb_threads;
+            __offsets[i] = (litl_header_triples_t *) malloc(
+                    nb_traces * sizeof(litl_header_triples_t));
+
+            // read triples
+            header_size = nb_traces * sizeof(litl_header_triples_t);
+            header_buffer_ptr = (litl_buffer_t) realloc(header_buffer_ptr,
+                    header_size);
+            header_buffer = header_buffer_ptr;
+
+            res = read(trace_in, header_buffer, header_size);
+            for (j = 0; j < nb_traces; j++) {
+                trace_size =
+                        ((litl_header_triples_t *) header_buffer)->trace_size;
+
+                ((litl_header_triples_t *) __arch->buffer)->fid =
+                        nb_traces_global;
+                ((litl_header_triples_t *) __arch->buffer)->trace_size =
+                        trace_size;
+                __arch->buffer += triples_size;
+                header_size_global += triples_size;
+
+                __offsets[i][j].fid = nb_traces;
+                __offsets[i][j].trace_size = trace_size;
+                __offsets[i][j].offset =
+                        ((litl_header_triples_t *) header_buffer)->offset;
+
+                nb_traces_global++;
+                header_buffer += triples_size;
+            }
+        } else {
+            // move the pointer to the beginning of the trace
+            lseek(trace_in, 0, SEEK_SET);
+
+            struct stat st;
+            if (fstat(trace_in, &st)) {
+                perror("Cannot apply fstat to the input trace files!");
+                exit(EXIT_FAILURE);
+            }
+            trace_size = st.st_size;
+
+            ((litl_header_triples_t *) __arch->buffer)->fid = nb_traces_global;
+            ((litl_header_triples_t *) __arch->buffer)->trace_size = trace_size;
+            __arch->buffer += triples_size;
+            header_size_global += triples_size;
+
+            __offsets[i] = (litl_header_triples_t *) malloc(
+                    sizeof(litl_header_triples_t));
+            __offsets[i][0].fid = 1;
+            __offsets[i][0].trace_size = trace_size;
+            __offsets[i][0].offset = 0;
+
+            nb_traces_global++;
+        }
+
+        i++;
+        free(header_buffer_ptr);
+        close(trace_in);
+    }
+
+    // update the number of traces
+    ((litl_header_t *) __arch->buffer_ptr)->nb_threads = nb_traces_global;
+
+    res = write(__arch->f_handle, __arch->buffer_ptr, header_size_global);
+    __arch->general_offset += header_size_global;
 }
 
 /*
  * Creates and opens an archive for traces.
  * Allocates memory for the buffer
  */
-litl_trace_merge_t litl_init_archive(char* arch_name, litl_size_t nb_traces,
-        litl_queue_t* trace_queue) {
-    litl_trace_merge_t arch;
+static void __litl_init_archive(const char* arch_name,
+        litl_queue_t* trace_queue, int nb_traces) {
 
-    __trace_queue = trace_queue;
+    __arch = (litl_trace_merge_t *) malloc(sizeof(litl_trace_merge_t));
 
     // allocate buffer for read/write ops
-    arch.buffer_size = 16 * 1024 * 1024; // 16 MB
-    arch.buffer = (litl_buffer_t) malloc(arch.buffer_size);
+    __arch->buffer_size = 16 * 1024 * 1024; // 16 MB
+    __arch->buffer_ptr = (litl_buffer_t) malloc(__arch->buffer_size);
+    __arch->buffer = __arch->buffer_ptr;
 
-    arch.nb_traces = nb_traces;
-    arch.header_offset = 0;
-    arch.general_offset = 0;
+    __arch->nb_traces = nb_traces;
+    __arch->general_offset = 0;
 
-    litl_set_archive_name(&arch, arch_name);
+    __litl_set_archive_name(arch_name);
 
     // create an archive for trace files in rw-r-r- mode (0644)
-    if ((arch.f_handle = open(arch.filename, O_WRONLY | O_CREAT, 0644)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", arch.filename);
+    if ((__arch->f_handle = open(__arch->filename, O_WRONLY | O_CREAT, 0644))
+            < 0) {
+        fprintf(stderr, "[litl_merge] Cannot open %s archive\n",
+                __arch->filename);
         exit(EXIT_FAILURE);
     }
 
-    // write header with #traces and reserved space for
-    //    triples (fid, offset, traces_size)
-    __add_archive_header(&arch);
-
-    return arch;
-}
-
-/*
- * Checks whether a trace is an archive or not.
- * If it is an archive, the number of compressed traces is returned
- */
-static uint8_t __is_archive(int fid) {
-    int header_size, nb_traces, res __attribute__ ((__unused__));
-
-    header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
-    litl_buffer_t header_buffer = (litl_buffer_t) malloc(header_size);
-
-    // read the header
-    res = read(fid, header_buffer, header_size);
-
-    nb_traces = 0;
-    if (((litl_header_t *) header_buffer)->is_trace_archive)
-        nb_traces = ((litl_header_t *) header_buffer)->nb_threads;
-    else
-        lseek(fid, 0, SEEK_SET);
-
-    free(header_buffer);
-    return nb_traces;
+    // write header with #traces and triples (fid, offset, traces_size)
+    __add_archive_header(trace_queue);
 }
 
 /*
  * Merges trace files. This is a modified version of the cat implementation
  *   from the Kernighan & Ritchie book
  */
-void litl_merge_file(litl_trace_merge_t *arch, int file_id,
-        const char *file_name_in) {
+static void __litl_create_archive(litl_queue_t* trace_queue) {
     int trace_in, res;
-    litl_med_size_t nb_traces;
-    litl_trace_size_t trace_size;
+    litl_med_size_t i, j, triples_size, nb_traces;
+    litl_trace_size_t trace_size, buffer_size, header_offset;
 
-    if ((trace_in = open(file_name_in, O_RDONLY)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", file_name_in);
-        exit(EXIT_FAILURE);
-    }
+    triples_size = sizeof(litl_header_triples_t);
+    // size of nb_traces and is_archive
+    header_offset = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    // size of fid and trace_size
+    header_offset = header_offset + triples_size - sizeof(litl_offset_t);
 
-    // get the trace header and check whether it is an archive or a trace
+    for (i = 0; i < __arch->nb_traces; i++) {
+        if ((trace_in = open(__filenames[i], O_RDONLY)) < 0) {
+            fprintf(stderr, "[litl_merge] Cannot open %s\n", __filenames[i]);
+            exit(EXIT_FAILURE);
+        }
 
-    nb_traces = __is_archive(trace_in);
-    printf("nb_traces = %d\n", nb_traces);
-    if (nb_traces) {
-        // an archive of traces
-        litl_med_size_t i, triples_size;
-        litl_size_t buffer_size, header_size;
-        litl_buffer_t header_buffer_ptr, header_buffer;
-        header_size = nb_traces * sizeof(litl_header_triples_t);
-        header_buffer_ptr = (litl_buffer_t) malloc(header_size);
-        header_buffer = header_buffer_ptr;
+        // merge traces
+        nb_traces = __offsets[i][0].fid;
+        for (j = 0; j < nb_traces; j++) {
+            trace_size = __offsets[i][j].trace_size;
 
-        // reading triples
-        triples_size = sizeof(litl_header_triples_t);
-        res = read(trace_in, header_buffer, header_size);
-
-        // read/write data of each file and add triples to the header or
-        //   the other place
-        file_id = file_id * 10;
-        for (i = 0; i < nb_traces; i++) {
-            file_id += i;
-            trace_size = ((litl_header_triples_t *) header_buffer)->trace_size;
-            printf("trace_size = %lu\n", trace_size);
-            lseek(arch->f_handle, arch->header_offset, SEEK_SET);
-            res = write(arch->f_handle, &file_id, sizeof(litl_med_size_t));
-            res = write(arch->f_handle, &trace_size, sizeof(litl_trace_size_t));
-            res = write(arch->f_handle, &arch->general_offset,
+            // update the offset in the global header
+            lseek(__arch->f_handle, header_offset, SEEK_SET);
+            res = write(__arch->f_handle, &__arch->general_offset,
                     sizeof(litl_offset_t));
-            lseek(arch->f_handle, arch->general_offset, SEEK_SET);
-            arch->header_offset += triples_size;
+            lseek(__arch->f_handle, __arch->general_offset, SEEK_SET);
+            header_offset += triples_size;
+
+            lseek(trace_in, __offsets[i][j].offset, SEEK_SET);
 
             // solution: Reading and writing blocks of data. Use the file size
             //           to deal with the reading of the last block from the
             //           traces
-            lseek(trace_in, ((litl_header_triples_t *) header_buffer)->offset,
-                    SEEK_SET);
-            buffer_size =
-                    trace_size > arch->buffer_size ? arch->buffer_size :
-                            trace_size;
-            while (buffer_size) {
-                res = read(trace_in, arch->buffer, buffer_size);
+            while (trace_size > 0) {
+                buffer_size =
+                        trace_size > __arch->buffer_size ? __arch->buffer_size :
+                                trace_size;
+
+                res = read(trace_in, __arch->buffer, buffer_size);
 
                 if (res < 0) {
                     perror("Cannot read the data from the traces!");
                     exit(EXIT_FAILURE);
                 }
 
-                res = write(arch->f_handle, arch->buffer, res);
-                arch->general_offset += res;
+                res = write(__arch->f_handle, __arch->buffer, res);
+                __arch->general_offset += res;
 
                 trace_size -= buffer_size;
-                buffer_size =
-                        trace_size > arch->buffer_size ? arch->buffer_size :
-                                trace_size;
             }
-
-            header_buffer += triples_size;
-            if (i)
-                arch->nb_traces++;
         }
-        free(header_buffer_ptr);
 
-        // update the number of traces in the header by (nb_traces - 1)
-        lseek(arch->f_handle, 0, SEEK_SET);
-        res = write(arch->f_handle, &arch->nb_traces, sizeof(litl_med_size_t));
-        lseek(arch->f_handle, arch->general_offset, SEEK_SET);
-    } else {
-        // a regular trace
-        // find the trace size
-        struct stat st;
-        if (fstat(trace_in, &st)) {
-            perror("Cannot apply fstat to the input trace files!");
-            exit(EXIT_FAILURE);
-        }
-        trace_size = st.st_size;
-
-        // add triples (fid, file_size, offset)
-        lseek(arch->f_handle, arch->header_offset, SEEK_SET);
-        res = write(arch->f_handle, &file_id, sizeof(litl_med_size_t));
-        res = write(arch->f_handle, &trace_size, sizeof(litl_trace_size_t));
-        res = write(arch->f_handle, &arch->general_offset,
-                sizeof(litl_offset_t));
-        lseek(arch->f_handle, arch->general_offset, SEEK_SET);
-        arch->header_offset += sizeof(litl_header_triples_t);
-
-        // solution: Reading and writing blocks of data. Use the file size to deal
-        //           with the reading of the last block from the traces
-        while ((res = read(trace_in, arch->buffer, arch->buffer_size)) != 0) {
-            if (res < 0) {
-                perror("Cannot read the data from the traces!");
-                exit(EXIT_FAILURE);
-            }
-
-            res = write(arch->f_handle, arch->buffer, res);
-            arch->general_offset += res;
-        }
+        close(trace_in);
     }
 
-    close(trace_in);
 }
 
 /*
  * Frees the allocated memory
  */
-void litl_finalize_archive(litl_trace_merge_t *arch) {
-    // remove the queue consisting of trace file names
-    litl_delqueue(__trace_queue);
+static void __litl_finalize_archive() {
+    close(__arch->f_handle);
 
-    close(arch->f_handle);
+    // free offsets
+    litl_med_size_t i;
+    for (i = 0; i < __arch->nb_traces; i++)
+        free(__offsets[i]);
+    free(__offsets);
 
-    free(arch->buffer);
+    // free filenames
+    for (i = 0; i < __arch->nb_traces; i++)
+        free(__filenames[i]);
+    free(__filenames);
 
-    arch->buffer = NULL;
-    arch = NULL;
+    free(__arch->buffer_ptr);
+
+    __arch->buffer_ptr = NULL;
+    __arch = NULL;
+}
+
+void litl_merge_traces(const char* arch_name, litl_queue_t* trace_queue,
+        int nb_traces) {
+    __litl_init_archive(arch_name, trace_queue, nb_traces);
+
+    __litl_create_archive(trace_queue);
+
+    __litl_finalize_archive();
 }

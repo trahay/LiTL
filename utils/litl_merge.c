@@ -14,8 +14,8 @@
 #include "litl_merge.h"
 
 static char* __arch_name;
-static litl_med_size_t __nb_traces = 0;
 static struct litl_queue_t __trace_queue;
+static int __nb_traces = 0;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
     fprintf(stderr,
@@ -44,7 +44,7 @@ static void __parse_args(int argc, char **argv) {
         }
     }
 
-    if (__arch_name == NULL)
+    if (__arch_name == NULL )
         __usage(argc, argv);
 }
 
@@ -53,18 +53,7 @@ int main(int argc, char **argv) {
     // parse the arguments passed to this program
     __parse_args(argc, argv);
 
-    // init a buffer and an archive of traces
-    litl_trace_merge_t arch = litl_init_archive(__arch_name, __nb_traces,
-            &__trace_queue);
-
-    // merging the trace files
-    int i = 0;
-    char *filename;
-    while ((filename = litl_dequeue(&__trace_queue)) != NULL)
-        litl_merge_file(&arch, i++, filename);
-
-    // finalizing merging
-    litl_finalize_archive(&arch);
+    litl_merge_traces(__arch_name, &__trace_queue, __nb_traces);
 
     return EXIT_SUCCESS;
 }
