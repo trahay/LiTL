@@ -11,13 +11,12 @@ liblitl_la_SOURCES = litl_types.h litl_tools.h litl_tools.c \
 					 litl_timer.h litl_timer.c \					 					 
                      litl_write.h litl_write.c \
                      litl_read.h litl_read.c \
-					 litl_queue.h litl_queue.c \                                          
                      litl_merge.h litl_merge.c \
                      litl_split.h litl_split.c
 
 include_HEADERS = litl_types.h litl_tools.h litl_timer.h \
-                  litl_write.h litl_read.h litl_queue.h \
-				  litl_merge.h litl_split.h
+                  litl_write.h litl_read.h \
+                  litl_merge.h litl_split.h
 
 clean-local:
 	rm -rf Makefile.bk

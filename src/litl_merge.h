@@ -8,7 +8,6 @@
 #define LITL_MERGE_H_
 
 #include "litl_types.h"
-#include "litl_queue.h"
 
 /*
  * Merges trace files. This is a modified version of the cat implementation
