@@ -14,6 +14,6 @@
  * Merges trace files. This is a modified version of the cat implementation
  *   from the Kernighan & Ritchie book
  */
-void litl_merge_traces(const char *, litl_queue_t *, int);
+void litl_merge_traces(const char *, char **, const int);
 
 #endif /* LITL_MERGE_H_ */

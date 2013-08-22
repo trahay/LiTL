@@ -260,6 +260,7 @@ typedef struct {
     char* filename;
 
     litl_med_size_t nb_traces;
+    char** trace_names;
 
     litl_buffer_t buffer;
     litl_buffer_t buffer_ptr;

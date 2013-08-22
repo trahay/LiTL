@@ -15,7 +15,6 @@
 
 static litl_trace_merge_t* __arch;
 static litl_header_triples_t** __offsets;
-static char** __filenames;
 
 /*
  * Sets a new name for the archive
@@ -39,8 +38,7 @@ static void __litl_set_archive_name(const char* filename) {
  *   - The number of traces
  *   - Triples: a file id, a file size, and an offset
  */
-static void __add_archive_header(litl_queue_t* trace_queue) {
-    char *filename;
+static void __add_archive_header() {
     int trace_in, res __attribute__ ((__unused__));
     litl_trace_size_t trace_size;
     litl_med_size_t i, j, header_size, header_size_global, nb_traces,
@@ -57,18 +55,14 @@ static void __add_archive_header(litl_queue_t* trace_queue) {
     __offsets = (litl_header_triples_t **) malloc(
             __arch->nb_traces * sizeof(litl_header_triples_t *));
 
-    __filenames = (char **) malloc(__arch->nb_traces * sizeof(char *));
-
-    // read all header of traces and write them to the global header of the archive
-    i = 0;
     nb_traces_global = 0;
     triples_size = sizeof(litl_header_triples_t);
-    while ((filename = litl_dequeue(trace_queue)) != NULL ) {
-        res = asprintf(&__filenames[i], "%s", filename);
 
-        if ((trace_in = open(filename, O_RDONLY)) < 0) {
+    // read all header of traces and write them to the global header of the archive
+    for (i = 0; i < __arch->nb_traces; i++) {
+        if ((trace_in = open(__arch->trace_names[i], O_RDONLY)) < 0) {
             fprintf(stderr, "[litl_merge] Cannot open %s to read its header\n",
-                    filename);
+                    __arch->trace_names[i]);
             exit(EXIT_FAILURE);
         }
 
@@ -134,7 +128,6 @@ static void __add_archive_header(litl_queue_t* trace_queue) {
             nb_traces_global++;
         }
 
-        i++;
         free(header_buffer_ptr);
         close(trace_in);
     }
@@ -150,8 +143,8 @@ static void __add_archive_header(litl_queue_t* trace_queue) {
  * Creates and opens an archive for traces.
  * Allocates memory for the buffer
  */
-static void __litl_init_archive(const char* arch_name,
-        litl_queue_t* trace_queue, int nb_traces) {
+static void __litl_init_archive(const char* arch_name, char** trace_names,
+        const int nb_traces) {
 
     __arch = (litl_trace_merge_t *) malloc(sizeof(litl_trace_merge_t));
 
@@ -161,6 +154,7 @@ static void __litl_init_archive(const char* arch_name,
     __arch->buffer = __arch->buffer_ptr;
 
     __arch->nb_traces = nb_traces;
+    __arch->trace_names = trace_names;
     __arch->general_offset = 0;
 
     __litl_set_archive_name(arch_name);
@@ -174,14 +168,14 @@ static void __litl_init_archive(const char* arch_name,
     }
 
     // write header with #traces and triples (fid, offset, traces_size)
-    __add_archive_header(trace_queue);
+    __add_archive_header();
 }
 
 /*
  * Merges trace files. This is a modified version of the cat implementation
  *   from the Kernighan & Ritchie book
  */
-static void __litl_create_archive(litl_queue_t* trace_queue) {
+static void __litl_create_archive() {
     int trace_in, res;
     litl_med_size_t i, j, triples_size, nb_traces;
     litl_trace_size_t trace_size, buffer_size, header_offset;
@@ -193,8 +187,9 @@ static void __litl_create_archive(litl_queue_t* trace_queue) {
     header_offset = header_offset + triples_size - sizeof(litl_offset_t);
 
     for (i = 0; i < __arch->nb_traces; i++) {
-        if ((trace_in = open(__filenames[i], O_RDONLY)) < 0) {
-            fprintf(stderr, "[litl_merge] Cannot open %s\n", __filenames[i]);
+        if ((trace_in = open(__arch->trace_names[i], O_RDONLY)) < 0) {
+            fprintf(stderr, "[litl_merge] Cannot open %s\n",
+                    __arch->trace_names[i]);
             exit(EXIT_FAILURE);
         }
 
@@ -253,8 +248,8 @@ static void __litl_finalize_archive() {
 
     // free filenames
     for (i = 0; i < __arch->nb_traces; i++)
-        free(__filenames[i]);
-    free(__filenames);
+        free(__arch->trace_names[i]);
+    free(__arch->trace_names);
 
     free(__arch->buffer_ptr);
 
@@ -262,11 +257,11 @@ static void __litl_finalize_archive() {
     __arch = NULL;
 }
 
-void litl_merge_traces(const char* arch_name, litl_queue_t* trace_queue,
-        int nb_traces) {
-    __litl_init_archive(arch_name, trace_queue, nb_traces);
+void litl_merge_traces(const char* arch_name, char** trace_names,
+        const int nb_traces) {
+    __litl_init_archive(arch_name, trace_names, nb_traces);
 
-    __litl_create_archive(trace_queue);
+    __litl_create_archive();
 
     __litl_finalize_archive();
 }
