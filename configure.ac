@@ -56,6 +56,14 @@ AC_COMPILE_IFELSE(
   AC_MSG_RESULT([no])
 )
 
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN";
+   then AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+fi
+AM_CONDITIONAL([HAVE_DOXYGEN],
+[test -n "$DOXYGEN"])AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([doc/Doxyfile])])
+
+
 AC_SUBST(libdir)
 AC_SUBST(exec_prefix)
 AC_SUBST(prefix)
@@ -64,4 +72,5 @@ AC_SUBST(includedir)
 AC_OUTPUT([Makefile litl.pc \
            src/Makefile \
            utils/Makefile \
-           tests/Makefile ])
+           tests/Makefile \
+           doc/Makefile ])
