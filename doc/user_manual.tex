@@ -314,7 +314,71 @@ a need to analyze a particular trace or a set of traces among the merged ones.
 \begin{landscape}
 \input{tikz/event.storage.trace.file.merge}
 \end{landscape}  
-    
+
+
+\chapter{\litl{} in \fxt{} applications}
+In this chapter, we present an approach of integrating \litl\ (as a possible 
+replacement of or enable its usage in parallel with \fxt) into applications 
+that already reply on \fxt{}. To simplify the process of integrating \litl\ 
+into such applications, we matched the functionality of \fxt\ to the 
+corresponding functionality from \litl\ into \texttt{fxt.h} and \texttt{fut.h} 
+headers. So, developers of those applications can use \litl\ in conjunction with 
+these two header files, which that use anyway, and therefore keeping without 
+changes the code and the major part of the \fxt\ APIs.
+
+Even though \litl\ and \fxt\ target the same issue of gathering the 
+information of the application execution, they have differences in the 
+organization of the event recording as well as the event reading processes. In 
+order to deal with those differences, we suggest to modify \fxt-related 
+applications by following our suggestions.
+
+\section{Recording Events}
+The main difference between two trace libraries is in the organization of the
+initialization phase of the event recording process. So, in \fxt\ it is 
+implemented as
+\lstset{language=C, caption={}, label={lstl:fxt}}
+\begin{lstlisting}
+// IMPORTANT! setting file name is before
+fut_set_filename(PROF_FILE_USER);
+
+if (allow_flush && ...) {
+    enable_fut_flush();
+}
+
+fut_enable_tid_logging();
+
+if (fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
+    perror("fut_setup");
+}
+\end{lstlisting}
+While in \litl\ the procedure is the following
+\lstset{language=C, caption={}, label={lstl:fxt}}
+\begin{lstlisting}
+litl_trace = litl_init_trace(PROF_BUFFER_SIZE);
+// the recording should be paused, because some further functions, 
+// e.g. *_set_filename() can be intercepted
+litl_pause_recording(&litl_trace);
+
+// yes, the API is the same thanks to fxt.h and fut.h
+fut_enable_tid_logging();
+
+if (allow_flush && ...) {
+    enable_fut_flush();
+}
+
+// IMPORTANT! setting file name is after
+fut_set_filename(PROF_FILE_USER);
+
+// Do not forget to resume recording
+litl_resume_recording(&litl_trace);
+\end{lstlisting}
+
+For the successful and easy porting of \litl\ into your applications the 
+above-mentioned suggestions needs to be incorporated.
+
+\section{Reading events}
+
+
     
 \chapter{Troubleshooting}
 If you encounter a bug or want some explanation about \litl{}, please contact 
