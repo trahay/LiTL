@@ -72,31 +72,33 @@ static void __litl_write_init_var(litl_trace_write_t* trace) {
 /*
  * Initializes the trace buffer
  */
-litl_trace_write_t litl_write_init_trace(const litl_size_t buf_size) {
+litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
     litl_med_size_t i;
-    litl_trace_write_t trace;
+    litl_trace_write_t* trace;
 
-    trace.buffer_size = buf_size;
+    trace = (litl_trace_write_t*) malloc(sizeof(litl_trace_write_t));
+
+    trace->buffer_size = buf_size;
 
     // set variables
-    trace.filename = NULL;
-    trace.is_buffer_full = 0;
-    trace.is_header_flushed = 0;
-    litl_write_tid_recording_on(&trace);
+    trace->filename = NULL;
+    trace->is_buffer_full = 0;
+    trace->is_header_flushed = 0;
+    litl_write_tid_recording_on(trace);
 
-    trace.nb_allocated_buffers = 256;
-    trace.buffers = realloc(NULL,
-            sizeof(litl_write_buffer_t*) * trace.nb_allocated_buffers);
+    trace->nb_allocated_buffers = 256;
+    trace->buffers = realloc(NULL,
+            sizeof(litl_write_buffer_t*) * trace->nb_allocated_buffers);
 
-    for (i = 0; i < trace.nb_allocated_buffers; i++) {
+    for (i = 0; i < trace->nb_allocated_buffers; i++) {
         // initialize the array already_flushed
-        trace.buffers[i] = malloc(sizeof(litl_write_buffer_t));
-        trace.buffers[i]->already_flushed = 0;
+        trace->buffers[i] = malloc(sizeof(litl_write_buffer_t));
+        trace->buffers[i]->already_flushed = 0;
 
         // initialize tids by zeros; this is needed for __is_tid and __find_slot
-        trace.buffers[i]->tid = 0;
+        trace->buffers[i]->tid = 0;
     }
-    trace.nb_threads = 0;
+    trace->nb_threads = 0;
 
     // initialize the timing mechanism
     litl_time_initialize();
@@ -104,35 +106,35 @@ litl_trace_write_t litl_write_init_trace(const litl_size_t buf_size) {
     // a jump function is needed 'cause it is not possible to pass args to
     //   the calling function through pthread_once
     void __init() {
-        __litl_write_init_var(&trace);
+        __litl_write_init_var(trace);
     }
-    trace.index_once = PTHREAD_ONCE_INIT;
-    pthread_once(&trace.index_once, __init);
+    trace->index_once = PTHREAD_ONCE_INIT;
+    pthread_once(&trace->index_once, __init);
 
     // set trace.allow_buffer_flush using the environment variable.
     //   By default the buffer flushing is enabled
     char* str = getenv("LITL_BUFFER_FLUSH");
     if (str && (strcmp(str, "off") == 0))
-        litl_write_buffer_flush_off(&trace);
+        litl_write_buffer_flush_off(trace);
     else
-        litl_write_buffer_flush_on(&trace);
+        litl_write_buffer_flush_on(trace);
 
     // set trace.allow_thread_safety using the environment variable.
     //   By default thread safety is enabled
     str = getenv("LITL_THREAD_SAFETY");
     if (str && (strcmp(str, "off") == 0))
-        litl_write_thread_safety_off(&trace);
+        litl_write_thread_safety_off(trace);
     else
-        litl_write_thread_safety_on(&trace);
+        litl_write_thread_safety_on(trace);
 
-    if (trace.allow_thread_safety)
-        pthread_mutex_init(&trace.lock_litl_flush, NULL );
-    pthread_mutex_init(&trace.lock_buffer_init, NULL );
+    if (trace->allow_thread_safety)
+        pthread_mutex_init(&trace->lock_litl_flush, NULL );
+    pthread_mutex_init(&trace->lock_buffer_init, NULL );
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    trace.litl_paused = 0;
-    trace.litl_initialized = 1;
+    trace->litl_paused = 0;
+    trace->litl_initialized = 1;
 
     return trace;
 }
@@ -986,4 +988,5 @@ void litl_write_finalize_trace(litl_trace_write_t* trace) {
     trace->filename = NULL;
     trace->litl_initialized = 0;
     trace->is_header_flushed = 0;
+    free(trace);
 }

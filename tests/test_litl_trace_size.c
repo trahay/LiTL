@@ -21,7 +21,7 @@
 int main(int argc, char **argv) {
     int i, nb_iter;
 
-    litl_trace_write_t trace;
+    litl_trace_write_t* trace;
     char* filename = "trace";
     const uint32_t buffer_size = 32 * 1024; // 32KB
 
@@ -33,17 +33,17 @@ int main(int argc, char **argv) {
     printf("Recording events with six arguments of type uint8_t\n\n");
 
     trace = litl_write_init_trace(buffer_size);
-    litl_write_set_filename(&trace, filename);
+    litl_write_set_filename(trace, filename);
 
     nb_iter = 1000;
     for (i = 0; i < nb_iter; i++) {
-        litl_write_probe_pack_6(&trace, 0x100 * (i + 1) + 6, (int32_t) 1,
-                (int32_t) 3, (int32_t) 5, (int32_t) 7, (int32_t) 11,
-                (int32_t) 13);
+        litl_write_probe_pack_6(trace, 0x100 * (i + 1) + 6, (int32_t ) 1,
+                (int32_t ) 3, (int32_t ) 5, (int32_t ) 7, (int32_t ) 11,
+                (int32_t ) 13);
         usleep(100);
     }
 
-    litl_write_finalize_trace(&trace);
+    litl_write_finalize_trace(trace);
 
     printf("Events are recorded and written in the %s file\n", filename);
 
