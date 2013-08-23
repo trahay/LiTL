@@ -7,21 +7,21 @@ AM_LDFLAGS = $(top_builddir)/src/liblitl.la
 #LITLDEPENDENCIES = $(AM_LDFLAGS)
 
 CTESTS = test_litl_write \
+         test_litl_write_multiple \
          test_litl_write_concurent \
          test_litl_write_multiple_threads \
          test_litl_read \
          test_litl_pause \
          test_litl_buffer \
          test_litl_trace_size
-         # test_litl_write_multiple         
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
 
 test_litl_write_SOURCES = test_litl_write.c
 
-#test_litl_write_multiple_SOURCES = test_litl_write_multiple.c
-#test_litl_write_multiple_LDFLAGS = -lpthread -llitl
+test_litl_write_multiple_SOURCES = test_litl_write_multiple.c
+test_litl_write_multiple_LDFLAGS = -lpthread -llitl
 
 test_litl_write_multiple_threads_SOURCES = test_litl_write_multiple_threads.c
 test_litl_write_multiple_threads_LDFLAGS = -lpthread -llitl
