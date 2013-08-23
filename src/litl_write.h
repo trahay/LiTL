@@ -24,6 +24,8 @@
 
 static litl_trace_write_t* __trace __attribute__ ((__unused__));
 
+/*
+ * Initializes the trace buffer
 /**
  * \defgroup litl_write Writing functions
  */
@@ -108,7 +110,6 @@ void litl_write_resume_recording();
 /**
  * \ingroup litl_write_init
  * \brief Sets a new name for the trace file
- * \param filename New file name
  */
 void litl_write_set_filename(char* filename);
 
@@ -117,24 +118,18 @@ void litl_write_set_filename(char* filename);
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event without parameters
- * \param code Event code
  */
 void litl_write_probe_reg_0(litl_code_t code);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 1 parameter
- * \param code Event code
- * \param param1 1st parameter for this event
  */
 void litl_write_probe_reg_1(litl_code_t code, litl_param_t param1);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 2 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
  */
 void litl_write_probe_reg_2(litl_code_t code, litl_param_t param1,
         litl_param_t param2);
@@ -142,10 +137,6 @@ void litl_write_probe_reg_2(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 3 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
  */
 void litl_write_probe_reg_3(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3);
@@ -153,11 +144,6 @@ void litl_write_probe_reg_3(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 4 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
  */
 void litl_write_probe_reg_4(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4);
@@ -165,12 +151,6 @@ void litl_write_probe_reg_4(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 5 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
  */
 void litl_write_probe_reg_5(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -179,13 +159,6 @@ void litl_write_probe_reg_5(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 6 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
- * \param param6 6th parameter for this event
  */
 void litl_write_probe_reg_6(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -194,14 +167,6 @@ void litl_write_probe_reg_6(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 7 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
- * \param param6 6th parameter for this event
- * \param param7 7th parameter for this event
  */
 void litl_write_probe_reg_7(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -210,15 +175,6 @@ void litl_write_probe_reg_7(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 8 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
- * \param param6 6th parameter for this event
- * \param param7 7th parameter for this event
- * \param param8 8th parameter for this event
  */
 void litl_write_probe_reg_8(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -228,16 +184,6 @@ void litl_write_probe_reg_8(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 9 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
- * \param param6 6th parameter for this event
- * \param param7 7th parameter for this event
- * \param param8 8th parameter for this event
- * \param param9 9th parameter for this event
  */
 void litl_write_probe_reg_9(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -247,17 +193,6 @@ void litl_write_probe_reg_9(litl_code_t code, litl_param_t param1,
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 10 parameters
- * \param code Event code
- * \param param1 1st parameter for this event
- * \param param2 2nd parameter for this event
- * \param param3 3rd parameter for this event
- * \param param4 4th parameter for this event
- * \param param5 5h parameter for this event
- * \param param6 6th parameter for this event
- * \param param7 7th parameter for this event
- * \param param8 8th parameter for this event
- * \param param9 9th parameter for this event
- * \param param10 10th parameter for this event
  */
 void litl_write_probe_reg_10(litl_code_t code, litl_param_t param1,
         litl_param_t param2, litl_param_t param3, litl_param_t param4,
@@ -268,10 +203,8 @@ void litl_write_probe_reg_10(litl_code_t code, litl_param_t param1,
 
 /**
  * \ingroup litl_write_raw
- * \brief Records an event with additional data.
- * \param code Event code
- * \param size Size (in Bytes) of the data to store
- * \param data Data to store with this event
+ * \brief Records an event in a raw state, where the size is #args in the void* array.
+ * That helps to discover places where the application has crashed
  */
 void litl_write_probe_raw(litl_code_t code, litl_size_t size,
         litl_data_t data[]);
@@ -281,18 +214,12 @@ void litl_write_probe_raw(litl_code_t code, litl_size_t size,
 /**
  * For internal use only.
  * Allocates an event
- * \param type Event type
- * \param code Event code
- * \param size Size of the event (in Bytes)
- * \param The allocated event or NULL in case of error.
  */
 litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 
 /**
  * For internal use only.
  * Adds a parameter in an event
- * \param _ptr_ Address where the parameter should be stored
- * \param arg Parameter to store
  */
 #define __LITL_WRITE_ADD_ARG(_ptr_, arg) do {		\
     typeof(arg) _arg = arg;			\
@@ -306,7 +233,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event without parameters
- * \param code Event code
  */
 #define litl_write_probe_pack_0(code) do {				\
     int total_size = LITL_BASE_SIZE;					\
@@ -319,9 +245,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 1 parameter
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
  */
 #define litl_write_probe_pack_1(code, arg1) do {			\
     int total_size = LITL_BASE_SIZE + sizeof(arg1);			\
@@ -336,10 +259,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 2 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
  */
 #define litl_write_probe_pack_2(code, arg1, arg2) do {			\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2);	\
@@ -355,11 +274,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 3 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
  */
 #define litl_write_probe_pack_3(code, arg1, arg2, arg3) do {		\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3); \
@@ -376,11 +290,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 4 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
  */
 #define litl_write_probe_pack_4(code, arg1, arg2, arg3, arg4) do {	\
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -398,12 +307,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 5 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
  */
 #define litl_write_probe_pack_5(code, arg1, arg2, arg3, arg4, arg5) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -423,13 +326,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 6 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
- * \param arg6 6th parameter for this event
  */
 #define litl_write_probe_pack_6(code, arg1, arg2, arg3, arg4, arg5, arg6) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -450,14 +346,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 7 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
- * \param arg6 6th parameter for this event
- * \param arg7 7th parameter for this event
  */
 #define litl_write_probe_pack_7(code, arg1, arg2, arg3, arg4, arg5, arg6, arg7) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -479,15 +367,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 8 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
- * \param arg6 6th parameter for this event
- * \param arg7 7th parameter for this event
- * \param arg8 8th parameter for this event
  */
 #define litl_write_probe_pack_8(code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -510,16 +389,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 9 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
- * \param arg6 6th parameter for this event
- * \param arg7 7th parameter for this event
- * \param arg8 8th parameter for this event
- * \param arg9 9th parameter for this event
  */
 #define litl_write_probe_pack_9(code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
@@ -543,17 +412,6 @@ litl_t* __litl_write_get_event(litl_type_t type, litl_code_t code, int size);
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 10 parameters
- * \param code Event code
- * \param arg1 1st parameter for this event
- * \param arg2 2nd parameter for this event
- * \param arg3 3rd parameter for this event
- * \param arg4 4th parameter for this event
- * \param arg5 5h parameter for this event
- * \param arg6 6th parameter for this event
- * \param arg7 7th parameter for this event
- * \param arg8 8th parameter for this event
- * \param arg9 9th parameter for this event
- * \param arg10 10th parameter for this event
  */
 #define litl_write_probe_pack_10(code, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) do { \
     int total_size = LITL_BASE_SIZE + sizeof(arg1) + sizeof(arg2) + sizeof(arg3) + sizeof(arg4); \
