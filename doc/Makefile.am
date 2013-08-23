@@ -8,8 +8,9 @@ CLEANFILES = doxyfile.stamp
 
 all-local: doxyfile.stamp
 	$(MAKE) -C latex
+
 clean-local:
-	rm -rf $(top_srcdir)/doc/man $(builddir)/doc/html $(builddir)/doc/latex
+	rm -rf $(top_srcdir)/doc/man html latex doxyfile.stamp
 
 EXTRA_DIST = html
 
