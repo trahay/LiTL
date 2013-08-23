@@ -116,6 +116,10 @@ of traces can be split back into separate traces by\\
 For a more flexible and comfortable usage of \litl{}, we provide the following 
 environment variables:
 \begin{itemize}
+ \item \texttt{LITL\_BUFFER\_SIZE} provides users with another possibility of 
+       setting a buffer size. If the variable is not specified, then the provided 
+       value inside the application is used;
+       
  \item \texttt{LITL\_BUFFER\_FLUSH} specifies the behavior of \litl{} when the 
        event buffer is full. If it is set to one, which is a default option, 
        the buffer is flushed. This permits to record traces that are larger 

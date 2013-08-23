@@ -78,7 +78,13 @@ litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
 
     trace = (litl_trace_write_t*) malloc(sizeof(litl_trace_write_t));
 
-    trace->buffer_size = buf_size;
+    // set the buffer size using the environment variable.
+    //   If the variable is not specified, use the provided value
+    char* str = getenv("LITL_BUFFER_SIZE");
+    if (str != NULL )
+        trace->buffer_size = atoi(str);
+    else
+        trace->buffer_size = buf_size;
 
     // set variables
     trace->filename = NULL;
@@ -111,15 +117,15 @@ litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
     trace->index_once = PTHREAD_ONCE_INIT;
     pthread_once(&trace->index_once, __init);
 
-    // set trace.allow_buffer_flush using the environment variable.
+    // set trace->allow_buffer_flush using the environment variable.
     //   By default the buffer flushing is enabled
-    char* str = getenv("LITL_BUFFER_FLUSH");
+    str = getenv("LITL_BUFFER_FLUSH");
     if (str && (strcmp(str, "off") == 0))
         litl_write_buffer_flush_off(trace);
     else
         litl_write_buffer_flush_on(trace);
 
-    // set trace.allow_thread_safety using the environment variable.
+    // set trace->allow_thread_safety using the environment variable.
     //   By default thread safety is enabled
     str = getenv("LITL_THREAD_SAFETY");
     if (str && (strcmp(str, "off") == 0))
