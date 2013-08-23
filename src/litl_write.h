@@ -48,133 +48,135 @@
  * \ingroup litl_write_init
  * \brief Initializes the trace buffer
  * \param buf_size Buffer size (in Byte)
- * \return A pointer to the event recording object
+ * \return trace A pointer to the event recording object
  *         NULL in case of failure.
  */
-litl_trace_write_t* litl_write_init_trace(const uint32_t);
+litl_trace_write_t* litl_write_init_trace(const uint32_t buf_size);
 
 /**
  * \ingroup litl_write_init
  * \brief Activates buffer flush
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_buffer_flush_on(litl_trace_write_t*);
+void litl_write_buffer_flush_on(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Deactivates buffer flush. By default, it is activated
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_buffer_flush_off(litl_trace_write_t*);
+void litl_write_buffer_flush_off(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Activates thread safety
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_thread_safety_on(litl_trace_write_t*);
+void litl_write_thread_safety_on(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Deactivates thread safety
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_thread_safety_off(litl_trace_write_t*);
+void litl_write_thread_safety_off(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Activates recording tid
  */
-void litl_write_tid_recording_on(litl_trace_write_t*);
+void litl_write_tid_recording_on(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Deactivates recording tid
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_tid_recording_off(litl_trace_write_t*);
+void litl_write_tid_recording_off(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Pauses the event recording
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_pause_recording(litl_trace_write_t*);
+void litl_write_pause_recording(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Resumes the event recording
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
-void litl_write_resume_recording(litl_trace_write_t*);
+void litl_write_resume_recording(litl_trace_write_t* trace);
 
 /**
  * \ingroup litl_write_init
  * \brief Sets a new name for the trace file
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param filename New file name
  */
-void litl_write_set_filename(litl_trace_write_t*, char*);
+void litl_write_set_filename(litl_trace_write_t* trace, char* filename);
 
 /*** Regular events ***/
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event without parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  */
-void litl_write_probe_reg_0(litl_trace_write_t*, litl_code_t);
+void litl_write_probe_reg_0(litl_trace_write_t* trace, litl_code_t code);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 1 parameter
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  */
-void litl_write_probe_reg_1(litl_trace_write_t*, litl_code_t, litl_param_t);
+void litl_write_probe_reg_1(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 2 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
  */
-void litl_write_probe_reg_2(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t);
+void litl_write_probe_reg_2(litl_trace_write_t*, litl_code_t code,
+        litl_param_t param1, litl_param_t param2);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 3 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
  * \param param3 3rd parameter for this event
  */
-void litl_write_probe_reg_3(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t);
+void litl_write_probe_reg_3(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 4 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
  * \param param3 3rd parameter for this event
  * \param param4 4th parameter for this event
  */
-void litl_write_probe_reg_4(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t);
+void litl_write_probe_reg_4(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 5 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -182,13 +184,14 @@ void litl_write_probe_reg_4(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param4 4th parameter for this event
  * \param param5 5h parameter for this event
  */
-void litl_write_probe_reg_5(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t);
+void litl_write_probe_reg_5(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 6 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -197,13 +200,14 @@ void litl_write_probe_reg_5(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param5 5h parameter for this event
  * \param param6 6th parameter for this event
  */
-void litl_write_probe_reg_6(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t);
+void litl_write_probe_reg_6(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 7 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -213,14 +217,15 @@ void litl_write_probe_reg_6(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param6 6th parameter for this event
  * \param param7 7th parameter for this event
  */
-void litl_write_probe_reg_7(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t);
+void litl_write_probe_reg_7(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
+        litl_param_t param7);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 8 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -231,14 +236,15 @@ void litl_write_probe_reg_7(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param7 7th parameter for this event
  * \param param8 8th parameter for this event
  */
-void litl_write_probe_reg_8(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t, litl_param_t);
+void litl_write_probe_reg_8(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
+        litl_param_t param7, litl_param_t param8);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 9 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -250,14 +256,15 @@ void litl_write_probe_reg_8(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param8 8th parameter for this event
  * \param param9 9th parameter for this event
  */
-void litl_write_probe_reg_9(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t);
+void litl_write_probe_reg_9(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
+        litl_param_t param7, litl_param_t param8, litl_param_t param9);
 
 /**
  * \ingroup litl_write_reg
  * \brief Records a regular event with 10 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param param1 1st parameter for this event
  * \param param2 2nd parameter for this event
@@ -270,36 +277,38 @@ void litl_write_probe_reg_9(litl_trace_write_t*, litl_code_t, litl_param_t,
  * \param param9 9th parameter for this event
  * \param param10 10th parameter for this event
  */
-void litl_write_probe_reg_10(litl_trace_write_t*, litl_code_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t, litl_param_t,
-        litl_param_t, litl_param_t, litl_param_t, litl_param_t);
+void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code,
+        litl_param_t param1, litl_param_t param2, litl_param_t param3,
+        litl_param_t param4, litl_param_t param5, litl_param_t param6,
+        litl_param_t param7, litl_param_t param8, litl_param_t param9,
+        litl_param_t param10);
 
 /*** Raw events ***/
 
 /**
  * \ingroup litl_write_raw
  * \brief Records an event with additional data.
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param size Size (in Bytes) of the data to store
  * \param data Data to store with this event
  */
-void litl_write_probe_raw(litl_trace_write_t*, litl_code_t, litl_size_t,
-        litl_data_t[]);
+void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
+        litl_size_t size, litl_data_t data[]);
 
 /*** Internal-use macros ***/
 
 /**
  * For internal use only.
  * Allocates an event
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param type Event type
  * \param code Event code
  * \param size Size of the event (in Bytes)
- * \param The allocated event or NULL in case of error.
+ * \return The allocated event or NULL in case of error.
  */
-litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
-        int);
+litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
+        litl_code_t code, int size);
 
 /**
  * For internal use only.
@@ -318,7 +327,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event without parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  */
 #define litl_write_probe_pack_0(trace, code) do {				\
@@ -332,7 +341,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 1 parameter
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  */
@@ -349,7 +358,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 2 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -368,7 +377,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 3 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -389,7 +398,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 4 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -412,7 +421,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 5 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -438,7 +447,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 6 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -466,7 +475,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 7 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -496,7 +505,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 8 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -528,7 +537,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 9 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -562,7 +571,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_pack
  * \brief Records a packed event with 10 parameters
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  * \param code Event code
  * \param arg1 1st parameter for this event
  * \param arg2 2nd parameter for this event
@@ -598,7 +607,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t*, litl_type_t, litl_code_t,
 /**
  * \ingroup litl_write_init
  * \brief Finalizes the trace
- * \param A pointer to the event recording object
+ * \param trace A pointer to the event recording object
  */
 void litl_write_finalize_trace(litl_trace_write_t*);
 
