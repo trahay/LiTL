@@ -48,7 +48,7 @@
  * \ingroup litl_write_init
  * \brief Initializes the trace buffer
  * \param buf_size Buffer size (in Byte)
- * \return trace A pointer to the event recording object
+ * \return A pointer to the event recording object
  *         NULL in case of failure.
  */
 litl_trace_write_t* litl_write_init_trace(const uint32_t buf_size);
@@ -609,6 +609,6 @@ litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
  * \brief Finalizes the trace
  * \param trace A pointer to the event recording object
  */
-void litl_write_finalize_trace(litl_trace_write_t*);
+void litl_write_finalize_trace(litl_trace_write_t* trace);
 
 #endif /* LITL_WRITE_H_ */
