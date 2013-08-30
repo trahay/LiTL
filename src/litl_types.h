@@ -336,7 +336,7 @@ typedef struct {
     char* filename; /**< A file name */
 
     litl_med_size_t nb_traces; /**< A number of traces */
-    char** trace_names; /**< An array of traces names */
+    char** traces_names; /**< An array of traces names */
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
