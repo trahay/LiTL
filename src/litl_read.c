@@ -442,7 +442,7 @@ litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
 }
 
 /*
- * Reads the next event either from an archive or a regular trace
+ * Reads the next event either from a regular trace or an archive
  */
 litl_read_t* litl_read_next_event(litl_trace_read_t* arch) {
     litl_med_size_t i;

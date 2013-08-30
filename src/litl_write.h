@@ -11,8 +11,8 @@
  *
  *  \authors
  *    Developers are : \n
- *        Roman Iakymchuk   - roman.iakymchuk@telecom-sudparis.eu \n
- *        Francois Trahay   - francois.trahay@telecom-sudparis.eu \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
  */
 
 #ifndef LITL_WRITE_H_
@@ -21,33 +21,33 @@
 #include "litl_types.h"
 
 /**
- * \defgroup litl_write Writing functions
+ * \defgroup litl_write LiTL Writing Functions
  */
 
 /**
- * \defgroup litl_write_init Initialization functions
+ * \defgroup litl_write_init Initialization Functions
  * \ingroup litl_write
  */
 
 /**
- * \defgroup litl_write_reg Functions for recording regular events
+ * \defgroup litl_write_reg Functions for Recording Regular Events
  * \ingroup litl_write
  */
 
 /**
- * \defgroup litl_write_raw Functions for recording raw events
+ * \defgroup litl_write_raw Functions for Recording Raw Events
  * \ingroup litl_write
  */
 
 /**
- * \defgroup litl_write_pack Functions for recording packed events
+ * \defgroup litl_write_pack Functions for Recording Packed Events
  * \ingroup litl_write
  */
 
 /**
  * \ingroup litl_write_init
  * \brief Initializes the trace buffer
- * \param buf_size Buffer size (in Byte)
+ * \param buf_size A buffer size (in Byte)
  * \return A pointer to the event recording object.
  *         NULL in case of failure
  */

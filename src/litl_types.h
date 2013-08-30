@@ -10,40 +10,40 @@
  *  reading events as well as merging and splitting trace files
  *
  *  \authors
- *    Developers are : \n
- *        Roman Iakymchuk   - roman.iakymchuk@telecom-sudparis.eu \n
- *        Francois Trahay   - francois.trahay@telecom-sudparis.eu \n
+ *    Developers are: \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
  */
 
 #ifndef LITL_TYPES_H_
 #define LITL_TYPES_H_
 
 /**
- * \defgroup litl_types LiTL data types and global variables
+ * \defgroup litl_types LiTL Data Types and Defined Variables
  */
 
 /**
- * \defgroup litl_types_general General data types and global variables
+ * \defgroup litl_types_general General Data Types and Defined Variables
  * \ingroup litl_types
  */
 
 /**
- * \defgroup litl_types_write Data types for recording events
+ * \defgroup litl_types_write Data Types for Recording Events
  * \ingroup litl_types
  */
 
 /**
- * \defgroup litl_types_read Data types for reading events
+ * \defgroup litl_types_read Data Types for Reading Events
  * \ingroup litl_types
  */
 
 /**
- * \defgroup litl_types_merge Data types for merging trace files
+ * \defgroup litl_types_merge Data Types for Merging Traces
  * \ingroup litl_types
  */
 
 /**
- * \defgroup litl_types_split Data types for splitting trace files
+ * \defgroup litl_types_split Data Types for Splitting Archives of Traces
  * \ingroup litl_types
  */
 
@@ -134,37 +134,42 @@ typedef struct {
     litl_type_t type; /**< An event type */
     /**
      * \union parameters
+     * \brief Event parameters
      */
     union {
         /**
          * \struct regular
+         * \brief A regular event
          */
         struct {
             litl_data_t nb_params; /**< A number of arguments */
             litl_param_t param[LITL_MAX_PARAMS]; /**< An array of arguments of lengths from 0 to 10 */
-        }__attribute__((packed)) regular; /**< A regular event */
+        }__attribute__((packed)) regular;
         /**
          * \struct raw
+         * \brief A raw event
          */
         struct {
             litl_size_t size; /**< A size of data in bytes */
             litl_data_t data[LITL_MAX_DATA]; /**< A raw data */
-        }__attribute__((packed)) raw; /**< A raw event */
+        }__attribute__((packed)) raw;
         /**
          * \struct packed
+         * \brief A packed event
          */
         struct {
             litl_data_t size; /**< A size of data in bytes */
             litl_data_t param[LITL_MAX_DATA]; /**< A data */
-        }__attribute__((packed)) packed; /**< A packed event */
+        }__attribute__((packed)) packed;
         /**
          * \struct offset
+         * \brief An offset event
          */
         struct {
             litl_data_t nb_params; /**< A number of parameters (=1) */
             litl_param_t offset; /**< An offset to the next chunk of events */
-        }__attribute__((packed)) offset; /**< An offset event */
-    } parameters; /**< Event parameters */
+        }__attribute__((packed)) offset;
+    } parameters;
 }__attribute__((packed)) litl_t;
 
 /**
