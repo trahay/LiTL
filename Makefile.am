@@ -4,8 +4,8 @@
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src \
           utils \
-	  tests \
-	  doc
+          tests \
+          doc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = litl.pc

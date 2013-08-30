@@ -25,8 +25,6 @@ uninstall-local:
 	rm -rf $(DESTDIR)$(datadir)/doc/$(PACKAGE)/html \
 		$(DESTDIR)$(datadir)/doc/$(PACKAGE)/refman.pdf
 
-
-
 endif
 
 
@@ -40,7 +38,8 @@ MANTEXSRC = $(MANNAME).tex
 MANAUX = $(MANNAME).aux
 MANPDF = $(MANNAME).pdf
 
-CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out $(MANNAME).toc $(MANAUX)
+CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \ 
+             $(MANNAME).toc $(MANAUX)
 
 $(MANPDF): $(srcdir)/$(MANTEXSRC)
 	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
