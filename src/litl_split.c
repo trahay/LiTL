@@ -17,12 +17,12 @@ static litl_trace_split_t* __arch;
 /*
  * Opens an archive of traces
  */
-static void __open_archive(const char *archive_name) {
+static void __open_archive(const char *arch_name) {
     __arch = malloc(sizeof(litl_trace_split_t));
 
     // open an archive of traces
-    if ((__arch->f_arch = open(archive_name, O_RDONLY)) < 0) {
-        fprintf(stderr, "Cannot open %s\n", archive_name);
+    if ((__arch->f_arch = open(arch_name, O_RDONLY)) < 0) {
+        fprintf(stderr, "Cannot open %s\n", arch_name);
         exit(EXIT_FAILURE);
     }
 
@@ -129,9 +129,9 @@ static void __close_archive() {
     free(__arch);
 }
 
-void litl_split_archive(const char *archive_name, const char *output_dir) {
+void litl_split_archive(const char *arch_name, const char *output_dir) {
     // open an archive of traces and allocate memory for a buffer
-    __open_archive(archive_name);
+    __open_archive(arch_name);
 
     // get info from the archive's header
     __read_archive_header();
