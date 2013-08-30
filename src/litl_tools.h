@@ -7,18 +7,36 @@
 #ifndef LITL_TOOLS_H_
 #define LITL_TOOLS_H_
 
+/**
+ *  \file litl_tools.h
+ *  \brief litl_tools Provides a set of auxiliary functions
+ *
+ *  \authors
+ *    Developers are : \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
+ */
+
 #include<stdint.h>
 #include "litl_types.h"
 
-/*
- * Returns the size of a particular event in bytes depending on
- * the number of arguments
+/**
+ * \defgroup litl_tools LiTL Auxiliary Functions
+ */
+
+/**
+ * \ingroup litl_tools
+ * \brief Returns the size of a regular event (in Bytes) depending on the number of its parameters
+ * \param nb_params A number of event's parameters
+ * \return Size of a regular event
  */
 litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params);
 
-/*
- * Returns the size of a particular event in bytes depending on
- * the number of arguments
+/**
+ * \ingroup litl_tools
+ * \brief Returns the size of a general event (in Bytes) depending on its type and the number of its parameters
+ * \param p_evnt A pointer to an event
+ * \return Size of a given event
  */
 litl_med_size_t __litl_get_gen_event_size(litl_t *p_evt);
 
