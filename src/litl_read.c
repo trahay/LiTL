@@ -22,7 +22,7 @@ static void __litl_read_init_header(litl_trace_read_t* arch) {
 
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
-    arch->header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    arch->header_size = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     arch->header_buffer_ptr = (litl_buffer_t) malloc(arch->header_size);
     if (!arch->header_buffer_ptr) {
         perror("Could not allocate memory for the header!");

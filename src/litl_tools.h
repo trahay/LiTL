@@ -14,7 +14,7 @@
  * Returns the size of a particular event in bytes depending on
  * the number of arguments
  */
-litl_med_size_t __litl_get_reg_event_size(litl_tiny_size_t nb_params);
+litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params);
 
 /*
  * Returns the size of a particular event in bytes depending on

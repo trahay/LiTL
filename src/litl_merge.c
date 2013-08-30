@@ -48,7 +48,7 @@ static void __add_archive_header() {
     // add nb_traces and the is_trace_archive flag
     ((litl_header_t *) __arch->buffer)->nb_threads = __arch->nb_traces;
     ((litl_header_t *) __arch->buffer)->is_trace_archive = 1;
-    header_size_global = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    header_size_global = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     __arch->buffer += header_size_global;
 
     // create a array of arrays of offsets
@@ -66,7 +66,7 @@ static void __add_archive_header() {
             exit(EXIT_FAILURE);
         }
 
-        header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+        header_size = sizeof(litl_data_t) + sizeof(litl_med_size_t);
         header_buffer_ptr = (litl_buffer_t) malloc(header_size);
         header_buffer = header_buffer_ptr;
 
@@ -182,7 +182,7 @@ static void __litl_create_archive() {
 
     triples_size = sizeof(litl_header_triples_t);
     // size of nb_traces and is_archive
-    header_offset = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    header_offset = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     // size of fid and trace_size
     header_offset = header_offset + triples_size - sizeof(litl_offset_t);
 

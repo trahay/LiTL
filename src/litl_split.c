@@ -39,7 +39,7 @@ static void __read_archive_header() {
 
     // at first, the header is small 'cause it stores only nb_traces and
     //   is_trace_archive values
-    __arch->header_size = sizeof(litl_tiny_size_t) + sizeof(litl_med_size_t);
+    __arch->header_size = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     __arch->header_buffer_ptr = (litl_buffer_t) malloc(__arch->header_size);
     __arch->header_buffer = __arch->header_buffer_ptr;
 

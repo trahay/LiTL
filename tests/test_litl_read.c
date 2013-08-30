@@ -18,7 +18,7 @@
 #include "litl_read.h"
 
 int main(int argc, const char **argv) {
-    litl_tiny_size_t i;
+    litl_data_t i;
     const char* filename = "trace";
     litl_read_t* event;
     litl_header_t* header;

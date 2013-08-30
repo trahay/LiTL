@@ -27,6 +27,7 @@ AC_CHECK_HEADERS([stdint.h stdlib.h stdio.h string.h math.h time.h sys/stat.h \
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UINT8_T
+AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 

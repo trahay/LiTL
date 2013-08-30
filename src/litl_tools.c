@@ -15,7 +15,7 @@
  * Returns the size in bytes of a REGULAR event depending on
  *   the number of arguments
  */
-litl_med_size_t __litl_get_reg_event_size(litl_tiny_size_t nb_params) {
+litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params) {
     return nb_params * sizeof(litl_param_t)
             + (litl_med_size_t) ceil(
                     LITL_BASE_SIZE / (double) sizeof(litl_param_t))
