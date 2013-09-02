@@ -35,7 +35,7 @@ litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params);
 /**
  * \ingroup litl_tools
  * \brief Returns the size of a general event (in Bytes) depending on its type and the number of its parameters
- * \param p_evnt A pointer to an event
+ * \param p_evt A pointer to an event
  * \return Size of a given event
  */
 litl_med_size_t __litl_get_gen_event_size(litl_t *p_evt);

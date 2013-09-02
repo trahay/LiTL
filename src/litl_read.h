@@ -83,7 +83,7 @@ litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch);
  * \ingroup litl_read_main
  * \brief Resets the trace pointer
  * \param arch A pointer to event reading object
- * \param buf_size A trace index
+ * \param trace_index A trace index
  */
 void litl_read_reset_trace(litl_trace_read_t* arch,
         litl_med_size_t trace_index);
@@ -92,7 +92,7 @@ void litl_read_reset_trace(litl_trace_read_t* arch,
  * \ingroup litl_read_main
  * \brief Reads the next event from a trace
  * \param arch A pointer to event reading object
- * \param buf_size A trace index
+ * \param trace_index A trace index
  */
 litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
         litl_med_size_t trace_index);

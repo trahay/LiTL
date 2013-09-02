@@ -312,8 +312,8 @@ typedef struct {
 
 /**
  * \ingroup litl_types_read
- * \brief A data structure for reading events from either a trace or
- *  an archive of traces
+ * \brief A data structure for reading events from both regular trace files or
+ *  archives of traces
  */
 typedef struct {
     int f_handle; /**< A file handler */
@@ -329,7 +329,7 @@ typedef struct {
 
 /**
  * \ingroup litl_types_merge
- * \brief A data structure for merging trace files into an archive
+ * \brief A data structure for merging trace files into an archive of traces
  */
 typedef struct {
     int f_handle; /**< A file handler */
