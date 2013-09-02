@@ -4,6 +4,17 @@
  * See COPYING in top-level directory.
  */
 
+/**
+ *  \file utils/litl_merge.c
+ *  \brief litl_merge A utility for combining both regular trace files and
+ *  archives of traces into archives. The latter is the recursive inclusion
+ *
+ *  \authors
+ *    Developers are: \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
+ */
+
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>

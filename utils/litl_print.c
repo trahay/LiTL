@@ -4,6 +4,17 @@
  * See COPYING in top-level directory.
  */
 
+/**
+ *  \file utils/litl_print.c
+ *  \brief litl_print A utility for reading events from both regular trace
+ *  files and archives of traces
+ *
+ *  \authors
+ *    Developers are: \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
+ */
+
 #include <string.h>
 #include <stdlib.h>
 

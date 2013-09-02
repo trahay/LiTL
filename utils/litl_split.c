@@ -4,6 +4,18 @@
  * See COPYING in top-level directory.
  */
 
+
+/**
+ *  \file utils/litl_split.c
+ *  \brief litl_split A utility for disassembling archives of traces into
+ *  separate regular trace files
+ *
+ *  \authors
+ *    Developers are: \n
+ *        Roman Iakymchuk   -- roman.iakymchuk@telecom-sudparis.eu \n
+ *        Francois Trahay   -- francois.trahay@telecom-sudparis.eu \n
+ */
+
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
