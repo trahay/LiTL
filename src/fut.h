@@ -6,7 +6,7 @@
 
 /**
  *  \file fut.h
- *  \brief fut Provides mapping of the LiTL APIs into the FxT APIs for easier
+ *  \brief fut Provides a mapping of the LiTL APIs into the FxT APIs for easier
  *  usage of LiTL in FxT-related applications
  *
  *  \authors

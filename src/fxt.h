@@ -6,7 +6,7 @@
 
 /**
  *  \file fxt.h
- *  \brief fxt Provides mapping of the LiTL APIs into the FxT APIs for easier
+ *  \brief fxt Provides a mapping of the LiTL APIs into the FxT APIs for easier
  *  usage of LiTL in FxT-related applications
  *
  *  \authors
@@ -31,6 +31,7 @@ static fxt_t __trace;
 /* BEGIN -- Recording functions */
 #define fut_setup(buffer_size, keymask, threadid) do {          \
       __trace = litl_write_init_trace(buffer_size);             \
+      litl_write_pause_recording(__trace);                      \
     }while(0)
 
 // finalizing traces
@@ -42,6 +43,7 @@ static fxt_t __trace;
 
 #define fut_set_filename(filename) do {                         \
       litl_write_set_filename(__trace, filename);               \
+      litl_write_resume_recording(__trace);                     \
     } while(0)
 
 #define enable_fut_flush() do {                                 \

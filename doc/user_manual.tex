@@ -320,15 +320,16 @@ a need to analyze a particular trace or a set of traces among the merged ones.
 \end{landscape}  
 
 
-\chapter{\litl{} in \fxt{} applications}
+\chapter{\litl{} in \fxt{} Applications}
 In this chapter, we present an approach of integrating \litl\ (as a possible 
-replacement of or enable its usage in parallel with \fxt) into applications 
-that already reply on \fxt{}. To simplify the process of integrating \litl\ 
-into such applications, we matched the functionality of \fxt\ to the 
-corresponding functionality from \litl\ into \texttt{fxt.h} and \texttt{fut.h} 
-headers. So, developers of those applications can use \litl\ in conjunction with 
-these two header files, which that use anyway, and therefore keeping without 
-changes the code and the major part of the \fxt\ APIs.
+replacement of \fxt{} and enable its usage in parallel with \fxt) into 
+applications that already reply on \fxt{}. To simplify the process of 
+integrating \litl\ into such applications, we map the functionality of 
+\litl\ into the corresponding functionality from \fxt\ in \texttt{fxt.h} and 
+\texttt{fut.h} headers; those files are part of \litl. As a result, developers 
+of those applications can easier switch between two binary trace libraries and
+use \litl\ in conjunction with these two header files. Therefore, only minor
+changes are applied to the applications code.
 
 Even though \litl\ and \fxt\ target the same issue of gathering the 
 information of the application execution, they have differences in the 
@@ -342,8 +343,7 @@ initialization phase of the event recording process. So, in \fxt\ it is
 implemented as
 \lstset{language=C, caption={}, label={lstl:fxt}}
 \begin{lstlisting}
-// IMPORTANT! setting file name is before
-fut_set_filename(PROF_FILE_USER);
+fut_set_filename(filename);
 
 if (allow_flush && ...) {
     enable_fut_flush();
@@ -351,37 +351,54 @@ if (allow_flush && ...) {
 
 fut_enable_tid_logging();
 
-if (fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
+// IMPORTANT! fut_setup is AFTER all auxiliary functions
+if (fut_setup(buffer_size, FUT_KEYMASKALL, thread_id) < 0) {
     perror("fut_setup");
 }
 \end{lstlisting}
 While in \litl\ the procedure is the following
-\lstset{language=C, caption={}, label={lstl:fxt}}
+\lstset{language=C, caption={}, label={lstl:litl}}
 \begin{lstlisting}
-litl_trace = litl_init_trace(PROF_BUFFER_SIZE);
+litl_trace = litl_write_init_trace(buffer_size);
 // the recording should be paused, because some further functions, 
 // e.g. *_set_filename() can be intercepted
-litl_pause_recording(&litl_trace);
+litl_write_pause_recording(litl_trace);
 
-// yes, the API is the same thanks to fxt.h and fut.h
-fut_enable_tid_logging();
+if (allow_flush && ...) {
+    litl_write_buffer_flush_on(litl_trace);
+}
+
+litl_write_tid_recording_on(litl_trace);
+
+litl_write_set_filename(litl_trace, filename);
+
+// Do not forget to resume recording
+litl_write_resume_recording(litl_trace);
+\end{lstlisting}
+
+Due to the mapping between \litl\ and \fxt\ APIs implemented in 
+\texttt{fut.h} and \texttt{fxt.h}, the above \litl\ code in the \fxt-related 
+applications can be replaced as follow
+\lstset{language=C, caption={}, label={lstl:litl_new}}
+\begin{lstlisting}
+// IMPORTANT! fut_setup is BEFORE all auxiliary functions
+if (fut_setup(buffer_size, FUT_KEYMASKALL, thread_id) < 0) {
+    perror("fut_setup");
+}
+
+fut_set_filename(filename);
 
 if (allow_flush && ...) {
     enable_fut_flush();
 }
 
-// IMPORTANT! setting file name is after
-fut_set_filename(PROF_FILE_USER);
-
-// Do not forget to resume recording
-litl_resume_recording(&litl_trace);
+fut_enable_tid_logging();
 \end{lstlisting}
 
 For the successful and easy porting of \litl\ into your applications the 
 above-mentioned suggestions needs to be incorporated.
 
-\section{Reading events}
-
+% \section{Reading events}
 
     
 \chapter{Troubleshooting}
