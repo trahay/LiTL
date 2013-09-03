@@ -43,6 +43,7 @@ CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
 
 $(MANPDF): $(srcdir)/$(MANTEXSRC)
 	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
+	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
 
 dist_doc_DATA = $(docfiles)
 

@@ -60,9 +60,8 @@ AC_COMPILE_IFELSE(
 # Check for presence of pdfLaTeX
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
 if test -z "$PDFLATEX"; then
-  AC_MSG_WARN([Unable to create PDF version of the user manual.])
+  AC_MSG_WARN([Unable to create PDF version of the user manual -- pdflatex is missing!])
 fi
-
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 
 # Check for presence of doxygen
