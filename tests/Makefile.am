@@ -13,7 +13,8 @@ CTESTS = test_litl_write \
          test_litl_read \
          test_litl_pause \
          test_litl_buffer \
-         test_litl_trace_size
+         test_litl_trace_size \
+         test_litl_mapping_to_fxt
 
 check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
@@ -35,9 +36,13 @@ test_litl_buffer_SOURCES = test_litl_buffer_size.c
 
 test_litl_pause_SOURCES = test_litl_pause.c
 
-test_litl_trace_size_SOURCES = test_litl_trace_size.c 
+test_litl_trace_size_SOURCES = test_litl_trace_size.c
+
+test_litl_mapping_to_fxt_SOURCES = test_litl_mapping_to_fxt.c
+test_litl_mapping_to_fxt_LDFLAGS = -lpthread -llitl 
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
 	rm -rf test_litl_write test_litl_write_multiple test_litl_write_concurent \
-	       test_litl_read test_litl_pause test_litl_buffer test_litl_trace_size
+	       test_litl_read test_litl_pause test_litl_buffer \
+	       test_litl_trace_size test_litl_mapping_to_fxt
