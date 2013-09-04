@@ -41,31 +41,31 @@
 
 /**
  * \ingroup litl_read_init
- * \brief Opens a trace and reads the first portion of data to the buffer
+ * \brief Opens a trace and reads the first portion of data (trace header) to the buffer
  * \param filename A filename
- * \return trace A pointer to the event reading object. NULL in case of failure
+ * \return A pointer to the event reading object. NULL in case of failure
  */
 litl_trace_read_t *litl_read_open_trace(const char* filename);
 
 /**
  * \ingroup litl_read_init
  * \brief Initializes the event reading structure
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  */
 void litl_read_init_traces(litl_trace_read_t* arch);
 
 /**
  * \ingroup litl_read_init
  * \brief Returns a pointer to the trace header
- * \param arch A pointer to event reading object
- * \return header A pointer to the trace header
+ * \param arch A pointer to the event reading object
+ * \return A pointer to the trace header
  */
 litl_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
 
 /**
  * \ingroup litl_read_init
  * \brief Sets the buffer size
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  * \param buf_size A buffer size (in Byte)
  */
 void litl_read_set_buffer_size(litl_trace_read_t* arch,
@@ -74,15 +74,15 @@ void litl_read_set_buffer_size(litl_trace_read_t* arch,
 /**
  * \ingroup litl_read_init
  * \brief Returns the buffer size
- * \param arch A pointer to event reading object
- * \return buf_size A buffer size (in Byte)
+ * \param arch A pointer to the event reading object
+ * \return A buffer size (in Byte)
  */
 litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch);
 
 /**
  * \ingroup litl_read_main
  * \brief Resets the trace pointer
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  * \param trace_index A trace index
  */
 void litl_read_reset_trace(litl_trace_read_t* arch,
@@ -91,7 +91,7 @@ void litl_read_reset_trace(litl_trace_read_t* arch,
 /**
  * \ingroup litl_read_main
  * \brief Reads the next event from a trace
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  * \param trace_index A trace index
  */
 litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
@@ -100,14 +100,14 @@ litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
 /**
  * \ingroup litl_read_main
  * \brief Reads the next event either from a regular trace or an archive of traces
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  */
 litl_read_t* litl_read_next_event(litl_trace_read_t* arch);
 
 /**
  * \ingroup litl_read_main
  * \brief Closes the trace and frees the allocated memory
- * \param arch A pointer to event reading object
+ * \param arch A pointer to the event reading object
  */
 void litl_read_finalize_trace(litl_trace_read_t* arch);
 
@@ -216,7 +216,7 @@ void litl_read_finalize_trace(litl_trace_read_t* arch);
 #define LITL_READ_PACKED(read_event) (&(read_event)->event->parameters.packed)
 /**
  * \ingroup litl_read_process
- * \brief Returns a size and offset of a offset event
+ * \brief Returns a size and an offset of an event of type offset
  * \param read_event An event
  */
 #define LITL_READ_OFFSET(read_event) (&(read_event)->event->parameters.offset)
