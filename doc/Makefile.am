@@ -28,7 +28,7 @@ uninstall-local:
 endif
 
 
-if HAVE_PDFLATEX
+if HAVE_LATEXMK
 doc_DATA = user_manual.pdf
 
 docfiles = user_manual.pdf
@@ -39,11 +39,12 @@ MANAUX = $(MANNAME).aux
 MANPDF = $(MANNAME).pdf
 
 CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \ 
-             $(MANNAME).toc $(MANAUX)
+             $(MANNAME).toc $(MANAUX) $(MANNAME).auxlock $(MANNAME).bbl \
+             $(MANNAME).blg $(MANNAME).fdb_latexmk $(MANNAME).fls header.aux
 
 $(MANPDF): $(srcdir)/$(MANTEXSRC)
-	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
-	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
+	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -bibtex $<
+#	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
 
 dist_doc_DATA = $(docfiles)
 

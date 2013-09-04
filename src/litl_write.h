@@ -314,7 +314,7 @@ litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
  * \ingroup litl_write_pack
  * \brief For internal use only. Adds a parameter to a packed event
  * \param ptr A pointer to an event where the parameter should be stored
- * \param arg A parameter to store
+ * \param param A parameter to store
  */
 #define __LITL_WRITE_ADD_ARG(ptr, param) do {		                        \
     typeof(param) _param = param;			                                    \

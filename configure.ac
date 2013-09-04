@@ -64,6 +64,13 @@ if test -z "$PDFLATEX"; then
 fi
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 
+# Check for presence of latexmk
+AC_CHECK_PROG(LATEXMK, latexmk, latexmk)
+if test -z "$LATEXMK"; then
+  AC_MSG_WARN([Unable to create PDF version of the user manual -- latemk is missing!])
+fi
+AM_CONDITIONAL([HAVE_LATEXMK], test -n "$LATEXMK")
+
 # Check for presence of doxygen
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN";

@@ -4,13 +4,7 @@
 \documentclass[
     11pt,
     a4paper,
-    openright,
-    cleardoubleplain,
-    appendixprefix,
-    chapterprefix,
-    numbers=noenddot,
-    DIV11,
-    BCOR15mm
+    openright
 ]{report}
                
 \newcommand{\litl}{LiTL}
@@ -19,15 +13,10 @@
 \newcommand{\reportsubsubtitle}{User Manual}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{etex}
-\usepackage{savesym}
 \usepackage[utf8]{inputenc}
 \usepackage{pdflscape}
-
 \usepackage[T1]{fontenc}
 \usepackage[small,bf]{caption}
-
-\usepackage{multirow}
-\usepackage{multicol}
 
 % for plotting 
 \usepackage{subfigure}
@@ -148,11 +137,11 @@ ytick scale label code/.code={$\times 10^{#1}$}
    %backref=page,            % Backlinks im Literaturverzeichnis (section, slide, page, none)
    %pagebackref=true,        % Backlinks im Literaturverzeichnis mit Seitenangabe
    verbose,
-   hyperindex=true,         % backlinkex index
+   % hyperindex=true,         % backlinkex index
    linktocpage=true,        % Inhaltsverzeichnis verlinkt Seiten
-   hyperfootnotes=false,     % Keine Links auf Fussnoten
+   % hyperfootnotes=false,     % Keine Links auf Fussnoten
    % Bookmarks
-   bookmarks=true,          % Erzeugung von Bookmarks fuer PDF-Viewer
+   % bookmarks=true,          % Erzeugung von Bookmarks fuer PDF-Viewer
    bookmarksopenlevel=1,    % Gliederungstiefe der Bookmarks
    bookmarksopen=false,      % Expandierte Untermenues in Bookmarks
    bookmarksnumbered=true,  % Nummerierung der Bookmarks
@@ -167,24 +156,11 @@ ytick scale label code/.code={$\times 10^{#1}$}
    pdfstartview=Fit,       % Dokument wird Fit Height geaefnet
    pdffitwindow=true,
    pdfpagemode=UseOutlines, % Bookmarks im Viewer anzeigen
-   pdfpagelabels=true,      % set PDF page labels
+   % pdfpagelabels=true,      % set PDF page labels
 }
 
 \usepackage{cleveref}
-\Crefname{algorithm}{Alg.}{Algs.}
 \Crefname{figure}{Fig.}{Figs.}
-\Crefname{table}{Tab.}{Tabs.}
-\Crefname{equation}{Eq.}{Eqs.}
-\Crefname{eqnarray}{Eq.}{Eqs.}
-
-\usepackage{float}
-\newfloat{algorithm}{htb}{lob}
-\floatname{algorithm}{Algorithm}
-
-\newlength{\figlength}
-\setlength{\figlength}{7.6cm} %8.2cm
-\newlength{\subfiglength}
-\setlength{\subfiglength}{7.3cm}%7.8
 
 \newcommand{\bytes}{b}
 \newcommand{\kb}{Kb}
