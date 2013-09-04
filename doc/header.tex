@@ -162,6 +162,15 @@ ytick scale label code/.code={$\times 10^{#1}$}
 \usepackage{cleveref}
 \Crefname{figure}{Fig.}{Figs.}
 
+% to disable some warnings
+\usepackage{silence}
+  \WarningFilter{latex}{Citation}
+  \WarningFilter{latex}{Reference}
+  \WarningFilter{latex}{Text page 8 contains only floats}
+  \WarningFilter{rerunfilecheck}{File}
+  \WarningFilter{latex}{There were undefined references}
+  \WarningFilter{latex}{Label(s) may have changed}
+
 \newcommand{\bytes}{b}
 \newcommand{\kb}{Kb}
 \newcommand{\mb}{Mb}
