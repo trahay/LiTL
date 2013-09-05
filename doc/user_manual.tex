@@ -379,9 +379,23 @@ litl_write_set_filename(litl_trace, filename);
 litl_write_resume_recording(litl_trace);
 \end{lstlisting}
 
-Due to the mapping between \litl\ and \fxt\ APIs implemented in 
-\texttt{fut.h} and \texttt{fxt.h}, the above \litl\ code in the \fxt-related 
-applications can be replaced as follow
+The mapping between the \litl\ and \fxt\ functions, which is implemented in 
+\texttt{fut.h} and \texttt{fxt.h}, is organized as follow
+\begin{center}
+\begin{tabular}{lll}
+ \hline\\
+ \texttt{fut\_setup()} & $\rightarrow$ & \texttt{litl\_write\_init\_trace()}\\
+                       &               & \texttt{litl\_write\_pause\_recording()}\\
+ \texttt{enable\_fut\_flush()} & $\rightarrow$ & \texttt{litl\_write\_buffer\_flush\_on()}\\
+ \texttt{fut\_enable\_tid\_logging()} &  $\rightarrow$ & \texttt{litl\_write\_tid\_recording\_on()} \\
+ \texttt{fut\_set\_filename()} & $\rightarrow$ & \texttt{litl\_write\_set\_filename()}\\
+                       &               & \texttt{litl\_write\_resume\_recording()}\\ 
+ \hline\\                       
+\end{tabular}
+\end{center}
+
+As a result, \litl\ can be used within the \fxt-related applications by
+simply replacing the \fxt\ code as follow
 \lstset{language=C, caption={}, label={lstl:litl_new}}
 \begin{lstlisting}
 // IMPORTANT! fut_setup is BEFORE all auxiliary functions
@@ -398,12 +412,22 @@ if (allow_flush && ...) {
 fut_enable_tid_logging();
 \end{lstlisting}
 
-For the successful and easy porting of \litl\ into your applications the 
-above-mentioned suggestions needs to be incorporated.
+Finally, the mapping between the \litl\ and \fxt\ event recording functions is
+organized as
+\begin{center}
+\begin{tabular}{lll}
+ \hline\\
+ \texttt{FUT\_DO\_PROBEx()} & $\rightarrow$ & \texttt{litl\_write\_probe\_pack\_x()}\\
+ \texttt{FUT\_DO\_PROBE()} & $\rightarrow$ & \texttt{litl\_write\_probe\_pack\_0()}\\
+ \texttt{FUT\_DO\_PROBESTR()} & $\rightarrow$ & \texttt{litl\_write\_probe\_raw()}\\
+ \hline\\                       
+\end{tabular}
+\end{center}
 
-% \section{Reading events}
+For the successful and easy porting of \litl\ into your \fxt-related 
+applications the above-mentioned suggestions needs to be incorporated.
 
-    
+
 \chapter{Troubleshooting}
 If you encounter a bug or want some explanation about \litl{}, please contact 
 and ask our development team on the development mailing list
