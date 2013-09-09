@@ -72,17 +72,45 @@
 #define CUR_TID pthread_self()
 #endif
 
-#ifdef __x86_64__
+#ifdef HAVE_32BIT
 /**
  * \ingroup litl_types_general
  * \brief A data type for storing thread IDs
  */
-typedef uint64_t litl_tid_t;
+typedef uint32_t litl_tid_t;
 /**
  * \ingroup litl_types_general
  * \brief A data type for storing time stamps
  */
+typedef uint32_t litl_time_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing traces sizes
+ */
+typedef uint32_t litl_trace_size_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for the non-optimized storage of parameters
+ */
+typedef uint32_t litl_param_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing offsets
+ */
+typedef uint32_t litl_offset_t;
+
+#else
+typedef uint64_t litl_tid_t;
 typedef uint64_t litl_time_t;
+typedef uint64_t litl_trace_size_t;
+typedef uint64_t litl_param_t;
+typedef uint64_t litl_offset_t;
+#endif
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing sets of events
+ */
+typedef uint8_t* litl_buffer_t;
 // TODO: there is a possibility of using uint16_t, however then the alignment
 //       would collapse
 /**
@@ -92,45 +120,14 @@ typedef uint64_t litl_time_t;
 typedef uint32_t litl_code_t;
 /**
  * \ingroup litl_types_general
- * \brief A data type for storing traces sizes
- */
-typedef uint64_t litl_trace_size_t;
-/**
- * \ingroup litl_types_general
- * \brief An auxiliary data type for the optimized storage of data
- */
-typedef uint16_t litl_med_size_t;
-/**
- * \ingroup litl_types_general
  * \brief An auxiliary data type for storing data
  */
 typedef uint32_t litl_size_t;
 /**
  * \ingroup litl_types_general
- * \brief A data type for the non-optimized storage of parameters
+ * \brief An auxiliary data type for the optimized storage of data
  */
-typedef uint64_t litl_param_t;
-/**
- * \ingroup litl_types_general
- * \brief A data type for storing sets of events
- */
-typedef uint8_t* litl_buffer_t;
-/**
- * \ingroup litl_types_general
- * \brief A data type for storing offsets
- */
-typedef uint64_t litl_offset_t;
-
-#elif defined __arm__
-typedef uint32_t litl_tid_t;
-typedef uint32_t litl_time_t;
-typedef uint32_t litl_code_t;
-typedef uint32_t litl_trace_size_t;
-typedef uint32_t litl_size_t;
-typedef uint32_t litl_param_t;
-typedef uint8_t* litl_buffer_t;
-typedef uint32_t litl_offset_t;
-#endif
+typedef uint16_t litl_med_size_t;
 /**
  * \ingroup litl_types_general
  * \brief A data type for the optimized storage of parameters

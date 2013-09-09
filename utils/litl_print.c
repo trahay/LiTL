@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     while (1) {
         event = litl_read_next_event(arch);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
         switch (LITL_READ_GET_TYPE(event)) {

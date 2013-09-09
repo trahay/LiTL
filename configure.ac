@@ -57,6 +57,28 @@ AC_COMPILE_IFELSE(
   AC_MSG_RESULT([no])
 )
 
+# Check the architecture type
+case "$host" in
+        x86_64-*)
+        AC_MSG_WARN([ARCH: X86_64])
+                arch_str="X86_64"
+                ;;
+        arm*-*)
+        AC_MSG_WARN([ARCH: ARM])
+                arch_str="ARM"
+        CFLAGS="$CFLAGS -marm -march=armv7-a"
+                ;;
+        *)
+                AC_MSG_WARN([unknown architecture: falling back to x86_64])
+                ;;
+esac
+
+# Check whether 32-bit library will be built
+AC_ARG_ENABLE([32bit], AC_HELP_STRING([--enable-32bit], [build 32-bit library]))
+if test "x$enable_32bit" = xyes || test "x$arch_str" = xARM; then
+  AC_DEFINE([HAVE_32BIT], [1], [Building 32-bit library])
+fi
+
 # Check for presence of pdfLaTeX
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
 if test -z "$PDFLATEX"; then
