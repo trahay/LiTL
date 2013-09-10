@@ -52,8 +52,8 @@ static void __litl_read_parse_args(int argc, char **argv) {
 
 int main(int argc, char **argv) {
     litl_med_size_t i;
-    litl_read_t* event;
-    litl_trace_read_t *arch;
+    litl_read_event_t* event;
+    litl_read_trace_t *arch;
     litl_general_header_t* header;
 
     // parse the arguments passed to this program
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 
     arch = litl_read_open_trace(__input_filename);
 
-    litl_read_init_traces(arch);
+    litl_read_init_processes(arch);
 
     header = litl_read_get_trace_header(arch);
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     printf(" LiTL v.%s\n", header->litl_ver);
     printf(" %s\n", header->sysinfo);
     if (arch->header->is_trace_archive)
-        printf(" nb_traces \t %d\n", arch->nb_traces);
+        printf(" nb_processes \t %d\n", arch->nb_processes);
     else
         printf(" nb_threads \t %d\n", header->nb_threads);
     printf(" buffer_size \t %d\n",

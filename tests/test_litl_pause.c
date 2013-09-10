@@ -80,12 +80,12 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
 void read_trace(char* filename, uint32_t left_bound, uint32_t right_bound) {
     int nbevents = 0;
 
-    litl_read_t* event;
-    litl_trace_read_t *arch;
+    litl_read_event_t* event;
+    litl_read_trace_t *arch;
 
     arch = litl_read_open_trace(filename);
 
-    litl_read_init_traces(arch);
+    litl_read_init_processes(arch);
 
     while (1) {
         event = litl_read_next_event(arch);

@@ -45,14 +45,14 @@
  * \param filename A filename
  * \return A pointer to the event reading object. NULL in case of failure
  */
-litl_trace_read_t *litl_read_open_trace(const char* filename);
+litl_read_trace_t *litl_read_open_trace(const char* filename);
 
 /**
  * \ingroup litl_read_init
  * \brief Initializes the event reading structure
  * \param arch A pointer to the event reading object
  */
-void litl_read_init_traces(litl_trace_read_t* arch);
+void litl_read_init_processes(litl_read_trace_t* arch);
 
 /**
  * \ingroup litl_read_init
@@ -60,7 +60,7 @@ void litl_read_init_traces(litl_trace_read_t* arch);
  * \param arch A pointer to the event reading object
  * \return A pointer to the trace header
  */
-litl_general_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
+litl_general_header_t* litl_read_get_trace_header(litl_read_trace_t* arch);
 
 /**
  * \ingroup litl_read_init
@@ -68,7 +68,7 @@ litl_general_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
  * \param arch A pointer to the event reading object
  * \param buf_size A buffer size (in Byte)
  */
-void litl_read_set_buffer_size(litl_trace_read_t* arch,
+void litl_read_set_buffer_size(litl_read_trace_t* arch,
         const litl_size_t buf_size);
 
 /**
@@ -77,7 +77,7 @@ void litl_read_set_buffer_size(litl_trace_read_t* arch,
  * \param arch A pointer to the event reading object
  * \return A buffer size (in Byte)
  */
-litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch);
+litl_size_t litl_read_get_buffer_size(litl_read_trace_t* arch);
 
 /**
  * \ingroup litl_read_main
@@ -85,7 +85,7 @@ litl_size_t litl_read_get_buffer_size(litl_trace_read_t* arch);
  * \param arch A pointer to the event reading object
  * \param trace_index A trace index
  */
-void litl_read_reset_trace(litl_trace_read_t* arch,
+void litl_read_reset_trace(litl_read_trace_t* arch,
         litl_med_size_t trace_index);
 
 /**
@@ -94,7 +94,7 @@ void litl_read_reset_trace(litl_trace_read_t* arch,
  * \param arch A pointer to the event reading object
  * \param trace_index A trace index
  */
-litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
+litl_read_event_t* litl_read_next_trace_event(litl_read_trace_t* arch,
         litl_med_size_t trace_index);
 
 /**
@@ -102,16 +102,40 @@ litl_read_t* litl_read_next_trace_event(litl_trace_read_t* arch,
  * \brief Reads the next event either from a regular trace or an archive of traces
  * \param arch A pointer to the event reading object
  */
-litl_read_t* litl_read_next_event(litl_trace_read_t* arch);
+litl_read_event_t* litl_read_next_event(litl_read_trace_t* arch);
 
 /**
  * \ingroup litl_read_main
  * \brief Closes the trace and frees the allocated memory
  * \param arch A pointer to the event reading object
  */
-void litl_read_finalize_trace(litl_trace_read_t* arch);
+void litl_read_finalize_trace(litl_read_trace_t* arch);
 
 /*** Internal-use macros ***/
+
+/*
+ * For internal use only
+ * Initializes a pointer for browsing the parameters of an event
+ */
+#define __LITL_READ_INIT_PTR(evt, _ptr_)                        \
+  do {                                                          \
+    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)            \
+      _ptr_ = &LITL_REGULAR(evt)->param[0];                     \
+    else                                                        \
+      _ptr_ = &LITL_PACKED(evt)->param[0];                      \
+  } while(0)
+
+/*
+ * For internal use only
+ * Returns the next parameter in an event
+ */
+#define __LITL_READ_GET_ARG(evt, _ptr_, arg)                    \
+  do {                                                          \
+    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)            \
+      __LITL_READ_GET_ARG_REGULAR(_ptr_, arg);                  \
+    else                                                        \
+      __LITL_READ_GET_ARG_PACKED(_ptr_, arg);                   \
+  } while(0)
 
 /*
  * For internal use only
@@ -129,30 +153,6 @@ void litl_read_finalize_trace(litl_trace_read_t* arch);
 #define __LITL_READ_GET_ARG_PACKED(_ptr_, arg) do {	            \
     memcpy(&arg, _ptr_, sizeof(arg));		                    \
     _ptr_ = ((char*)_ptr_)+sizeof(arg);		                    \
-  } while(0)
-
-/*
- * For internal use only
- * Returns the next parameter in an event
- */
-#define __LITL_READ_GET_ARG(evt, _ptr_, arg)		            \
-  do {						                                    \
-    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)	        \
-      __LITL_READ_GET_ARG_REGULAR(_ptr_, arg);	                \
-    else					                                    \
-      __LITL_READ_GET_ARG_PACKED(_ptr_, arg);	                \
-  } while(0)
-
-/*
- * For internal use only
- * Initializes a pointer for browsing the parameters of an event
- */
-#define __LITL_READ_INIT_PTR(evt, _ptr_)		                \
-  do {						                                    \
-    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)	        \
-      _ptr_ = &LITL_REGULAR(evt)->param[0];	                    \
-    else					                                    \
-      _ptr_ = &LITL_PACKED(evt)->param[0];	                    \
   } while(0)
 
 /*** functions for reading events ***/

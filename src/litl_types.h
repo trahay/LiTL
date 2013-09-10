@@ -290,7 +290,7 @@ typedef struct {
  */
 typedef struct {
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
-    litl_buffer_t buffer_cur; /**< A pointer to the next free slot */
+    litl_buffer_t buffer; /**< A pointer to the next free slot */
 
     litl_tid_t tid; /**< An ID of the working thread */
     litl_offset_t offset; /**< An offset to the next buffer in the trace file */
@@ -309,7 +309,7 @@ typedef struct {
     litl_offset_t general_offset; /**< An offset from the beginning of the trace file to the next free slot */
 
     litl_buffer_t header_ptr; /**< A pointer to the beginning of the header */
-    litl_buffer_t header_cur; /**< A pointer to the next free slot in the header */
+    litl_buffer_t header; /**< A pointer to the next free slot in the header */
     litl_size_t header_size; /**< A header size */
     litl_size_t header_offset; /**< An offset from the beginning of the header to the next free slot */
     litl_med_size_t header_nb_threads; /**< A number of threads in the header */
@@ -325,7 +325,7 @@ typedef struct {
     litl_data_t is_buffer_full; /**< Indicates whether the buffer is full */
 
     pthread_once_t index_once; /**< Guarantees that the initialization function is called only once */
-    pthread_key_t index; /**< A private thread variable that holds its index in tids, buffer_ptr/buffer_cur, and offsets */
+    pthread_key_t index; /**< A private thread variable that holds its index */
     pthread_mutex_t lock_litl_flush; /**< Handles write conflicts while using pthread */
     pthread_mutex_t lock_buffer_init; /**< Handles race conditions while initializing threads pairs and buffers pointers */
 
@@ -343,14 +343,14 @@ typedef struct {
 typedef struct {
     litl_tid_t tid; /**< A thread ID */
     litl_t *event; /**< A pointer to the read event */
-} litl_read_t;
+} litl_read_event_t;
 
 /**
  * \ingroup litl_types_read
  * \brief A data structure for reading thread-specific events
  */
 typedef struct {
-    litl_thread_pairs_t* tids; /**< An array of thread IDs*/
+    litl_thread_pairs_t* tids; /**< An array of thread pairs (tid, offset) */
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
@@ -358,27 +358,27 @@ typedef struct {
     litl_offset_t offset; /**< An offset from the beginning of the buffer */
     litl_offset_t tracker; /**< An indicator of the end of the buffer, which equals to offset + buffer_size */
 
-    litl_read_t cur_event; /**< The current event */
-} litl_trace_read_thread_t;
+    litl_read_event_t cur_event; /**< The current event */
+} litl_read_thread_events_t;
 
 /**
  * \ingroup litl_types_read
  * \brief A data structure for reading process-specific events
  */
 typedef struct {
-//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset)*/
+//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
-    litl_general_header_t* header; /**< A pointer to the header*/
+    litl_general_header_t* header; /**< A pointer to the header */
     litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
     litl_med_size_t nb_buffers; /**< A number of buffers */
-    litl_trace_read_thread_t *buffers; /**< An array of buffers */
+    litl_read_thread_events_t *buffers; /**< An array of buffers */
 
     int cur_index; /**< An index of the current thread */
-    int initialized; /**< Indicates that the process was initialized */
-} litl_trace_read_process_t;
+    int Is_initialized; /**< Indicates that the process was initialized */
+} litl_read_process_events_t;
 
 /**
  * \ingroup litl_types_read
@@ -393,9 +393,9 @@ typedef struct {
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position in the header buffer */
 
-    litl_med_size_t nb_traces; /**< A number of traces */
-    litl_trace_read_process_t *traces; /**< An array of traces */
-} litl_trace_read_t;
+    litl_med_size_t nb_processes; /**< A number of processes */
+    litl_read_process_events_t *processes; /**< An array of processes */
+} litl_read_trace_t;
 
 /**
  * \ingroup litl_types_merge
@@ -426,7 +426,7 @@ typedef struct {
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
-    litl_med_size_t nb_traces; /**< A number of trace */
+    litl_med_size_t nb_traces; /**< A number of traces */
 //    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
     litl_buffer_t buffer; /**< A pointer to the buffer */
@@ -436,17 +436,18 @@ typedef struct {
 /*
  * Defining formats for printing data
  */
-#ifdef __x86_64__
 #define PRTIu32 "u"
+#define PRTIx32 "x"
+
+#ifdef HAVE_32BIT
 #define PRTIu64 "lu"
-#define PRTIx32 "x"
 #define PRTIx64 "lx"
-#elif defined __arm__
-#define PRTIu32 "u"
+
+#else
 #define PRTIu64 "u"
-#define PRTIx32 "x"
 #define PRTIx64 "x"
-#endif
+
+#endif /* HAVE_32BIT */
 
 /*
  * For internal use only.

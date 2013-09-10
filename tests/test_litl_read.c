@@ -20,9 +20,9 @@
 int main(int argc, const char **argv) {
     litl_data_t i;
     const char* filename = "trace";
-    litl_read_t* event;
+    litl_read_event_t* event;
     litl_general_header_t* header;
-    litl_trace_read_t *arch;
+    litl_read_trace_t *arch;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -31,7 +31,7 @@ int main(int argc, const char **argv) {
 
     arch = litl_read_open_trace(filename);
 
-    litl_read_init_traces(arch);
+    litl_read_init_processes(arch);
 
     header = litl_read_get_trace_header(arch);
 
