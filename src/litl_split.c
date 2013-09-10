@@ -48,8 +48,8 @@ static void __read_archive_header() {
 
     // get the number of traces
     __arch->is_trace_archive =
-            ((litl_header_t *) __arch->header_buffer)->is_trace_archive;
-    __arch->nb_traces = ((litl_header_t *) __arch->header_buffer)->nb_threads;
+            ((litl_general_header_t *) __arch->header_buffer)->is_trace_archive;
+    __arch->nb_traces = ((litl_general_header_t *) __arch->header_buffer)->nb_threads;
 
     if (__arch->is_trace_archive == 0) {
         printf(
@@ -59,7 +59,7 @@ static void __read_archive_header() {
 
     // Yes, we work with an archive of trace. So, we increase the header size
     //   and relocate the header buffer
-    __arch->header_size = __arch->nb_traces * sizeof(litl_header_triples_t);
+    __arch->header_size = __arch->nb_traces * sizeof(litl_process_triples_t);
     __arch->header_buffer_ptr = (litl_buffer_t) realloc(
             __arch->header_buffer_ptr, __arch->header_size);
     __arch->header_buffer = __arch->header_buffer_ptr;
@@ -77,13 +77,13 @@ static void __litl_split_archive(const char *dir) {
     char user[32];
     litl_med_size_t size;
 
-    size = sizeof(litl_header_triples_t);
+    size = sizeof(litl_process_triples_t);
 
     strcpy(user, getenv("USER"));
 
     while (__arch->nb_traces-- != 0) {
         // get the triples
-        __arch->triples = (litl_header_triples_t *) __arch->header_buffer;
+        __arch->triples = (litl_process_triples_t *) __arch->header_buffer;
         __arch->header_buffer += size;
 
         // set a file pointer to the position of the current trace

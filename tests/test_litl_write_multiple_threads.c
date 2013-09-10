@@ -24,7 +24,7 @@
 #define NBITER 100
 #define NBEVENT (NBITER * 12)
 
-static litl_trace_write_t* __trace;
+static litl_write_trace_t* __trace;
 
 /*
  * Records several traces at the same time

@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     litl_med_size_t i;
     litl_read_t* event;
     litl_trace_read_t *arch;
-    litl_header_t* header;
+    litl_general_header_t* header;
 
     // parse the arguments passed to this program
     __litl_read_parse_args(argc, argv);

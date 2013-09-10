@@ -60,7 +60,7 @@ void litl_read_init_traces(litl_trace_read_t* arch);
  * \param arch A pointer to the event reading object
  * \return A pointer to the trace header
  */
-litl_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
+litl_general_header_t* litl_read_get_trace_header(litl_trace_read_t* arch);
 
 /**
  * \ingroup litl_read_init

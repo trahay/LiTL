@@ -14,7 +14,7 @@
 #include "litl_merge.h"
 
 static litl_trace_merge_t* __arch;
-static litl_header_triples_t** __offsets;
+static litl_process_triples_t** __offsets;
 
 /*
  * Sets a new name for the archive
@@ -46,17 +46,17 @@ static void __add_archive_header() {
     litl_buffer_t header_buffer, header_buffer_ptr;
 
     // add nb_traces and the is_trace_archive flag
-    ((litl_header_t *) __arch->buffer)->nb_threads = __arch->nb_traces;
-    ((litl_header_t *) __arch->buffer)->is_trace_archive = 1;
+    ((litl_general_header_t *) __arch->buffer)->nb_threads = __arch->nb_traces;
+    ((litl_general_header_t *) __arch->buffer)->is_trace_archive = 1;
     header_size_global = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     __arch->buffer += header_size_global;
 
     // create a array of arrays of offsets
-    __offsets = (litl_header_triples_t **) malloc(
-            __arch->nb_traces * sizeof(litl_header_triples_t *));
+    __offsets = (litl_process_triples_t **) malloc(
+            __arch->nb_traces * sizeof(litl_process_triples_t *));
 
     nb_traces_global = 0;
-    triples_size = sizeof(litl_header_triples_t);
+    triples_size = sizeof(litl_process_triples_t);
 
     // read all header of traces and write them to the global header of the archive
     for (i = 0; i < __arch->nb_traces; i++) {
@@ -72,13 +72,13 @@ static void __add_archive_header() {
 
         // read the header
         res = read(trace_in, header_buffer, header_size);
-        if (((litl_header_t *) header_buffer)->is_trace_archive) {
-            nb_traces = ((litl_header_t *) header_buffer)->nb_threads;
-            __offsets[i] = (litl_header_triples_t *) malloc(
-                    nb_traces * sizeof(litl_header_triples_t));
+        if (((litl_general_header_t *) header_buffer)->is_trace_archive) {
+            nb_traces = ((litl_general_header_t *) header_buffer)->nb_threads;
+            __offsets[i] = (litl_process_triples_t *) malloc(
+                    nb_traces * sizeof(litl_process_triples_t));
 
             // read triples
-            header_size = nb_traces * sizeof(litl_header_triples_t);
+            header_size = nb_traces * sizeof(litl_process_triples_t);
             header_buffer_ptr = (litl_buffer_t) realloc(header_buffer_ptr,
                     header_size);
             header_buffer = header_buffer_ptr;
@@ -86,11 +86,11 @@ static void __add_archive_header() {
             res = read(trace_in, header_buffer, header_size);
             for (j = 0; j < nb_traces; j++) {
                 trace_size =
-                        ((litl_header_triples_t *) header_buffer)->trace_size;
+                        ((litl_process_triples_t *) header_buffer)->trace_size;
 
-                ((litl_header_triples_t *) __arch->buffer)->fid =
+                ((litl_process_triples_t *) __arch->buffer)->fid =
                         nb_traces_global;
-                ((litl_header_triples_t *) __arch->buffer)->trace_size =
+                ((litl_process_triples_t *) __arch->buffer)->trace_size =
                         trace_size;
                 __arch->buffer += triples_size;
                 header_size_global += triples_size;
@@ -98,7 +98,7 @@ static void __add_archive_header() {
                 __offsets[i][j].fid = nb_traces;
                 __offsets[i][j].trace_size = trace_size;
                 __offsets[i][j].offset =
-                        ((litl_header_triples_t *) header_buffer)->offset;
+                        ((litl_process_triples_t *) header_buffer)->offset;
 
                 nb_traces_global++;
                 header_buffer += triples_size;
@@ -114,13 +114,13 @@ static void __add_archive_header() {
             }
             trace_size = st.st_size;
 
-            ((litl_header_triples_t *) __arch->buffer)->fid = nb_traces_global;
-            ((litl_header_triples_t *) __arch->buffer)->trace_size = trace_size;
+            ((litl_process_triples_t *) __arch->buffer)->fid = nb_traces_global;
+            ((litl_process_triples_t *) __arch->buffer)->trace_size = trace_size;
             __arch->buffer += triples_size;
             header_size_global += triples_size;
 
-            __offsets[i] = (litl_header_triples_t *) malloc(
-                    sizeof(litl_header_triples_t));
+            __offsets[i] = (litl_process_triples_t *) malloc(
+                    sizeof(litl_process_triples_t));
             __offsets[i][0].fid = 1;
             __offsets[i][0].trace_size = trace_size;
             __offsets[i][0].offset = 0;
@@ -133,7 +133,7 @@ static void __add_archive_header() {
     }
 
     // update the number of traces
-    ((litl_header_t *) __arch->buffer_ptr)->nb_threads = nb_traces_global;
+    ((litl_general_header_t *) __arch->buffer_ptr)->nb_threads = nb_traces_global;
 
     res = write(__arch->f_handle, __arch->buffer_ptr, header_size_global);
     __arch->general_offset += header_size_global;
@@ -180,7 +180,7 @@ static void __litl_create_archive() {
     litl_med_size_t i, j, triples_size, nb_traces;
     litl_trace_size_t trace_size, buffer_size, header_offset;
 
-    triples_size = sizeof(litl_header_triples_t);
+    triples_size = sizeof(litl_process_triples_t);
     // size of nb_traces and is_archive
     header_offset = sizeof(litl_data_t) + sizeof(litl_med_size_t);
     // size of fid and trace_size

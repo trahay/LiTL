@@ -24,7 +24,7 @@
  *   - Processor type
  *   - Version of LiTL
  */
-static void __litl_write_add_trace_header(litl_trace_write_t* trace) {
+static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
     struct utsname uts;
 
     // allocate memory for the trace header
@@ -39,49 +39,51 @@ static void __litl_write_add_trace_header(litl_trace_write_t* trace) {
         perror("Could not use uname()!");
 
     // get the number of symbols for litl_ver
-    sprintf((char*) ((litl_header_t *) trace->header_cur)->litl_ver, "%s",
-            VERSION);
+    sprintf((char*) ((litl_general_header_t *) trace->header_cur)->litl_ver,
+            "%s", VERSION);
 
     // get the number of symbols for sysinfo
-    sprintf((char*) ((litl_header_t *) trace->header_cur)->sysinfo,
+    sprintf((char*) ((litl_general_header_t *) trace->header_cur)->sysinfo,
             "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
             uts.version, uts.machine);
 
     // add nb_threads and buffer_size
-    ((litl_header_t *) trace->header_cur)->nb_threads = trace->nb_threads;
-    // by default a trace file per process is recorded
-    ((litl_header_t *) trace->header_cur)->is_trace_archive = 0;
-    ((litl_header_t *) trace->header_cur)->header_nb_threads =
+    ((litl_general_header_t *) trace->header_cur)->nb_threads =
             trace->nb_threads;
-    ((litl_header_t *) trace->header_cur)->buffer_size = trace->buffer_size;
+    // by default a trace file per process is recorded
+    ((litl_general_header_t *) trace->header_cur)->is_trace_archive = 0;
+    ((litl_general_header_t *) trace->header_cur)->header_nb_threads =
+            trace->nb_threads;
+    ((litl_general_header_t *) trace->header_cur)->buffer_size =
+            trace->buffer_size;
 
     // header_size stores the position of nb_threads in the trace file
     trace->header_size = 0;
 
     // size of two strings (LiTL, OS), nb_threads, and buffer_size
-    trace->header_cur += sizeof(litl_header_t);
+    trace->header_cur += sizeof(litl_general_header_t);
 }
 
 /*
  * To create trace->buffer_ptr and trace->buffer_cur
  */
-static void __litl_write_init_var(litl_trace_write_t* trace) {
-    pthread_key_create(&trace->index, NULL );
+static void __litl_write_init_var(litl_write_trace_t* trace) {
+    pthread_key_create(&trace->index, NULL);
 }
 
 /*
  * Initializes the trace buffer
  */
-litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
+litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
     litl_med_size_t i;
-    litl_trace_write_t* trace;
+    litl_write_trace_t* trace;
 
-    trace = (litl_trace_write_t*) malloc(sizeof(litl_trace_write_t));
+    trace = (litl_write_trace_t*) malloc(sizeof(litl_write_trace_t));
 
     // set the buffer size using the environment variable.
     //   If the variable is not specified, use the provided value
     char* str = getenv("LITL_BUFFER_SIZE");
-    if (str != NULL )
+    if (str != NULL)
         trace->buffer_size = atoi(str);
     else
         trace->buffer_size = buf_size;
@@ -134,13 +136,13 @@ litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
         litl_write_thread_safety_on(trace);
 
     if (trace->allow_thread_safety)
-        pthread_mutex_init(&trace->lock_litl_flush, NULL );
-    pthread_mutex_init(&trace->lock_buffer_init, NULL );
+        pthread_mutex_init(&trace->lock_litl_flush, NULL);
+    pthread_mutex_init(&trace->lock_buffer_init, NULL);
 
     // TODO: touch each block in buffer_ptr in order to load it
 
-    trace->litl_paused = 0;
-    trace->litl_initialized = 1;
+    trace->is_recording_paused = 0;
+    trace->is_litl_initialized = 1;
 
     return trace;
 }
@@ -148,14 +150,14 @@ litl_trace_write_t* litl_write_init_trace(const litl_size_t buf_size) {
 /*
  * Computes the size of data in the trace header
  */
-static litl_size_t __litl_write_get_header_size(litl_trace_write_t* trace) {
+static litl_size_t __litl_write_get_header_size(litl_write_trace_t* trace) {
     return (trace->header_cur - trace->header_ptr);
 }
 
 /*
  * Computes the size of data in buffer
  */
-static litl_size_t __litl_write_get_buffer_size(litl_trace_write_t* trace,
+static litl_size_t __litl_write_get_buffer_size(litl_write_trace_t* trace,
         litl_med_size_t pos) {
     return (trace->buffers[pos]->buffer_cur - trace->buffers[pos]->buffer_ptr);
 }
@@ -163,65 +165,65 @@ static litl_size_t __litl_write_get_buffer_size(litl_trace_write_t* trace,
 /*
  * Activates buffer flush
  */
-void litl_write_buffer_flush_on(litl_trace_write_t* trace) {
+void litl_write_buffer_flush_on(litl_write_trace_t* trace) {
     trace->allow_buffer_flush = 1;
 }
 
 /*
  * Deactivates buffer flush. By default, it is activated
  */
-void litl_write_buffer_flush_off(litl_trace_write_t* trace) {
+void litl_write_buffer_flush_off(litl_write_trace_t* trace) {
     trace->allow_buffer_flush = 0;
 }
 
 /*
  * Activate thread safety. By default it is deactivated
  */
-void litl_write_thread_safety_on(litl_trace_write_t* trace) {
+void litl_write_thread_safety_on(litl_write_trace_t* trace) {
     trace->allow_thread_safety = 1;
 }
 
 /*
  * Deactivates thread safety
  */
-void litl_write_thread_safety_off(litl_trace_write_t* trace) {
+void litl_write_thread_safety_off(litl_write_trace_t* trace) {
     trace->allow_thread_safety = 0;
 }
 
 /*
  * Activates recording tid. By default it is deactivated
  */
-void litl_write_tid_recording_on(litl_trace_write_t* trace) {
-    trace->record_tid_activated = 1;
+void litl_write_tid_recording_on(litl_write_trace_t* trace) {
+    trace->allow_tid_recording = 1;
 }
 
 /*
  * Deactivates recording tid
  */
-void litl_write_tid_recording_off(litl_trace_write_t* trace) {
-    trace->record_tid_activated = 0;
+void litl_write_tid_recording_off(litl_write_trace_t* trace) {
+    trace->allow_tid_recording = 0;
 }
 
 /*
  * Pauses the event recording
  */
-void litl_write_pause_recording(litl_trace_write_t* trace) {
+void litl_write_pause_recording(litl_write_trace_t* trace) {
     if (trace)
-        trace->litl_paused = 1;
+        trace->is_recording_paused = 1;
 }
 
 /*
  * Resumes the event recording
  */
-void litl_write_resume_recording(litl_trace_write_t* trace) {
+void litl_write_resume_recording(litl_write_trace_t* trace) {
     if (trace)
-        trace->litl_paused = 0;
+        trace->is_recording_paused = 0;
 }
 
 /*
  * Sets a new name for the trace file
  */
-void litl_write_set_filename(litl_trace_write_t* trace, char* filename) {
+void litl_write_set_filename(litl_write_trace_t* trace, char* filename) {
     if (trace->filename) {
         if (trace->is_header_flushed)
             fprintf(stderr,
@@ -231,7 +233,7 @@ void litl_write_set_filename(litl_trace_write_t* trace, char* filename) {
     }
 
     // check whether the file name was set. If no, set it by default trace name.
-    if (filename == NULL )
+    if (filename == NULL)
         sprintf(filename, "/tmp/%s_%s", getenv("USER"), "litl_log_1");
 
     if (asprintf(&trace->filename, "%s", filename) == -1) {
@@ -243,9 +245,10 @@ void litl_write_set_filename(litl_trace_write_t* trace, char* filename) {
 /*
  * Records an event with offset only
  */
-static void __litl_write_probe_offset(litl_trace_write_t* trace,
+static void __litl_write_probe_offset(litl_write_trace_t* trace,
         litl_med_size_t index) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
     // litl_t* cur_ptr = litl_cmpxchg((uint8_t**) &trace->buffer_cur[index],
     //    LITL_BASE_SIZE + sizeof(litl_param_t));
@@ -262,11 +265,11 @@ static void __litl_write_probe_offset(litl_trace_write_t* trace,
 /*
  * Writes the recorded events from the buffer to the trace file
  */
-static void __litl_write_flush_buffer(litl_trace_write_t* trace,
+static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         litl_med_size_t index) {
     int res __attribute__ ((__unused__));
 
-    if (!trace->litl_initialized)
+    if (!trace->is_litl_initialized)
         return;
 
     if (trace->allow_thread_safety)
@@ -281,18 +284,18 @@ static void __litl_write_flush_buffer(litl_trace_write_t* trace,
         }
 
         // add a header to the trace file
-        trace->header_size = sizeof(litl_header_t)
-                + (trace->nb_threads + 1) * sizeof(litl_header_tids_t);
+        trace->header_size = sizeof(litl_general_header_t)
+                + (trace->nb_threads + 1) * sizeof(litl_thread_pairs_t);
         __litl_write_add_trace_header(trace);
 
         // add information about each working thread: (tid, offset)
         litl_med_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
-            ((litl_header_tids_t *) trace->header_cur)->tid =
+            ((litl_thread_pairs_t *) trace->header_cur)->tid =
                     trace->buffers[i]->tid;
-            ((litl_header_tids_t *) trace->header_cur)->offset = 0;
+            ((litl_thread_pairs_t *) trace->header_cur)->offset = 0;
 
-            trace->header_cur += sizeof(litl_header_tids_t);
+            trace->header_cur += sizeof(litl_thread_pairs_t);
 
             // save the position of offset inside the trace file
             trace->buffers[i]->offset = __litl_write_get_header_size(trace)
@@ -305,9 +308,9 @@ static void __litl_write_flush_buffer(litl_trace_write_t* trace,
         trace->header_offset = __litl_write_get_header_size(trace);
 
         // specify the last slot of pairs (offset == 0)
-        ((litl_header_tids_t *) trace->header_cur)->tid = 0;
-        ((litl_header_tids_t *) trace->header_cur)->offset = 0;
-        trace->header_cur += sizeof(litl_header_tids_t);
+        ((litl_thread_pairs_t *) trace->header_cur)->tid = 0;
+        ((litl_thread_pairs_t *) trace->header_cur)->offset = 0;
+        trace->header_cur += sizeof(litl_thread_pairs_t);
 
         // write the trace header to the trace file
         if (write(trace->f_handle, trace->header_ptr,
@@ -344,7 +347,7 @@ static void __litl_write_flush_buffer(litl_trace_write_t* trace,
             trace->header_offset = trace->general_offset;
             trace->threads_offset = trace->header_offset;
             trace->general_offset += (NBTHREADS + 1)
-                    * sizeof(litl_header_tids_t);
+                    * sizeof(litl_thread_pairs_t);
 
             trace->nb_slots++;
         }
@@ -363,7 +366,7 @@ static void __litl_write_flush_buffer(litl_trace_write_t* trace,
         res = write(trace->f_handle, &trace->buffers[index]->already_flushed,
                 sizeof(litl_offset_t));
 
-        trace->header_offset += sizeof(litl_header_tids_t);
+        trace->header_offset += sizeof(litl_thread_pairs_t);
         trace->buffers[index]->already_flushed = 1;
 
         // updated the number of threads
@@ -408,7 +411,7 @@ static void __litl_write_flush_buffer(litl_trace_write_t* trace,
  *    the buffer and, for otherwise too, returns the position of
  *    the thread buffer in the array buffer_ptr/buffer_cur.
  */
-static void __litl_write_allocate_buffer(litl_trace_write_t* trace) {
+static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
     litl_med_size_t* pos;
 
     // thread safe region
@@ -461,10 +464,10 @@ static void __litl_write_allocate_buffer(litl_trace_write_t* trace) {
  * For internal use only.
  * Allocates an event
  */
-litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
+litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
         litl_code_t code, int size) {
 
-    if (trace->litl_initialized && !trace->litl_paused
+    if (trace->is_litl_initialized && !trace->is_recording_paused
             && !trace->is_buffer_full) {
 
         // find the thread index
@@ -512,20 +515,21 @@ litl_t* __litl_write_get_event(litl_trace_write_t* trace, litl_type_t type,
 
             // not enough space, but flushing is disabled so just stop recording
             trace->is_buffer_full = 1;
-            return NULL ;
+            return NULL;
         }
     }
-    return NULL ;
+    return NULL;
 }
 
 /*
  * Records a regular event without any arguments
  */
-void litl_write_probe_reg_0(litl_trace_write_t* trace, litl_code_t code) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+void litl_write_probe_reg_0(litl_write_trace_t* trace, litl_code_t code) {
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -549,12 +553,13 @@ void litl_write_probe_reg_0(litl_trace_write_t* trace, litl_code_t code) {
 /*
  * Records a regular event with one argument
  */
-void litl_write_probe_reg_1(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_1(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -580,12 +585,13 @@ void litl_write_probe_reg_1(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with two arguments
  */
-void litl_write_probe_reg_2(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_2(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -612,12 +618,13 @@ void litl_write_probe_reg_2(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with three arguments
  */
-void litl_write_probe_reg_3(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_3(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -645,13 +652,14 @@ void litl_write_probe_reg_3(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with four arguments
  */
-void litl_write_probe_reg_4(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_4(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -680,13 +688,14 @@ void litl_write_probe_reg_4(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with five arguments
  */
-void litl_write_probe_reg_5(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_5(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -717,13 +726,14 @@ void litl_write_probe_reg_5(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with six arguments
  */
-void litl_write_probe_reg_6(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_6(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5, litl_param_t param6) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -755,14 +765,15 @@ void litl_write_probe_reg_6(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with seven arguments
  */
-void litl_write_probe_reg_7(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_7(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -795,14 +806,15 @@ void litl_write_probe_reg_7(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with eight arguments
  */
-void litl_write_probe_reg_8(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_8(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7, litl_param_t param8) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -836,14 +848,15 @@ void litl_write_probe_reg_8(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with nine arguments
  */
-void litl_write_probe_reg_9(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_9(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7, litl_param_t param8, litl_param_t param9) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -878,15 +891,16 @@ void litl_write_probe_reg_9(litl_trace_write_t* trace, litl_code_t code,
 /*
  * Records a regular event with ten arguments
  */
-void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_reg_10(litl_write_trace_t* trace, litl_code_t code,
         litl_param_t param1, litl_param_t param2, litl_param_t param3,
         litl_param_t param4, litl_param_t param5, litl_param_t param6,
         litl_param_t param7, litl_param_t param8, litl_param_t param9,
         litl_param_t param10) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t index = *(litl_med_size_t *) pthread_getspecific(
@@ -923,16 +937,17 @@ void litl_write_probe_reg_10(litl_trace_write_t* trace, litl_code_t code,
  * Records an event in a raw state, where the size is #args in the void* array.
  * That helps to discover places where the application has crashed
  */
-void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
+void litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
         litl_size_t size, litl_data_t data[]) {
-    if (!trace->litl_initialized || trace->litl_paused || trace->is_buffer_full)
+    if (!trace->is_litl_initialized || trace->is_recording_paused
+            || trace->is_buffer_full)
         return;
 
     // specify explicitly the end of the string
     data[size] = '\0';
     size++;
 
-    if (pthread_getspecific(trace->index) == NULL )
+    if (pthread_getspecific(trace->index) == NULL)
         __litl_write_allocate_buffer(trace);
 
     litl_med_size_t i, index;
@@ -965,7 +980,7 @@ void litl_write_probe_raw(litl_trace_write_t* trace, litl_code_t code,
 /*
  * This function finalizes the trace
  */
-void litl_write_finalize_trace(litl_trace_write_t* trace) {
+void litl_write_finalize_trace(litl_write_trace_t* trace) {
     // write an event with the LITL_TRACE_END (= 0) code in order to indicate
     //    the end of tracing
     litl_med_size_t i;
@@ -992,7 +1007,7 @@ void litl_write_finalize_trace(litl_trace_write_t* trace) {
 
     free(trace->filename);
     trace->filename = NULL;
-    trace->litl_initialized = 0;
+    trace->is_litl_initialized = 0;
     trace->is_header_flushed = 0;
     free(trace);
 }

@@ -244,13 +244,24 @@ typedef struct {
  *  file
  */
 typedef struct {
-    litl_med_size_t nb_threads; /**< A total number of threads */
-    litl_data_t is_trace_archive; /**< Indicates whether a trace is a regular trace (=0) or an archive of traces (=1) */
-    litl_size_t buffer_size; /**< A size of buffer */
-    litl_med_size_t header_nb_threads; /**< A number of threads, which info is stored in the header */
     litl_data_t litl_ver[8]; /**< Information regarding the version of LiTL */
     litl_data_t sysinfo[128]; /**< Information regarding OS, Hardware, etc. */
-}__attribute__((packed)) litl_header_t;
+    litl_med_size_t nb_processes; /**< A number of processes in the trace file */
+}__attribute__((packed)) litl_general_header_t;
+
+/**
+ * \ingroup litl_types_general
+ * \brief A general data structure that corresponds to the header of a trace
+ *  file
+ */
+typedef struct {
+    litl_data_t process_name[256]; /**< A name of the process */
+    litl_med_size_t nb_threads; /**< A total number of threads */
+    litl_size_t buffer_size; /**< A size of buffer */
+    litl_med_size_t header_nb_threads; /**< A number of threads, which info is stored in the header */
+    litl_trace_size_t trace_size; /**< A trace size */
+    litl_offset_t offset; /**< An offset to the merged trace file*/
+}__attribute__((packed)) litl_process_header_t;
 
 /**
  * \ingroup litl_types_general
@@ -259,18 +270,19 @@ typedef struct {
 typedef struct {
     litl_tid_t tid; /**< A thread ID */
     litl_offset_t offset; /**< An offset to the chunk of events */
-} litl_header_tids_t;
+} litl_thread_pairs_t;
 
-/**
+/*
  * \ingroup litl_types_general
  * \brief A Data structure for triples (tid, trace_size, offset) stored in the
  *  archive's header
+ *
+ typedef struct {
+ litl_med_size_t fid; *< A file ID
+ litl_trace_size_t trace_size; *< A trace size
+ litl_offset_t offset; *< An offset to the merged trace file
+ }__attribute__((packed)) litl_process_triples_t;
  */
-typedef struct {
-    litl_med_size_t fid; /**< A file ID*/
-    litl_trace_size_t trace_size; /**< A trace size */
-    litl_offset_t offset; /**< An offset to the merged trace file*/
-}__attribute__((packed)) litl_header_triples_t;
 
 /**
  * \ingroup litl_types_write
@@ -279,10 +291,11 @@ typedef struct {
 typedef struct {
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer_cur; /**< A pointer to the next free slot */
+
     litl_tid_t tid; /**< An ID of the working thread */
     litl_offset_t offset; /**< An offset to the next buffer in the trace file */
 
-    uint8_t already_flushed; /**< Handles the situation when some threads start after the header was flushed, i.e. their tids and offsets were not included into the header*/
+    litl_data_t already_flushed; /**< Handles the situation when some threads start after the header was flushed, i.e. their tids and offsets were not included into the header*/
 } litl_write_buffer_t;
 
 /**
@@ -299,31 +312,29 @@ typedef struct {
     litl_buffer_t header_cur; /**< A pointer to the next free slot in the header */
     litl_size_t header_size; /**< A header size */
     litl_size_t header_offset; /**< An offset from the beginning of the header to the next free slot */
-
-    litl_med_size_t nb_slots; /**< A number of chunks with the information on threads (tid, offset); first chunk, which is in the header, does not count; each contains at most NBTHREADS threads */
     litl_med_size_t header_nb_threads; /**< A number of threads in the header */
-    litl_param_t threads_offset; /**< An offset to the next chunk of pairs (tid, offset) for a given thread */
-    uint8_t is_header_flushed; /**< Indicates whether the header with tids and offsets has been flushed*/
+    litl_data_t is_header_flushed; /**< Indicates whether the header with threads pairs has been flushed */
 
-    litl_size_t buffer_size; /**< A buffer size */
-    uint8_t allow_buffer_flush; /**< Indicates whether buffer flush is enabled (1) or not (0). In case the flushing is disabled, the recording of events is stopped. By default, it is activated */
-    uint8_t is_buffer_full; /**< Indicates whether the buffer is full */
-
-    pthread_once_t index_once; /**< Guarantees that the initialization function is called only once */
-    pthread_key_t index; /**< A private thread variable that holds its index in tids, buffer_ptr/buffer_cur, and offsets */
     litl_med_size_t nb_threads; /**< A number of threads */
-
-    pthread_mutex_t lock_litl_flush; /**< Handles write conflicts while using pthread */
-    pthread_mutex_t lock_buffer_init; /**< Handles race conditions while initializing tids and buffer_ptrs/buffer_curs */
-    uint8_t allow_thread_safety; /**< Indicates whether LiTL uses thread-safety (1) or not (0). By default, it is activated */
-
-    uint8_t record_tid_activated; /**< Indicates whether LiTL records tid (1) or not (0). By default, it is activated */
-    uint8_t litl_initialized; /**< Ensures that a performance analysis library does not start recording events before the initialization is finished */
-    volatile uint8_t litl_paused; /**< Indicates whether LiTL stops recording events (1) for a while or not (0) */
+    litl_med_size_t nb_slots; /**< A number of chunks with the information on threads (tid, offset); first chunk, which is in the header, does not count; each contains at most NBTHREADS threads */
+    litl_param_t threads_offset; /**< An offset to the next chunk of pairs (tid, offset) for a given thread */
 
     litl_write_buffer_t **buffers; /**< An array of thread-specific buffers */
     litl_size_t nb_allocated_buffers; /**< A number of thread-specific buffers that are allocated */
-} litl_trace_write_t;
+    litl_size_t buffer_size; /**< A buffer size */
+    litl_data_t is_buffer_full; /**< Indicates whether the buffer is full */
+
+    pthread_once_t index_once; /**< Guarantees that the initialization function is called only once */
+    pthread_key_t index; /**< A private thread variable that holds its index in tids, buffer_ptr/buffer_cur, and offsets */
+    pthread_mutex_t lock_litl_flush; /**< Handles write conflicts while using pthread */
+    pthread_mutex_t lock_buffer_init; /**< Handles race conditions while initializing threads pairs and buffers pointers */
+
+    litl_data_t is_litl_initialized; /**< Ensures that a performance analysis library does not start recording events before the initialization is finished */
+    volatile litl_data_t is_recording_paused; /**< Indicates whether LiTL stops recording events (1) for a while or not (0) */
+    litl_data_t allow_buffer_flush; /**< Indicates whether buffer flush is enabled (1) or not (0). In case the flushing is disabled, the recording of events is stopped. By default, it is activated */
+    litl_data_t allow_thread_safety; /**< Indicates whether LiTL uses thread-safety (1) or not (0). By default, it is activated */
+    litl_data_t allow_tid_recording; /**< Indicates whether LiTL records tid (1) or not (0). By default, it is activated */
+} litl_write_trace_t;
 
 /**
  * \ingroup litl_types_read
@@ -339,7 +350,7 @@ typedef struct {
  * \brief A data structure for reading thread-specific events
  */
 typedef struct {
-    litl_header_tids_t* tids; /**< An array of thread IDs*/
+    litl_thread_pairs_t* tids; /**< An array of thread IDs*/
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
@@ -355,9 +366,9 @@ typedef struct {
  * \brief A data structure for reading process-specific events
  */
 typedef struct {
-    litl_header_triples_t* triples; /**< An array of triples (fid, trace_size, offset)*/
+//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset)*/
 
-    litl_header_t* header; /**< A pointer to the header*/
+    litl_general_header_t* header; /**< A pointer to the header*/
     litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
@@ -377,7 +388,7 @@ typedef struct {
 typedef struct {
     int f_handle; /**< A file handler */
 
-    litl_header_t* header; /**< A pointer to the header */
+    litl_general_header_t* header; /**< A pointer to the header */
     litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position in the header buffer */
@@ -415,9 +426,8 @@ typedef struct {
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
-    litl_data_t is_trace_archive; /**< Indicates whether a trace is a regular trace (=0) or an archive of traces (=1) */
     litl_med_size_t nb_traces; /**< A number of trace */
-    litl_header_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
+//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
     litl_buffer_t buffer; /**< A pointer to the buffer */
     litl_size_t buffer_size; /**< A buffer size */

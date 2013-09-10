@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
     litl_data_t i;
     const char* filename = "trace";
     litl_read_t* event;
-    litl_header_t* header;
+    litl_general_header_t* header;
     litl_trace_read_t *arch;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))

@@ -42,7 +42,7 @@ void* write_trace(void* arg) {
     printf("Recording events on thread #%d\n", my_id);
     res = asprintf(&filename, "/tmp/test_litl_write_%d.trace", my_id);
 
-    litl_trace_write_t* trace;
+    litl_write_trace_t* trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB
 
     trace = litl_write_init_trace(buffer_size);

@@ -20,7 +20,7 @@
 int main(int argc, char **argv) {
     int i, nb_iter;
 
-    litl_trace_write_t* trace;
+    litl_write_trace_t* trace;
     char* filename = "trace";
     const uint32_t buffer_size = 32 * 1024; // 32KB
 

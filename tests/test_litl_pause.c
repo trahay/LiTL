@@ -22,7 +22,7 @@
 void write_trace(char* filename, int nb_iter, int skipped_iter) {
     int i;
 
-    litl_trace_write_t* trace;
+    litl_write_trace_t* trace;
     const uint32_t buffer_size = 512 * 1024; // 512KB
 
     trace = litl_write_init_trace(buffer_size);

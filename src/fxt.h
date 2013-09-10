@@ -24,7 +24,7 @@
 #include "litl_write.h"
 #include "litl_read.h"
 
-typedef litl_trace_write_t* fxt_t;
+typedef litl_write_trace_t* fxt_t;
 
 static fxt_t __trace;
 

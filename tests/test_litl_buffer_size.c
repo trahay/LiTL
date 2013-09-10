@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     uint32_t buf_size;
 
     litl_time_t start, fin;
-    litl_trace_write_t* trace;
+    litl_write_trace_t* trace;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
