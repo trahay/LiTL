@@ -119,21 +119,26 @@ of traces can be split back into separate traces by\\
 For a more flexible and comfortable usage of \litl{}, we provide the following 
 environment variables:
 \begin{itemize}
- \item \texttt{LITL\_BUFFER\_SIZE} provides users with another possibility of 
-       setting a buffer size. If the variable is not specified, then the provided 
-       value inside the application is used;
+ \item \texttt{LITL\_BUFFER\_SIZE} provides users with the alternative 
+       possibility to set a buffer size. If the variable is not specified, then 
+       the provided value inside the application is used;
        
  \item \texttt{LITL\_BUFFER\_FLUSH} specifies the behavior of \litl{} when the 
-       event buffer is full. If it is set to one, which is a default option, 
+       event buffer is full. If it is set to ``on'', which is a default option, 
        the buffer is flushed. This permits to record traces that are larger 
-       than the buffer size. Otherwise, if it is set to zero, any additional 
+       than the buffer size. Otherwise, if it is set to ``off'', any additional 
        event will not be recorded. The trace is, thus, truncated and there is no 
        impact on the application performance;
+      
+ \item \texttt{LITL\_TID\_RECORDING} provides users with an alternative 
+       possibility to enable or disable tid recording. If it is set to ``on'', 
+       which is a default value, the tid recording is enabled. Otherwise, when 
+       it is set to ``off'', the tid recording is disable;
 
  \item \texttt{LITL\_THREAD\_SAFETY} specifies the behavior of \litl{} while
-       tracing multi-threaded applications. If it is set to one, which is a 
-       default value, the thread safety is enabled. Otherwise, when it is zero, 
-       the event recording is not thread safe;
+       tracing multi-threaded applications. If it is set to ``on'', which is a 
+       default value, the thread safety is enabled. Otherwise, when it is set to
+       ``off'', the event recording is not thread safe;
  
  \item \texttt{LITL\_TIMING\_METHOD} specifies the timing method that will be 
        used during the recording phase. The \litl{} timing methods can be 

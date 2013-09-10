@@ -257,10 +257,10 @@ typedef struct {
 typedef struct {
     litl_data_t process_name[256]; /**< A name of the process */
     litl_med_size_t nb_threads; /**< A total number of threads */
-    litl_size_t buffer_size; /**< A size of buffer */
     litl_med_size_t header_nb_threads; /**< A number of threads, which info is stored in the header */
+    litl_size_t buffer_size; /**< A size of buffer */
     litl_trace_size_t trace_size; /**< A trace size */
-    litl_offset_t offset; /**< An offset to the merged trace file*/
+    litl_offset_t offset; /**< An offset to the process-specific threads pairs and their events */
 }__attribute__((packed)) litl_process_header_t;
 
 /**

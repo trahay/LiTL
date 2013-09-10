@@ -38,30 +38,36 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
     if (uname(&uts) < 0)
         perror("Could not use uname()!");
 
-    // get the number of symbols for litl_ver
+    // add a general header
+    // version of LiTL
     sprintf((char*) ((litl_general_header_t *) trace->header_cur)->litl_ver,
             "%s", VERSION);
-
-    // get the number of symbols for sysinfo
+    // system information
     sprintf((char*) ((litl_general_header_t *) trace->header_cur)->sysinfo,
             "%s %s %s %s %s", uts.sysname, uts.nodename, uts.release,
             uts.version, uts.machine);
-
-    // add nb_threads and buffer_size
-    ((litl_general_header_t *) trace->header_cur)->nb_threads =
-            trace->nb_threads;
-    // by default a trace file per process is recorded
-    ((litl_general_header_t *) trace->header_cur)->is_trace_archive = 0;
-    ((litl_general_header_t *) trace->header_cur)->header_nb_threads =
-            trace->nb_threads;
-    ((litl_general_header_t *) trace->header_cur)->buffer_size =
-            trace->buffer_size;
-
-    // header_size stores the position of nb_threads in the trace file
-    trace->header_size = 0;
-
-    // size of two strings (LiTL, OS), nb_threads, and buffer_size
+    // a number of processes
+    ((litl_general_header_t *) trace->header_cur)->nb_processes = 1;
+    // move pointer
     trace->header_cur += sizeof(litl_general_header_t);
+
+    // add a process-specific header
+    // by default a trace file per process is recorded
+    sprintf((char*) ((litl_process_header_t *) trace->header_cur)->process_name,
+            "%s", trace->filename);
+    ((litl_process_header_t *) trace->header_cur)->nb_threads =
+            trace->nb_threads;
+    ((litl_process_header_t *) trace->header_cur)->header_nb_threads =
+            trace->nb_threads;
+    ((litl_process_header_t *) trace->header_cur)->buffer_size =
+            trace->buffer_size;
+    ((litl_process_header_t *) trace->header_cur)->trace_size = 0;
+    ((litl_process_header_t *) trace->header_cur)->offset = 0;
+    // header_size stores the position of nb_threads in the trace file
+    trace->header_size = sizeof(litl_general_header_t)
+            + 256 * sizeof(litl_data_t);
+    // move pointer
+    trace->header_cur += sizeof(litl_process_header_t);
 }
 
 /*
@@ -80,6 +86,11 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
 
     trace = (litl_write_trace_t*) malloc(sizeof(litl_write_trace_t));
 
+    // set variables
+    trace->filename = NULL;
+    trace->general_offset = 0;
+    trace->is_header_flushed = 0;
+
     // set the buffer size using the environment variable.
     //   If the variable is not specified, use the provided value
     char* str = getenv("LITL_BUFFER_SIZE");
@@ -88,12 +99,7 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
     else
         trace->buffer_size = buf_size;
 
-    // set variables
-    trace->filename = NULL;
     trace->is_buffer_full = 0;
-    trace->is_header_flushed = 0;
-    litl_write_tid_recording_on(trace);
-
     trace->nb_allocated_buffers = 256;
     trace->buffers = realloc(NULL,
             sizeof(litl_write_buffer_t*) * trace->nb_allocated_buffers);
@@ -139,7 +145,13 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
         pthread_mutex_init(&trace->lock_litl_flush, NULL);
     pthread_mutex_init(&trace->lock_buffer_init, NULL);
 
-    // TODO: touch each block in buffer_ptr in order to load it
+    // set trace->allow_tid_recording using the environment variable.
+    //   By default tid recording is enabled
+    str = getenv("LITL_TID_RECORDING");
+    if (str && (strcmp(str, "off") == 0))
+        litl_write_tid_recording_off(trace);
+    else
+        litl_write_tid_recording_on(trace);
 
     trace->is_recording_paused = 0;
     trace->is_litl_initialized = 1;
@@ -285,6 +297,7 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
 
         // add a header to the trace file
         trace->header_size = sizeof(litl_general_header_t)
+                + sizeof(litl_process_header_t)
                 + (trace->nb_threads + 1) * sizeof(litl_thread_pairs_t);
         __litl_write_add_trace_header(trace);
 
@@ -320,7 +333,6 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
             exit(EXIT_FAILURE);
         }
 
-        // set the general_offset
         trace->general_offset = __litl_write_get_header_size(trace);
 
         trace->header_nb_threads = trace->nb_threads;
