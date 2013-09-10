@@ -99,13 +99,33 @@ typedef uint32_t litl_param_t;
  */
 typedef uint32_t litl_offset_t;
 
-#else
+#else /* HAVE_32BIT */
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing thread IDs
+ */
 typedef uint64_t litl_tid_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing time stamps
+ */
 typedef uint64_t litl_time_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing traces sizes
+ */
 typedef uint64_t litl_trace_size_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for the non-optimized storage of parameters
+ */
 typedef uint64_t litl_param_t;
+/**
+ * \ingroup litl_types_general
+ * \brief A data type for storing offsets
+ */
 typedef uint64_t litl_offset_t;
-#endif
+#endif /* HAVE_32BIT */
 /**
  * \ingroup litl_types_general
  * \brief A data type for storing sets of events
