@@ -61,6 +61,7 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
     ((litl_process_header_t *) trace->header)->buffer_size = trace->buffer_size;
     ((litl_process_header_t *) trace->header)->trace_size = 0;
     ((litl_process_header_t *) trace->header)->offset = 0;
+
     // header_size stores the position of nb_threads in the trace file
     trace->header_size = sizeof(litl_general_header_t)
             + 256 * sizeof(litl_data_t);
@@ -296,17 +297,17 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         // add a header to the trace file
         trace->header_size = sizeof(litl_general_header_t)
                 + sizeof(litl_process_header_t)
-                + (trace->nb_threads + 1) * sizeof(litl_thread_pairs_t);
+                + (trace->nb_threads + 1) * sizeof(litl_thread_pair_t);
         __litl_write_add_trace_header(trace);
 
         // add information about each working thread: (tid, offset)
         litl_med_size_t i;
         for (i = 0; i < trace->nb_threads; i++) {
-            ((litl_thread_pairs_t *) trace->header)->tid =
+            ((litl_thread_pair_t *) trace->header)->tid =
                     trace->buffers[i]->tid;
-            ((litl_thread_pairs_t *) trace->header)->offset = 0;
+            ((litl_thread_pair_t *) trace->header)->offset = 0;
 
-            trace->header += sizeof(litl_thread_pairs_t);
+            trace->header += sizeof(litl_thread_pair_t);
 
             // save the position of offset inside the trace file
             trace->buffers[i]->offset = __litl_write_get_header_size(trace)
@@ -319,9 +320,9 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         trace->header_offset = __litl_write_get_header_size(trace);
 
         // specify the last slot of pairs (offset == 0)
-        ((litl_thread_pairs_t *) trace->header)->tid = 0;
-        ((litl_thread_pairs_t *) trace->header)->offset = 0;
-        trace->header += sizeof(litl_thread_pairs_t);
+        ((litl_thread_pair_t *) trace->header)->tid = 0;
+        ((litl_thread_pair_t *) trace->header)->offset = 0;
+        trace->header += sizeof(litl_thread_pair_t);
 
         // write the trace header to the trace file
         if (write(trace->f_handle, trace->header_ptr,
@@ -357,7 +358,7 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
             trace->header_offset = trace->general_offset;
             trace->threads_offset = trace->header_offset;
             trace->general_offset += (NBTHREADS + 1)
-                    * sizeof(litl_thread_pairs_t);
+                    * sizeof(litl_thread_pair_t);
 
             trace->nb_slots++;
         }
@@ -376,7 +377,7 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         res = write(trace->f_handle, &trace->buffers[index]->already_flushed,
                 sizeof(litl_offset_t));
 
-        trace->header_offset += sizeof(litl_thread_pairs_t);
+        trace->header_offset += sizeof(litl_thread_pair_t);
         trace->buffers[index]->already_flushed = 1;
 
         // updated the number of threads

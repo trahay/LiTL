@@ -3,8 +3,8 @@
 
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src \
-          utils
-#          tests \
+          utils \
+          tests
 #          doc
 
 pkgconfigdir = $(libdir)/pkgconfig

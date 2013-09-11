@@ -21,32 +21,38 @@ int main(int argc, const char **argv) {
     litl_data_t i;
     const char* filename = "trace";
     litl_read_event_t* event;
-    litl_general_header_t* header;
-    litl_read_trace_t *arch;
+    litl_read_trace_t *trace;
+    litl_general_header_t* trace_header;
+    litl_process_header_t* process_header;
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
         filename = "/tmp/test_litl_write.trace";
 
-    arch = litl_read_open_trace(filename);
+    trace = litl_read_open_trace(filename);
+//    litl_read_init_processes(trace);
 
-    litl_read_init_processes(arch);
-
-    header = litl_read_get_trace_header(arch);
+    trace_header = litl_read_get_trace_header(trace);
+//    process_header = litl_read_get_process_header(trace, 0);
 
     // print the header
-    printf(" LiTL v.%s\n", header->litl_ver);
-    printf(" %s\n", header->sysinfo);
-    printf(" nb_threads \t %d\n", header->nb_threads);
-    printf(" buffer_size \t %d\n", header->buffer_size);
+    printf(" LiTL v.%s\n", trace_header->litl_ver);
+    printf(" %s\n", trace_header->sysinfo);
+    printf(" nb_processes \t %d\n", trace_header->nb_processes);
+    /*if (trace_header->nb_processes == 1)
+        printf(" nb_threads \t %d\n", process_header->nb_threads);
+    printf(" buffer_size \t %d\n",
+            trace->processes[0].header->buffer_size
+                    - __litl_get_reg_event_size(LITL_MAX_PARAMS)
+                    - __litl_get_reg_event_size(0));*/
 
-    printf(
+    /*printf(
             "Thread ID\t Event Type & Code \t Time\t   NB args\t Arguments[0-9]\n");
     while (1) {
-        event = litl_read_next_event(arch);
+        event = litl_read_next_event(trace);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
         switch (LITL_READ_GET_TYPE(event)) {
@@ -88,9 +94,9 @@ int main(int argc, const char **argv) {
         }
 
         printf("\n");
-    }
+    }*/
 
-    litl_read_finalize_trace(arch);
+    litl_read_finalize_trace(trace);
 
     return EXIT_SUCCESS;
 }

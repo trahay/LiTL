@@ -10,7 +10,7 @@
 /**
  *  \file litl_read.h
  *  \brief litl_read Provides a set of functions for reading events from a
- *  trace file or an archive of traces
+ *  regular trace file or an archive of traces
  *
  *  \authors
  *    Developers are: \n
@@ -50,66 +50,76 @@ litl_read_trace_t *litl_read_open_trace(const char* filename);
 /**
  * \ingroup litl_read_init
  * \brief Initializes the event reading structure
- * \param arch A pointer to the event reading object
+ * \param trace A pointer to the event reading object
  */
-void litl_read_init_processes(litl_read_trace_t* arch);
+void litl_read_init_processes(litl_read_trace_t* trace);
 
 /**
  * \ingroup litl_read_init
  * \brief Returns a pointer to the trace header
- * \param arch A pointer to the event reading object
+ * \param trace A pointer to the event reading object
  * \return A pointer to the trace header
  */
-litl_general_header_t* litl_read_get_trace_header(litl_read_trace_t* arch);
+litl_general_header_t* litl_read_get_trace_header(litl_read_trace_t* trace);
+
+/**
+ * \ingroup litl_read_init
+ * \brief Returns a pointer to the process header
+ * \param trace A pointer to the event reading object
+ * \param process_index A process index
+ * \return A pointer to the trace header
+ */
+litl_process_header_t* litl_read_get_process_header(litl_read_trace_t* trace,
+        litl_med_size_t process_index);
 
 /**
  * \ingroup litl_read_init
  * \brief Sets the buffer size
- * \param arch A pointer to the event reading object
+ * \param trace A pointer to the event reading object
  * \param buf_size A buffer size (in Byte)
  */
-void litl_read_set_buffer_size(litl_read_trace_t* arch,
+void litl_read_set_buffer_size(litl_read_trace_t* trace,
         const litl_size_t buf_size);
 
 /**
  * \ingroup litl_read_init
  * \brief Returns the buffer size
- * \param arch A pointer to the event reading object
+ * \param trace A pointer to the event reading object
  * \return A buffer size (in Byte)
  */
-litl_size_t litl_read_get_buffer_size(litl_read_trace_t* arch);
+litl_size_t litl_read_get_buffer_size(litl_read_trace_t* trace);
 
 /**
  * \ingroup litl_read_main
  * \brief Resets the trace pointer
- * \param arch A pointer to the event reading object
- * \param trace_index A trace index
+ * \param trace A pointer to the event reading object
+ * \param process_index A trace index
  */
-void litl_read_reset_trace(litl_read_trace_t* arch,
-        litl_med_size_t trace_index);
+void litl_read_reset_process(litl_read_trace_t* trace,
+        litl_med_size_t process_index);
 
 /**
  * \ingroup litl_read_main
  * \brief Reads the next event from a trace
- * \param arch A pointer to the event reading object
- * \param trace_index A trace index
+ * \param trace A pointer to the event reading object
+ * \param process_index A trace index
  */
-litl_read_event_t* litl_read_next_trace_event(litl_read_trace_t* arch,
-        litl_med_size_t trace_index);
+litl_read_event_t* litl_read_next_process_event(litl_read_trace_t* trace,
+        litl_med_size_t process_index);
 
 /**
  * \ingroup litl_read_main
- * \brief Reads the next event either from a regular trace or an archive of traces
- * \param arch A pointer to the event reading object
+ * \brief Reads the next event from a trace file
+ * \param trace A pointer to the event reading object
  */
-litl_read_event_t* litl_read_next_event(litl_read_trace_t* arch);
+litl_read_event_t* litl_read_next_event(litl_read_trace_t* trace);
 
 /**
  * \ingroup litl_read_main
  * \brief Closes the trace and frees the allocated memory
- * \param arch A pointer to the event reading object
+ * \param trace A pointer to the event reading object
  */
-void litl_read_finalize_trace(litl_read_trace_t* arch);
+void litl_read_finalize_trace(litl_read_trace_t* trace);
 
 /*** Internal-use macros ***/
 
@@ -160,16 +170,16 @@ void litl_read_finalize_trace(litl_read_trace_t* arch);
 /**
  * \ingroup litl_read_process
  * \brief Returns a current event of a given thread
- * \param trace An event reading object
+ * \param process An event reading object
  * \param thread_index An index of a given thread
  */
-#define LITL_READ_GET_CUR_EVENT_PER_THREAD(trace, thread_index) (&(trace)->buffers[(thread_index)].cur_event)
+#define LITL_READ_GET_CUR_EVENT_PER_THREAD(process, thread_index) (&(process)->threads[(thread_index)].cur_event)
 /**
  * \ingroup litl_read_process
  * \brief Returns a current event of a given trace
- * \param trace An event reading object
+ * \param process An event reading object
  */
-#define LITL_READ_GET_CUR_EVENT(trace) LITL_READ_GET_CUR_EVENT_PER_THREAD(trace, (trace)->cur_index)
+#define LITL_READ_GET_CUR_EVENT(process) LITL_READ_GET_CUR_EVENT_PER_THREAD(process, (process)->cur_index)
 
 /**
  * \ingroup litl_read_process

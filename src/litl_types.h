@@ -270,7 +270,7 @@ typedef struct {
 typedef struct {
     litl_tid_t tid; /**< A thread ID */
     litl_offset_t offset; /**< An offset to the chunk of events */
-} litl_thread_pairs_t;
+} litl_thread_pair_t;
 
 /*
  * \ingroup litl_types_general
@@ -350,7 +350,7 @@ typedef struct {
  * \brief A data structure for reading thread-specific events
  */
 typedef struct {
-    litl_thread_pairs_t* tids; /**< An array of thread pairs (tid, offset) */
+    litl_thread_pair_t* thread_pair; /**< A thread pair (tid, offset) */
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
@@ -368,16 +368,16 @@ typedef struct {
 typedef struct {
 //    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
-    litl_general_header_t* header; /**< A pointer to the header */
+    litl_process_header_t* header; /**< A pointer to the process header */
     litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
-    litl_med_size_t nb_buffers; /**< A number of buffers */
-    litl_read_thread_events_t *buffers; /**< An array of buffers */
+    litl_med_size_t nb_threads; /**< A number of threads */
+    litl_read_thread_events_t *threads; /**< An array of threads */
 
     int cur_index; /**< An index of the current thread */
-    int Is_initialized; /**< Indicates that the process was initialized */
+    int is_initialized; /**< Indicates that the process was initialized */
 } litl_read_process_events_t;
 
 /**
@@ -388,7 +388,7 @@ typedef struct {
 typedef struct {
     int f_handle; /**< A file handler */
 
-    litl_general_header_t* header; /**< A pointer to the header */
+    litl_general_header_t* header; /**< A pointer to the trace header */
     litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position in the header buffer */
