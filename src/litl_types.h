@@ -369,7 +369,6 @@ typedef struct {
 //    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
     litl_process_header_t* header; /**< A pointer to the process header */
-    litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
@@ -389,7 +388,6 @@ typedef struct {
     int f_handle; /**< A file handler */
 
     litl_general_header_t* header; /**< A pointer to the trace header */
-    litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position in the header buffer */
 
@@ -440,12 +438,12 @@ typedef struct {
 #define PRTIx32 "x"
 
 #ifdef HAVE_32BIT
-#define PRTIu64 "lu"
-#define PRTIx64 "lx"
-
-#else
 #define PRTIu64 "u"
 #define PRTIx64 "x"
+
+#else
+#define PRTIu64 "lu"
+#define PRTIx64 "lx"
 
 #endif /* HAVE_32BIT */
 

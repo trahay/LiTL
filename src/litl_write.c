@@ -52,15 +52,18 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
     trace->header += sizeof(litl_general_header_t);
 
     // add a process-specific header
-    // by default a trace file per process is recorded
+    // by default one trace file contains events only of one process
+    char* filename = strrchr(trace->filename, '/');
+    filename++;
     sprintf((char*) ((litl_process_header_t *) trace->header)->process_name,
-            "%s", trace->filename);
+            "%s", filename);
     ((litl_process_header_t *) trace->header)->nb_threads = trace->nb_threads;
     ((litl_process_header_t *) trace->header)->header_nb_threads =
             trace->nb_threads;
     ((litl_process_header_t *) trace->header)->buffer_size = trace->buffer_size;
     ((litl_process_header_t *) trace->header)->trace_size = 0;
-    ((litl_process_header_t *) trace->header)->offset = 0;
+    ((litl_process_header_t *) trace->header)->offset =
+            sizeof(litl_general_header_t) + sizeof(litl_process_header_t);
 
     // header_size stores the position of nb_threads in the trace file
     trace->header_size = sizeof(litl_general_header_t)
@@ -279,6 +282,7 @@ static void __litl_write_probe_offset(litl_write_trace_t* trace,
 static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         litl_med_size_t index) {
     int res __attribute__ ((__unused__));
+    litl_offset_t offset, header_size;
 
     if (!trace->is_litl_initialized)
         return;
@@ -341,6 +345,7 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         trace->is_header_flushed = 1;
     }
 
+    header_size = sizeof(litl_general_header_t) + sizeof(litl_process_header_t);
     // handle the situation when some threads start after the header was flushed
     if (!trace->buffers[index]->already_flushed) {
 
@@ -351,8 +356,8 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
             // updated the offset from the previous slot
             lseek(trace->f_handle, trace->header_offset + sizeof(litl_tid_t),
                     SEEK_SET);
-            res = write(trace->f_handle, &trace->general_offset,
-                    sizeof(litl_offset_t));
+            offset = trace->general_offset - header_size;
+            res = write(trace->f_handle, &offset, sizeof(litl_offset_t));
 
             // reserve a new slot for pairs (tid, offset)
             trace->header_offset = trace->general_offset;
@@ -367,22 +372,20 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         lseek(trace->f_handle, trace->header_offset, SEEK_SET);
         res = write(trace->f_handle, &trace->buffers[index]->tid,
                 sizeof(litl_tid_t));
-        res = write(trace->f_handle, &trace->general_offset,
-                sizeof(litl_offset_t));
+        offset = trace->general_offset - header_size;
+        res = write(trace->f_handle, &offset, sizeof(litl_offset_t));
 
         // add an indicator to specify the last slot of pairs (offset == 0)
         // TODO: how to optimize this and write only once at the end of the slot
-        res = write(trace->f_handle, &trace->buffers[index]->already_flushed,
-                sizeof(litl_tid_t));
-        res = write(trace->f_handle, &trace->buffers[index]->already_flushed,
-                sizeof(litl_offset_t));
+        offset = 0;
+        res = write(trace->f_handle, &offset, sizeof(litl_tid_t));
+        res = write(trace->f_handle, &offset, sizeof(litl_offset_t));
 
         trace->header_offset += sizeof(litl_thread_pair_t);
         trace->buffers[index]->already_flushed = 1;
 
         // updated the number of threads
         // TODO: perform update only once 'cause there is duplication
-        //        printf("trace->nb_threads = %d\n", trace->nb_threads);
         lseek(trace->f_handle, trace->header_size, SEEK_SET);
         res = write(trace->f_handle, &trace->nb_threads,
                 sizeof(litl_med_size_t));
@@ -391,8 +394,8 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
         // update the previous offset of the current thread,
         //   updating the location in the file
         lseek(trace->f_handle, trace->buffers[index]->offset, SEEK_SET);
-        res = write(trace->f_handle, &trace->general_offset,
-                sizeof(litl_offset_t));
+        offset = trace->general_offset - header_size;
+        res = write(trace->f_handle, &offset, sizeof(litl_offset_t));
         lseek(trace->f_handle, trace->general_offset, SEEK_SET);
     }
 
@@ -991,14 +994,10 @@ void litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
  * This function finalizes the trace
  */
 void litl_write_finalize_trace(litl_write_trace_t* trace) {
-    // write an event with the LITL_TRACE_END (= 0) code in order to indicate
-    //    the end of tracing
     litl_med_size_t i;
 
     for (i = 0; i < trace->nb_threads; i++)
         __litl_write_flush_buffer(trace, i);
-    // because the LITL_TRACE_END was written to the trace buffer #0
-    //    __litl_write_flush_buffer(trace, 0);
 
     close(trace->f_handle);
     trace->f_handle = -1;

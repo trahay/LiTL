@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
     litl_write_trace_t* trace;
     char* filename = "trace";
-    const uint32_t buffer_size = 32 * 1024; // 32KB
+    const uint32_t buffer_size = 1024; // 32KB
 
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     trace = litl_write_init_trace(buffer_size);
     litl_write_set_filename(trace, filename);
 
-    nb_iter = 1000;
+    nb_iter = 12; //1000;
     litl_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     for (i = 0; i < (nb_iter + 1) / 12; i++) {
