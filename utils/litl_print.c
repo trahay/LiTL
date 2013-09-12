@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     litl_read_init_processes(trace);
 
     trace_header = litl_read_get_trace_header(trace);
-    process_header = litl_read_get_process_header(trace, 0);
+    process_header = litl_read_get_process_header(trace->processes[0]);
 
     // print the header
     printf(" LiTL v.%s\n", trace_header->litl_ver);
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     if (trace_header->nb_processes == 1)
         printf(" nb_threads \t %d\n", process_header->nb_threads);
     printf(" buffer_size \t %d\n",
-            trace->processes[0].header->buffer_size
+            trace->processes[0]->header->buffer_size
                     - __litl_get_reg_event_size(LITL_MAX_PARAMS)
                     - __litl_get_reg_event_size(0));
 

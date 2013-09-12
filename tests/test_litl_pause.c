@@ -81,26 +81,26 @@ void read_trace(char* filename, uint32_t left_bound, uint32_t right_bound) {
     int nbevents = 0;
 
     litl_read_event_t* event;
-    litl_read_trace_t *arch;
+    litl_read_trace_t *trace;
 
-    arch = litl_read_open_trace(filename);
+    trace = litl_read_open_trace(filename);
 
-    litl_read_init_processes(arch);
+    litl_read_init_processes(trace);
 
     while (1) {
-        event = litl_read_next_event(arch);
+        event = litl_read_next_event(trace);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
         // check whether some events were skipped
-        if ((left_bound < LITL_READ_GET_CODE(event))&& (LITL_READ_GET_CODE(event) < right_bound)){
-        nbevents++;
-        break;
+        if ((left_bound < LITL_READ_GET_CODE(event)) && (LITL_READ_GET_CODE(event) < right_bound)){
+            nbevents++;
+            break;
+        }
     }
-}
 
-    litl_read_finalize_trace(arch);
+//    litl_read_finalize_trace(trace);
 
     if (nbevents > 0) {
         fprintf(stderr,

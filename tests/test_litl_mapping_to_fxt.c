@@ -30,10 +30,8 @@ int main() {
     fut_setup(buffer_size, FUT_KEYMASKALL, THREAD_ID);
 
     fut_set_filename(filename);
-    enable_fut_flush()
-    ;
-    fut_enable_tid_logging()
-    ;
+    enable_fut_flush();
+    fut_enable_tid_logging();
 
     for (i = 0; i < nb_iter; i++) {
         // char events

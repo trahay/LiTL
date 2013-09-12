@@ -68,29 +68,29 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
         usleep(100);
     }
 
-    return NULL ;
+    return NULL;
 }
 
 void read_trace(char* filename) {
     int nb_events = 0;
 
     litl_read_event_t* event;
-    litl_read_trace_t *arch;
+    litl_read_trace_t *trace;
 
-    arch = litl_read_open_trace(filename);
+    trace = litl_read_open_trace(filename);
 
-    litl_read_init_processes(arch);
+    litl_read_init_processes(trace);
 
     while (1) {
-        event = litl_read_next_event(arch);
+        event = litl_read_next_event(trace);
 
-        if (event == NULL )
+        if (event == NULL)
             break;
 
         nb_events++;
     }
 
-    litl_read_finalize_trace(arch);
+    litl_read_finalize_trace(trace);
 
     if (nb_events != NBEVENT * NBTHREAD) {
         fprintf(stderr,
@@ -117,7 +117,7 @@ int main() {
     }
 
     for (i = 0; i < NBTHREAD; i++)
-        pthread_join(tid[i], NULL );
+        pthread_join(tid[i], NULL);
 
     printf("All events are stored in %s\n\n", __trace->filename);
     litl_write_finalize_trace(__trace);

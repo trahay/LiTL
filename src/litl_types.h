@@ -350,7 +350,7 @@ typedef struct {
  * \brief A data structure for reading thread-specific events
  */
 typedef struct {
-    litl_thread_pair_t* thread_pair; /**< A thread pair (tid, offset) */
+    litl_thread_pair_t thread_pair; /**< A thread pair (tid, offset) */
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
@@ -359,7 +359,7 @@ typedef struct {
     litl_offset_t tracker; /**< An indicator of the end of the buffer, which equals to offset + buffer_size */
 
     litl_read_event_t cur_event; /**< The current event */
-} litl_read_thread_events_t;
+} litl_read_thread_t;
 
 /**
  * \ingroup litl_types_read
@@ -373,11 +373,11 @@ typedef struct {
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
 
     litl_med_size_t nb_threads; /**< A number of threads */
-    litl_read_thread_events_t *threads; /**< An array of threads */
+    litl_read_thread_t **threads; /**< An array of threads */
 
     int cur_index; /**< An index of the current thread */
     int is_initialized; /**< Indicates that the process was initialized */
-} litl_read_process_events_t;
+} litl_read_process_t;
 
 /**
  * \ingroup litl_types_read
@@ -392,7 +392,7 @@ typedef struct {
     litl_buffer_t header_buffer; /**< A pointer to the current position in the header buffer */
 
     litl_med_size_t nb_processes; /**< A number of processes */
-    litl_read_process_events_t *processes; /**< An array of processes */
+    litl_read_process_t **processes; /**< An array of processes */
 } litl_read_trace_t;
 
 /**
