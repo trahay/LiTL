@@ -45,8 +45,7 @@ static void __litl_read_init_trace_header(litl_read_trace_t* trace) {
     trace->nb_processes = trace->header->nb_processes;
 
     // relocate the header buffer
-    header_size = sizeof(litl_general_header_t)
-            + trace->nb_processes * sizeof(litl_process_header_t);
+    header_size += trace->nb_processes * sizeof(litl_process_header_t);
     trace->header_buffer_ptr = (litl_buffer_t) realloc(trace->header_buffer_ptr,
             header_size);
     trace->header_buffer = trace->header_buffer_ptr;
@@ -54,11 +53,12 @@ static void __litl_read_init_trace_header(litl_read_trace_t* trace) {
     // read the trace header
     res = read(trace->f_handle,
             trace->header_buffer_ptr + sizeof(litl_general_header_t),
-            header_size);
+            header_size - sizeof(litl_general_header_t));
     if (res == -1) {
         perror("Could not read the trace header!");
         exit(EXIT_FAILURE);
     }
+    trace->header = (litl_general_header_t *) trace->header_buffer_ptr;
     trace->header_buffer = trace->header_buffer_ptr
             + sizeof(litl_general_header_t);
 }
@@ -104,9 +104,7 @@ static void __litl_read_next_pairs_buffer(litl_read_trace_t* trace,
 
     int res = read(trace->f_handle, process->header_buffer_ptr,
             (nb_threads + 1) * sizeof(litl_thread_pair_t));
-    //    + sizeof(litl_general_header_t)
     process->header_buffer = process->header_buffer_ptr;
-    //            + sizeof(litl_general_header_t);
 
     if (res == -1) {
         perror(
@@ -141,10 +139,6 @@ static void __litl_read_init_threads(litl_read_trace_t* trace,
                 (litl_thread_pair_t *) malloc(sizeof(litl_thread_pair_t));
         process->threads[thread_index]->buffer_ptr = (litl_buffer_t) malloc(
                 process->header->buffer_size);
-
-//        free(process->threads[thread_index]->buffer_ptr);
-//        exit(0);
-
 
         // read pairs (tid, offset)
         thread_pair = (litl_thread_pair_t *) process->header_buffer;
@@ -463,8 +457,8 @@ void litl_read_finalize_trace(litl_read_trace_t* trace) {
                 thread_index++) {
             free(
                     trace->processes[process_index]->threads[thread_index]->thread_pair);
-//            free(
-//                    trace->processes[process_index]->threads[thread_index]->buffer_ptr);
+            free(
+                    trace->processes[process_index]->threads[thread_index]->buffer_ptr);
             free(trace->processes[process_index]->threads[thread_index]);
         }
 
