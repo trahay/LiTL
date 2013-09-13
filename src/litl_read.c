@@ -157,49 +157,33 @@ static void __litl_read_init_threads(litl_read_trace_t* trace,
         process->threads[thread_index]->thread_pair.offset = thread_pair->offset
                 + process->header->offset;
 
-        printf("\t buffer_size = %d\n", process->header->buffer_size);
         // read chunks of data
         process->threads[thread_index]->buffer_ptr = (litl_buffer_t) malloc(
                 process->header->buffer_size);
 
         // use offsets in order to access a chuck of data that corresponds to
         //   each thread
-        /*lseek(trace->f_handle,
-         process->threads[thread_index]->thread_pair.offset, SEEK_SET);
-         int res = read(trace->f_handle,
-         process->threads[thread_index]->buffer_ptr,
-         process->header->buffer_size);
-         printf("res = %d\n", res);
-         if (res == -1) {
-         perror(
-         "Could not read the first partition of data from the trace file!");
-         exit(EXIT_FAILURE);
-         }*/
+        lseek(trace->f_handle,
+                process->threads[thread_index]->thread_pair.offset, SEEK_SET);
+        int res = read(trace->f_handle,
+                process->threads[thread_index]->buffer_ptr,
+                process->header->buffer_size);
+        if (res == -1) {
+            perror(
+                    "Could not read the first partition of data from the trace file!");
+            exit(EXIT_FAILURE);
+        }
 
         process->threads[thread_index]->buffer =
                 process->threads[thread_index]->buffer_ptr;
         process->threads[thread_index]->tracker = process->header->buffer_size;
         process->threads[thread_index]->offset = 0;
 
-        process->threads[thread_index]->buffer_ptr[0] = 1;
-        process->threads[thread_index]->buffer_ptr[process->header->buffer_size
-                - 1] = 2;
-        printf("First = %d\n", process->threads[thread_index]->buffer_ptr[0]);
-        printf("Last = %d\n",
-                process->threads[thread_index]->buffer_ptr[process->header->buffer_size
-                        - 1]);
-
-        if ((process->threads[thread_index]->buffer_ptr) == NULL )
-            printf("It is NULL\n");
-
-        printf("\t thread_index = %d \t pointer = %p\n", thread_index,
-                process->threads[thread_index]->buffer_ptr);
-
-        free(process->threads[thread_index]->buffer_ptr);
+//        free(process->threads[thread_index]->buffer_ptr);
 
         process->header_buffer += size;
     }
-    exit(0);
+//    exit(0);
 }
 
 /*
@@ -316,8 +300,7 @@ static void __litl_read_next_buffer(litl_read_trace_t* trace,
 /*
  * Resets the thread buffers of a given process
  */
-void litl_read_reset_process(litl_read_trace_t* trace,
-        litl_read_process_t* process) {
+void litl_read_reset_process(litl_read_process_t* process) {
     litl_med_size_t thread_index;
 
     for (thread_index = 0; thread_index < process->nb_threads; thread_index++)
@@ -334,9 +317,9 @@ static litl_read_event_t* __litl_read_next_thread_event(
 
     litl_data_t to_be_loaded;
     litl_t* event;
-    litl_buffer_t* buffer;
+    litl_buffer_t buffer;
 
-    buffer = &process->threads[thread_index]->buffer;
+    buffer = process->threads[thread_index]->buffer;
     to_be_loaded = 0;
 
     if (!buffer) {
@@ -374,7 +357,7 @@ static litl_read_event_t* __litl_read_next_thread_event(
                     event->parameters.offset.offset;
             to_be_loaded = 1;
         } else {
-            *buffer = NULL;
+            buffer = NULL;
             process->threads[thread_index]->cur_event.event = NULL;
             return NULL ;
         }
@@ -383,8 +366,8 @@ static litl_read_event_t* __litl_read_next_thread_event(
     // fetch the next block of data from the trace
     if (to_be_loaded) {
         __litl_read_next_buffer(trace, process, thread_index);
-        buffer = &process->threads[thread_index]->buffer;
-        event = (litl_t *) *buffer;
+        buffer = process->threads[thread_index]->buffer;
+        event = (litl_t *) buffer;
     }
 
     // move pointer to the next event and update __offset
@@ -404,6 +387,7 @@ static litl_read_event_t* __litl_read_next_thread_event(
  */
 litl_read_event_t* litl_read_next_process_event(litl_read_trace_t* trace,
         litl_read_process_t* process) {
+
     litl_med_size_t thread_index;
     litl_time_t min_time = -1;
 
@@ -441,11 +425,13 @@ litl_read_event_t* litl_read_next_process_event(litl_read_trace_t* trace,
  * Reads the next event from a trace
  */
 litl_read_event_t* litl_read_next_event(litl_read_trace_t* trace) {
-    litl_med_size_t index;
+    litl_med_size_t process_index;
     litl_read_event_t* event = NULL;
 
-    for (index = 0; index < trace->nb_processes; index++) {
-        event = litl_read_next_process_event(trace, index);
+    for (process_index = 0; process_index < trace->nb_processes;
+            process_index++) {
+        event = litl_read_next_process_event(trace,
+                trace->processes[process_index]);
 
         if (event != NULL )
             break;
@@ -471,8 +457,8 @@ void litl_read_finalize_trace(litl_read_trace_t* trace) {
         for (thread_index = 0;
                 thread_index < trace->processes[process_index]->nb_threads;
                 thread_index++) {
-            free(
-                    trace->processes[process_index]->threads[thread_index]->buffer_ptr);
+//            free(
+//                    trace->processes[process_index]->threads[thread_index]->buffer_ptr);
             free(trace->processes[process_index]->threads[thread_index]);
         }
 

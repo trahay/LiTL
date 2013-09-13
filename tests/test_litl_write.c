@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     trace = litl_write_init_trace(buffer_size);
     litl_write_set_filename(trace, filename);
 
-    nb_iter = 100;
+    nb_iter = 1000;
     litl_data_t val[] =
             "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
     for (i = 0; i < (nb_iter + 1) / 12; i++) {

@@ -44,7 +44,7 @@ int main(int argc, const char **argv) {
     if (trace_header->nb_processes == 1)
         printf(" nb_threads \t %u\n", process_header->nb_threads);
     printf(" buffer_size \t %u\n",
-            trace->processes[0]->header->buffer_size
+            process_header->buffer_size
                     - __litl_get_reg_event_size(LITL_MAX_PARAMS)
                     - __litl_get_reg_event_size(0));
 
@@ -53,7 +53,7 @@ int main(int argc, const char **argv) {
     while (1) {
         event = litl_read_next_event(trace);
 
-        if (event == NULL)
+        if (event == NULL )
             break;
 
         switch (LITL_READ_GET_TYPE(event)) {
@@ -101,3 +101,4 @@ int main(int argc, const char **argv) {
 
     return EXIT_SUCCESS;
 }
+

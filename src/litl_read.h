@@ -91,11 +91,9 @@ litl_size_t litl_read_get_buffer_size(litl_read_trace_t* trace);
 /**
  * \ingroup litl_read_main
  * \brief Resets the trace pointer
- * \param trace A pointer to the trace object
  * \param process A pointer to the process object
  */
-void litl_read_reset_process(litl_read_trace_t* trace,
-        litl_read_process_t* process);
+void litl_read_reset_process(litl_read_process_t* process);
 
 /**
  * \ingroup litl_read_main
