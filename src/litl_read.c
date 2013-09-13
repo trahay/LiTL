@@ -134,8 +134,17 @@ static void __litl_read_init_threads(litl_read_trace_t* trace,
             + __litl_get_reg_event_size(0);
 
     for (thread_index = 0; thread_index < process->nb_threads; thread_index++) {
+        // allocate thread structure
         process->threads[thread_index] = (litl_read_thread_t *) malloc(
                 sizeof(litl_read_thread_t));
+        process->threads[thread_index]->thread_pair =
+                (litl_thread_pair_t *) malloc(sizeof(litl_thread_pair_t));
+        process->threads[thread_index]->buffer_ptr = (litl_buffer_t) malloc(
+                process->header->buffer_size);
+
+//        free(process->threads[thread_index]->buffer_ptr);
+//        exit(0);
+
 
         // read pairs (tid, offset)
         thread_pair = (litl_thread_pair_t *) process->header_buffer;
@@ -151,20 +160,17 @@ static void __litl_read_init_threads(litl_read_trace_t* trace,
         if ((thread_pair->tid == 0) && (thread_pair->offset == 0))
             break;
 
-        process->threads[thread_index]->thread_pair.tid = thread_pair->tid;
+        process->threads[thread_index]->thread_pair->tid = thread_pair->tid;
         // use two offsets: process and thread. Process offset for a position
         //  of thread pairs; thread offset for a position of events
-        process->threads[thread_index]->thread_pair.offset = thread_pair->offset
-                + process->header->offset;
+        process->threads[thread_index]->thread_pair->offset =
+                thread_pair->offset + process->header->offset;
 
         // read chunks of data
-        process->threads[thread_index]->buffer_ptr = (litl_buffer_t) malloc(
-                process->header->buffer_size);
-
         // use offsets in order to access a chuck of data that corresponds to
         //   each thread
         lseek(trace->f_handle,
-                process->threads[thread_index]->thread_pair.offset, SEEK_SET);
+                process->threads[thread_index]->thread_pair->offset, SEEK_SET);
         int res = read(trace->f_handle,
                 process->threads[thread_index]->buffer_ptr,
                 process->header->buffer_size);
@@ -179,18 +185,16 @@ static void __litl_read_init_threads(litl_read_trace_t* trace,
         process->threads[thread_index]->tracker = process->header->buffer_size;
         process->threads[thread_index]->offset = 0;
 
-//        free(process->threads[thread_index]->buffer_ptr);
-
         process->header_buffer += size;
     }
-//    exit(0);
 }
 
 /*
  * Opens a trace
  */
 litl_read_trace_t *litl_read_open_trace(const char* filename) {
-    litl_read_trace_t *trace = malloc(sizeof(litl_read_trace_t));
+    litl_read_trace_t *trace = (litl_read_trace_t *) malloc(
+            sizeof(litl_read_trace_t));
 
     // open a trace file
     if ((trace->f_handle = open(filename, O_RDONLY)) < 0) {
@@ -277,7 +281,7 @@ static void __litl_read_next_buffer(litl_read_trace_t* trace,
 
     lseek(trace->f_handle,
             process->header->offset
-                    + process->threads[thread_index]->thread_pair.offset,
+                    + process->threads[thread_index]->thread_pair->offset,
             SEEK_SET);
 
     process->threads[thread_index]->offset = 0;
@@ -353,7 +357,7 @@ static litl_read_event_t* __litl_read_next_thread_event(
     // event that stores tid and offset
     if (event->code == LITL_OFFSET_CODE) {
         if (event->parameters.offset.offset != 0) {
-            process->threads[thread_index]->thread_pair.offset =
+            process->threads[thread_index]->thread_pair->offset =
                     event->parameters.offset.offset;
             to_be_loaded = 1;
         } else {
@@ -377,7 +381,7 @@ static litl_read_event_t* __litl_read_next_thread_event(
 
     process->threads[thread_index]->cur_event.event = event;
     process->threads[thread_index]->cur_event.tid =
-            process->threads[thread_index]->thread_pair.tid;
+            process->threads[thread_index]->thread_pair->tid;
 
     return &process->threads[thread_index]->cur_event;
 }
@@ -457,6 +461,8 @@ void litl_read_finalize_trace(litl_read_trace_t* trace) {
         for (thread_index = 0;
                 thread_index < trace->processes[process_index]->nb_threads;
                 thread_index++) {
+            free(
+                    trace->processes[process_index]->threads[thread_index]->thread_pair);
 //            free(
 //                    trace->processes[process_index]->threads[thread_index]->buffer_ptr);
             free(trace->processes[process_index]->threads[thread_index]);

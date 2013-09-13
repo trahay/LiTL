@@ -350,7 +350,7 @@ typedef struct {
  * \brief A data structure for reading thread-specific events
  */
 typedef struct {
-    litl_thread_pair_t thread_pair; /**< A thread pair (tid, offset) */
+    litl_thread_pair_t* thread_pair; /**< A thread pair (tid, offset) */
 
     litl_buffer_t buffer_ptr; /**< A pointer to the beginning of the buffer */
     litl_buffer_t buffer; /**< A pointer to the current position in the buffer */
