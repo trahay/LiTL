@@ -272,17 +272,15 @@ typedef struct {
     litl_offset_t offset; /**< An offset to the chunk of events */
 } litl_thread_pair_t;
 
-/*
+/**
  * \ingroup litl_types_general
- * \brief A Data structure for triples (tid, trace_size, offset) stored in the
- *  archive's header
- *
- typedef struct {
- litl_med_size_t fid; *< A file ID
- litl_trace_size_t trace_size; *< A trace size
- litl_offset_t offset; *< An offset to the merged trace file
- }__attribute__((packed)) litl_process_triples_t;
+ * \brief A data structure for triples (nb_processes, trace_size, offset)
  */
+ typedef struct {
+ litl_med_size_t nb_processes; /**< A number of processes */
+ litl_trace_size_t trace_size; /**< A trace size */
+ litl_offset_t offset; /**< An offset to process-specific data */
+ } litl_trace_triples_t;
 
 /**
  * \ingroup litl_types_write
@@ -366,8 +364,6 @@ typedef struct {
  * \brief A data structure for reading process-specific events
  */
 typedef struct {
-//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
-
     litl_process_header_t* header; /**< A pointer to the process header */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
@@ -420,12 +416,11 @@ typedef struct {
 typedef struct {
     int f_arch; /**< An archive handler */
 
-    litl_size_t header_size; /**< A header size */
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
+    litl_size_t header_size; /**< A header size */
 
     litl_med_size_t nb_traces; /**< A number of traces */
-//    litl_process_triples_t* triples; /**< An array of triples (fid, trace_size, offset) */
 
     litl_buffer_t buffer; /**< A pointer to the buffer */
     litl_size_t buffer_size; /**< A buffer size */

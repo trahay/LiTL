@@ -4,9 +4,9 @@
 AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src
 AM_LDFLAGS = -L$(top_builddir)/src -llitl
 
-bin_PROGRAMS = litl_print 
+bin_PROGRAMS = litl_print litl_merge 
 
-# litl_merge litl_split
+# litl_split
 
 litl_print_SOURCES = litl_print.c
 
