@@ -19,7 +19,9 @@
  */
 static void __litl_read_init_trace_header(litl_read_trace_t* trace) {
     int res;
-    litl_size_t header_size;
+
+    litl_size_t header_size, general_header_size;
+    general_header_size = sizeof(litl_general_header_t);
 
     // read the trace header
     header_size = sizeof(litl_general_header_t);
@@ -48,19 +50,16 @@ static void __litl_read_init_trace_header(litl_read_trace_t* trace) {
     header_size += trace->nb_processes * sizeof(litl_process_header_t);
     trace->header_buffer_ptr = (litl_buffer_t) realloc(trace->header_buffer_ptr,
             header_size);
-    trace->header_buffer = trace->header_buffer_ptr;
 
     // read the trace header
-    res = read(trace->f_handle,
-            trace->header_buffer_ptr + sizeof(litl_general_header_t),
-            header_size - sizeof(litl_general_header_t));
+    res = read(trace->f_handle, trace->header_buffer_ptr + general_header_size,
+            header_size - general_header_size);
     if (res == -1) {
         perror("Could not read the trace header!");
         exit(EXIT_FAILURE);
     }
     trace->header = (litl_general_header_t *) trace->header_buffer_ptr;
-    trace->header_buffer = trace->header_buffer_ptr
-            + sizeof(litl_general_header_t);
+    trace->header_buffer = trace->header_buffer_ptr + general_header_size;
 }
 
 /*

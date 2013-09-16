@@ -414,13 +414,14 @@ typedef struct {
  * \brief A data structure for splitting an archive of traces
  */
 typedef struct {
-    int f_arch; /**< An archive handler */
+    int f_handle; /**< A file handler */
 
     litl_buffer_t header_buffer_ptr; /**< A pointer to the beginning of the header buffer */
     litl_buffer_t header_buffer; /**< A pointer to the current position within the header buffer */
-    litl_size_t header_size; /**< A header size */
+    litl_general_header_t* trace_header; /**< A pointer to a trace header */
+    litl_process_header_t* process_header; /**< A pointer to a process header */
 
-    litl_med_size_t nb_traces; /**< A number of traces */
+    litl_med_size_t nb_processes; /**< A number of processes */
 
     litl_buffer_t buffer; /**< A pointer to the buffer */
     litl_size_t buffer_size; /**< A buffer size */
