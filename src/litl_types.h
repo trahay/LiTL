@@ -276,11 +276,11 @@ typedef struct {
  * \ingroup litl_types_general
  * \brief A data structure for triples (nb_processes, trace_size, offset)
  */
- typedef struct {
- litl_med_size_t nb_processes; /**< A number of processes */
- litl_trace_size_t trace_size; /**< A trace size */
- litl_offset_t offset; /**< An offset to process-specific data */
- } litl_trace_triples_t;
+typedef struct {
+    litl_med_size_t nb_processes; /**< A number of processes */
+//    litl_trace_size_t trace_size; /**< A trace size */
+    litl_offset_t offset; /**< An offset to process-specific data */
+} litl_trace_triples_t;
 
 /**
  * \ingroup litl_types_write

@@ -41,12 +41,14 @@ static void __litl_merge_set_archive_name(const char* filename) {
 static void __litl_merge_add_archive_header() {
 
     int trace_in, res __attribute__ ((__unused__));
-    litl_med_size_t j, trace_index, header_size, process_header_size,
-            global_header_size, nb_processes, total_nb_processes;
+    litl_med_size_t j, trace_index, header_size, general_header_size,
+            process_header_size, global_header_size, nb_processes,
+            total_nb_processes;
     litl_buffer_t header_buffer, header_buffer_ptr;
 
     total_nb_processes = 0;
     global_header_size = 0;
+    general_header_size = sizeof(litl_general_header_t);
     process_header_size = sizeof(litl_process_header_t);
 
     // create an array of arrays of offsets
@@ -55,6 +57,7 @@ static void __litl_merge_add_archive_header() {
 
     // read all header of traces and write them to the global header of the archive
     for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++) {
+
         if ((trace_in = open(__arch->traces_names[trace_index], O_RDONLY))
                 < 0) {
             fprintf(stderr, "[litl_merge] Cannot open %s to read its header\n",
@@ -63,10 +66,13 @@ static void __litl_merge_add_archive_header() {
         }
 
         // read the trace header
-        header_size = sizeof(litl_general_header_t);
-        header_buffer_ptr = (litl_buffer_t) malloc(header_size);
-        res = read(trace_in, header_buffer_ptr, header_size);
+        header_buffer_ptr = (litl_buffer_t) malloc(general_header_size);
+        res = read(trace_in, header_buffer_ptr, general_header_size);
         header_buffer = header_buffer_ptr;
+
+        nb_processes = ((litl_general_header_t *) header_buffer)->nb_processes;
+        __triples[trace_index] = (litl_trace_triples_t *) malloc(
+                nb_processes * sizeof(litl_trace_triples_t));
 
         // add a general header
         if (trace_index == 0) {
@@ -78,17 +84,9 @@ static void __litl_merge_add_archive_header() {
                     "%s",
                     (char*) ((litl_general_header_t *) header_buffer)->sysinfo);
 
-            ((litl_general_header_t *) __arch->buffer)->nb_processes =
-                    ((litl_general_header_t *) header_buffer)->nb_processes;
-            nb_processes =
-                    ((litl_general_header_t *) header_buffer)->nb_processes;
-
-            global_header_size += header_size;
-            __arch->buffer += header_size;
+            global_header_size += general_header_size;
+            __arch->buffer += general_header_size;
         }
-
-        __triples[trace_index] = (litl_trace_triples_t *) malloc(
-                nb_processes * sizeof(litl_trace_triples_t));
 
         // read headers of processes
         header_size = nb_processes * process_header_size;
@@ -104,12 +102,13 @@ static void __litl_merge_add_archive_header() {
             }
 
             ((litl_process_header_t *) __arch->buffer)->trace_size =
-                    (litl_trace_size_t) st.st_size;
+                    (litl_trace_size_t) st.st_size - general_header_size
+                            - process_header_size;
         }
 
         for (j = 0; j < nb_processes; j++) {
             __triples[trace_index][j].nb_processes = nb_processes;
-            __triples[trace_index][j].offset = sizeof(litl_general_header_t)
+            __triples[trace_index][j].offset = global_header_size
                     + (j + 1) * process_header_size - sizeof(litl_offset_t);
         }
 
@@ -167,59 +166,56 @@ static void __litl_merge_init_archive(const char* arch_name,
  */
 static void __litl_merge_create_archive() {
     int trace_in, res;
-    litl_med_size_t trace_index, j, nb_processes;
-    litl_trace_size_t trace_size, buffer_size, header_offset;
+    litl_med_size_t j, trace_index, nb_processes;
+    litl_trace_size_t buffer_size, header_offset, general_header_size,
+            process_header_size;
 
-    // size of nb_processes and is_archive
-    header_offset = sizeof(litl_data_t) + sizeof(litl_med_size_t);
-    // size of fid and trace_size
-    header_offset = header_offset - sizeof(litl_offset_t);
+    general_header_size = sizeof(litl_general_header_t);
+    process_header_size = sizeof(litl_process_header_t);
 
     for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++) {
-        if ((trace_in = open(__arch->traces_names[trace_index], O_RDONLY)) < 0) {
+        if ((trace_in = open(__arch->traces_names[trace_index], O_RDONLY))
+                < 0) {
             fprintf(stderr, "[litl_merge] Cannot open %s\n",
                     __arch->traces_names[trace_index]);
             exit(EXIT_FAILURE);
         }
 
-        // merge traces
+        // update offsets of processes
         nb_processes = __triples[trace_index][0].nb_processes;
         for (j = 0; j < nb_processes; j++) {
-            trace_size = __triples[trace_index][j].trace_size;
-
-            // update the offset in the global header
-            lseek(__arch->f_handle, header_offset, SEEK_SET);
+            // TODO: for multiple processes
+            lseek(__arch->f_handle, __triples[trace_index][j].offset, SEEK_SET);
             res = write(__arch->f_handle, &__arch->general_offset,
                     sizeof(litl_offset_t));
             lseek(__arch->f_handle, __arch->general_offset, SEEK_SET);
+        }
 
-            lseek(trace_in, __triples[trace_index][j].offset, SEEK_SET);
+        // merge traces
+        header_offset = general_header_size
+                + nb_processes * process_header_size;
+        lseek(trace_in, header_offset, SEEK_SET);
 
-            // solution: Reading and writing blocks of data. Use the file size
-            //           to deal with the reading of the last block from the
-            //           traces
-            while (trace_size > 0) {
-                buffer_size =
-                        trace_size > __arch->buffer_size ? __arch->buffer_size :
-                                trace_size;
+        // solution: Reading and writing blocks of data. Use the file size
+        //           to deal with the reading of the last block from the
+        //           traces
+        while (1) {
+            res = read(trace_in, __arch->buffer, __arch->buffer_size);
 
-                res = read(trace_in, __arch->buffer, buffer_size);
-
-                if (res < 0) {
-                    perror("Cannot read the data from the traces!");
-                    exit(EXIT_FAILURE);
-                }
-
-                res = write(__arch->f_handle, __arch->buffer, res);
-                __arch->general_offset += res;
-
-                trace_size -= buffer_size;
+            if (res < 0) {
+                perror("Cannot read the data from the traces!");
+                exit(EXIT_FAILURE);
             }
+
+            res = write(__arch->f_handle, __arch->buffer, res);
+            __arch->general_offset += res;
+
+            if (res < __arch->buffer_size)
+                break;
         }
 
         close(trace_in);
     }
-
 }
 
 /*
