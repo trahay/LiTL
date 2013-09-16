@@ -41,7 +41,7 @@ static void __litl_merge_set_archive_name(const char* filename) {
 static void __litl_merge_add_archive_header() {
 
     int trace_in, res __attribute__ ((__unused__));
-    litl_med_size_t j, trace_index, header_size, general_header_size,
+    litl_med_size_t trace_index, process_index, general_header_size,
             process_header_size, global_header_size, nb_processes,
             total_nb_processes;
     litl_buffer_t header_buffer, header_buffer_ptr;
@@ -89,8 +89,8 @@ static void __litl_merge_add_archive_header() {
         }
 
         // read headers of processes
-        header_size = nb_processes * process_header_size;
-        res = read(trace_in, __arch->buffer, header_size);
+        res = read(trace_in, __arch->buffer,
+                nb_processes * process_header_size);
 
         // find the trace size
         if (nb_processes == 1) {
@@ -106,15 +106,20 @@ static void __litl_merge_add_archive_header() {
                             - process_header_size;
         }
 
-        for (j = 0; j < nb_processes; j++) {
-            __triples[trace_index][j].nb_processes = nb_processes;
-            __triples[trace_index][j].offset = global_header_size
-                    + (j + 1) * process_header_size - sizeof(litl_offset_t);
+        for (process_index = 0; process_index < nb_processes; process_index++) {
+            __triples[trace_index][process_index].nb_processes = nb_processes;
+            __triples[trace_index][process_index].position = global_header_size
+                    + (process_index + 1) * process_header_size
+                    - sizeof(litl_offset_t);
+            __triples[trace_index][process_index].offset =
+                    ((litl_process_header_t *) __arch->buffer)->offset
+                            - general_header_size
+                            - nb_processes * process_header_size;
+            __arch->buffer += process_header_size;
         }
 
         total_nb_processes += nb_processes;
-        global_header_size += header_size;
-        __arch->buffer += header_size;
+        global_header_size += nb_processes * process_header_size;
 
         free(header_buffer_ptr);
         close(trace_in);
@@ -166,9 +171,9 @@ static void __litl_merge_init_archive(const char* arch_name,
  */
 static void __litl_merge_create_archive() {
     int trace_in, res;
-    litl_med_size_t j, trace_index, nb_processes;
-    litl_trace_size_t buffer_size, header_offset, general_header_size,
-            process_header_size;
+    litl_offset_t offset;
+    litl_med_size_t trace_index, process_index, nb_processes;
+    litl_trace_size_t header_offset, general_header_size, process_header_size;
 
     general_header_size = sizeof(litl_general_header_t);
     process_header_size = sizeof(litl_process_header_t);
@@ -183,11 +188,12 @@ static void __litl_merge_create_archive() {
 
         // update offsets of processes
         nb_processes = __triples[trace_index][0].nb_processes;
-        for (j = 0; j < nb_processes; j++) {
-            // TODO: for multiple processes
-            lseek(__arch->f_handle, __triples[trace_index][j].offset, SEEK_SET);
-            res = write(__arch->f_handle, &__arch->general_offset,
-                    sizeof(litl_offset_t));
+        for (process_index = 0; process_index < nb_processes; process_index++) {
+            lseek(__arch->f_handle,
+                    __triples[trace_index][process_index].position, SEEK_SET);
+            offset = __triples[trace_index][process_index].offset
+                    + __arch->general_offset;
+            res = write(__arch->f_handle, &offset, sizeof(litl_offset_t));
             lseek(__arch->f_handle, __arch->general_offset, SEEK_SET);
         }
 
@@ -210,7 +216,7 @@ static void __litl_merge_create_archive() {
             res = write(__arch->f_handle, __arch->buffer, res);
             __arch->general_offset += res;
 
-            if (res < __arch->buffer_size)
+            if ((litl_size_t) res < __arch->buffer_size)
                 break;
         }
 
@@ -225,14 +231,14 @@ static void __litl_merge_finalize_archive() {
     close(__arch->f_handle);
 
     // free offsets
-    litl_med_size_t i;
-    for (i = 0; i < __arch->nb_traces; i++)
-        free(__triples[i]);
+    litl_med_size_t trace_index;
+    for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++)
+        free(__triples[trace_index]);
     free(__triples);
 
     // free filenames
-    for (i = 0; i < __arch->nb_traces; i++)
-        free(__arch->traces_names[i]);
+    for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++)
+        free(__arch->traces_names[trace_index]);
     free(__arch->traces_names);
 
     free(__arch->buffer_ptr);
