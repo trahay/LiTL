@@ -23,7 +23,7 @@
 int main() {
     int i, nb_iter;
 
-    char* filename = "/tmp/test_fxt_trace_size.trace";
+    char* filename = "/tmp/test_litl_fxt_trace_size.trace";
     const uint32_t buffer_size = 16 * 1024 * 1024; // 16MB
     nb_iter = 1000;
 

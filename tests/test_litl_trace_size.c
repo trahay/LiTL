@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
         filename = argv[2];
     else
-        filename = "/tmp/test_trace_size.trace";
+        filename = "/tmp/test_litl_trace_size.trace";
 
     printf("Recording events with six arguments of type uint8_t\n\n");
 
