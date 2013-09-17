@@ -49,8 +49,6 @@ static void __litl_split_read_header() {
     // get the number of processes
     __arch->trace_header = (litl_general_header_t *) __arch->header_buffer;
     __arch->nb_processes = __arch->trace_header->nb_processes;
-    // we split one process into one trace file
-    __arch->trace_header->nb_processes = 1;
 
     if (__arch->nb_processes == 1) {
         printf(
@@ -72,7 +70,12 @@ static void __litl_split_read_header() {
         perror("Could not read the archive header!");
         exit(EXIT_FAILURE);
     }
-    __arch->header_buffer = __arch->header_buffer_ptr + general_header_size;
+    __arch->header_buffer = __arch->header_buffer_ptr;
+    __arch->trace_header = (litl_general_header_t *) __arch->header_buffer;
+    __arch->header_buffer += general_header_size;
+
+    // for splitting: one process into one trace file
+    __arch->trace_header->nb_processes = 1;
 }
 
 /*
@@ -112,10 +115,10 @@ static void __litl_split_extract_traces(const char *dir) {
                 + process_header_size;
         res = write(trace_out, __arch->process_header, process_header_size);
 
-        // set a file pointer to the position of the current trace
+        // set a file pointer to the position of the current process
         lseek(__arch->f_handle, buffer_size, SEEK_SET);
 
-        // read data and write to separate traces
+        // read data and write to a separate trace
         while (__arch->process_header->trace_size) {
             buffer_size =
                     __arch->process_header->trace_size > __arch->buffer_size ? __arch->buffer_size :

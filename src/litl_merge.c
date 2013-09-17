@@ -44,7 +44,7 @@ static void __litl_merge_add_archive_header() {
     litl_med_size_t trace_index, process_index, general_header_size,
             process_header_size, global_header_size, nb_processes,
             total_nb_processes;
-    litl_buffer_t header_buffer, header_buffer_ptr;
+    litl_buffer_t header_buffer;
 
     total_nb_processes = 0;
     global_header_size = 0;
@@ -66,9 +66,8 @@ static void __litl_merge_add_archive_header() {
         }
 
         // read the trace header
-        header_buffer_ptr = (litl_buffer_t) malloc(general_header_size);
-        res = read(trace_in, header_buffer_ptr, general_header_size);
-        header_buffer = header_buffer_ptr;
+        header_buffer = (litl_buffer_t) malloc(general_header_size);
+        res = read(trace_in, header_buffer, general_header_size);
 
         nb_processes = ((litl_general_header_t *) header_buffer)->nb_processes;
         __triples[trace_index] = (litl_trace_triples_t *) malloc(
@@ -94,7 +93,6 @@ static void __litl_merge_add_archive_header() {
 
         // find the trace size
         if (nb_processes == 1) {
-            // lseek(trace_in, 0, SEEK_SET);
             struct stat st;
             if (fstat(trace_in, &st)) {
                 perror("Cannot apply fstat to the input trace files!");
@@ -121,7 +119,7 @@ static void __litl_merge_add_archive_header() {
         total_nb_processes += nb_processes;
         global_header_size += nb_processes * process_header_size;
 
-        free(header_buffer_ptr);
+        free(header_buffer);
         close(trace_in);
     }
 
@@ -131,6 +129,7 @@ static void __litl_merge_add_archive_header() {
 
     res = write(__arch->f_handle, __arch->buffer_ptr, global_header_size);
     __arch->general_offset += global_header_size;
+    __arch->buffer = __arch->buffer_ptr;
 }
 
 /*
@@ -144,7 +143,7 @@ static void __litl_merge_init_archive(const char* arch_name,
 
     // allocate buffer for read/write ops
     __arch->buffer_size = 16 * 1024 * 1024; // 16 MB
-    __arch->buffer_ptr = (litl_buffer_t) malloc(__arch->buffer_size);
+    __arch->buffer_ptr = (litl_buffer_t) calloc(__arch->buffer_size, 1);
     __arch->buffer = __arch->buffer_ptr;
 
     __arch->nb_traces = nb_traces;
@@ -237,6 +236,7 @@ static void __litl_merge_finalize_archive() {
     free(__triples);
 
     // free filenames
+    free(__arch->filename);
     for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++)
         free(__arch->traces_names[trace_index]);
     free(__arch->traces_names);
