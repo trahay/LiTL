@@ -197,8 +197,8 @@ file into bytes and also chunks of bytes, which store event's components. The
 space occupied by each event is highlighted with parentheses.
 
 \begin{landscape}
-\input{tikz/event.storage.all.line.packed}
-\input{tikz/event.storage.trace.file}
+\input{@top_srcdir@/doc/tikz/event.storage.all.line.packed}
+\input{@top_srcdir@/doc/tikz/event.storage.trace.file}
 \end{landscape}
 
 \Cref{fig:event_storage_litl} shows the storage of the recorded packed events in 
@@ -237,7 +237,7 @@ a large number of threads at the same time. Thus, analyzing \openmp{}
 applications that run lots of threads using such tracing libraries may result 
 in the high overhead.
 
-\input{tikz/event.recording.all}
+\input{@top_srcdir@/doc/tikz/event.recording.all}
 
 \subsection{Recording Events}
 While designing \litl{}, we aim at resolving the above-mentioned limitation of 
@@ -324,8 +324,8 @@ with the \texttt{litl\_split} utility. This utility can be applied when there is
 a need to analyze a particular trace or a set of traces among the merged ones.
 
 \begin{landscape}
-\input{tikz/event.storage.trace.file.merge}
-\end{landscape}  
+\input{@top_srcdir@/doc/tikz/event.storage.trace.file.merge}
+\end{landscape}
 
 
 \chapter{\litl{} in \fxt{} Applications}
@@ -446,7 +446,7 @@ and ask our development team on the development mailing list
 \phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
 \small
-\bibliography{references}
+\bibliography{@top_srcdir@/doc/references}
 \normalsize
 
 \end{document}

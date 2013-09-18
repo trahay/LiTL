@@ -111,4 +111,7 @@ AC_OUTPUT([Makefile litl.pc \
            src/Makefile \
            utils/Makefile \
            tests/Makefile \
-           doc/Makefile ])
+           doc/Makefile \
+           doc/user_manual.tex \
+           doc/header.tex\
+           doc/doxygen_header.tex ])

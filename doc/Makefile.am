@@ -42,7 +42,7 @@ CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
              $(MANNAME).toc $(MANAUX) $(MANNAME).auxlock $(MANNAME).bbl \
              $(MANNAME).blg $(MANNAME).fdb_latexmk $(MANNAME).fls header.aux
 
-$(MANPDF): $(srcdir)/$(MANTEXSRC)
+$(MANPDF): $(MANTEXSRC)
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -bibtex $<
 #	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
 

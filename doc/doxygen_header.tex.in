@@ -1,4 +1,5 @@
 \documentclass{book}
+\usepackage{fancyhdr}
 \usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
 \usepackage{makeidx}
 \usepackage{natbib}
@@ -77,6 +78,7 @@
 \setcounter{tocdepth}{3}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\familydefault}{\sfdefault}
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}}}
 \hfuzz=15pt
 \setlength{\emergencystretch}{15pt}
 \hbadness=750
@@ -88,7 +90,7 @@
 \begin{center}
 % {\Large litl \\[1ex]\large 0.\-1-\/dev }\\
 {\LARGE LiTL: Lightweight Trace Library }\\[2mm]
-{\large Version 0.\-1 }\\
+{\large Version @PACKAGE_VERSION@ }\\
 \vspace*{1cm}
 {\LARGE Reference Manual}\\
 \vspace*{1cm}

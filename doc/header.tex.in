@@ -9,7 +9,7 @@
                
 \newcommand{\litl}{LiTL}
 \newcommand{\reporttitle}{\litl}               
-\newcommand{\reportsubtitle}{Lightweight Trace Library}
+\newcommand{\reportsubtitle}{Lightweight Trace Library @PACKAGE_VERSION@}
 \newcommand{\reportsubsubtitle}{User Manual}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{etex}
