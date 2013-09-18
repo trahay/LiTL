@@ -33,6 +33,6 @@
  * \param nb_traces A number of trace files to be composed into an archive
  */
 void litl_merge_traces(const char* arch_name, char** traces_names,
-        const int nb_traces);
+		       const int nb_traces);
 
 #endif /* LITL_MERGE_H_ */

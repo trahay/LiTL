@@ -29,38 +29,38 @@ typedef litl_write_trace_t* fxt_t;
 static fxt_t __trace;
 
 /* BEGIN -- Recording functions */
-#define fut_setup(buffer_size, keymask, threadid) do {          \
-      __trace = litl_write_init_trace(buffer_size);             \
-      litl_write_pause_recording(__trace);                      \
-    }while(0)
+#define fut_setup(buffer_size, keymask, threadid) do {	\
+    __trace = litl_write_init_trace(buffer_size);	\
+    litl_write_pause_recording(__trace);		\
+  }while(0)
 
 // finalizing traces
-#define fut_endup(filename) do {                                \
-      litl_write_finalize_trace(__trace);                       \
-    }while(0)
-#define fut_done(void) do {                                     \
-    } while(0)
+#define fut_endup(filename) do {		\
+    litl_write_finalize_trace(__trace);		\
+  }while(0)
+#define fut_done(void) do {			\
+  } while(0)
 
-#define fut_set_filename(filename) do {                         \
-      litl_write_set_filename(__trace, filename);               \
-      litl_write_resume_recording(__trace);                     \
-    } while(0)
+#define fut_set_filename(filename) do {		\
+    litl_write_set_filename(__trace, filename);	\
+    litl_write_resume_recording(__trace);	\
+  } while(0)
 
-#define enable_fut_flush() do {                                 \
-      litl_write_buffer_flush_on(__trace);                      \
-    } while(0)
+#define enable_fut_flush() do {			\
+    litl_write_buffer_flush_on(__trace);	\
+  } while(0)
 
-#define disable_fut_flush() do {                                \
-      litl_write_buffer_flush_off(__trace);                     \
-    } while(0)
+#define disable_fut_flush() do {		\
+    litl_write_buffer_flush_off(__trace);	\
+  } while(0)
 
-#define fut_enable_tid_logging() do {                           \
-      litl_write_tid_recording_on(__trace);                     \
-    } while(0)
+#define fut_enable_tid_logging() do {		\
+    litl_write_tid_recording_on(__trace);	\
+  } while(0)
 
-#define fut_disable_tid_logging() do {                          \
-      litl_write_tid_recording_off(__trace);                    \
-    } while(0)
+#define fut_disable_tid_logging() do {		\
+    litl_write_tid_recording_off(__trace);	\
+  } while(0)
 
 /* END -- Recording functions */
 

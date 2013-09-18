@@ -35,7 +35,9 @@
 
 /**
  * \ingroup litl_timer_init
- * \brief A callback function that returns the current time in ns. It can be either a pointer to one of the timing functions provided by LiTL or a user-defined function
+ * \brief A callback function that returns the current time in ns. It can be
+ * either a pointer to one of the timing functions provided by LiTL or a
+ * user-defined function
  */
 typedef litl_time_t (*litl_timing_method_t)();
 
@@ -64,7 +66,8 @@ int litl_set_timing_method(litl_timing_method_t callback);
 /**
  * \ingroup litl_timer_measure
  * \brief Uses clock_gettime(CLOCK_MONOTONIC_RAW)
- * \return Returns time that is similar to CLOCK_MONOTONIC, but provides access to a raw hardware-based time
+ * \return Returns time that is similar to CLOCK_MONOTONIC, but provides access
+ *  to a raw hardware-based time
  */
 litl_time_t litl_get_time_monotonic_raw();
 
