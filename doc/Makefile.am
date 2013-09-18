@@ -38,7 +38,7 @@ MANTEXSRC = $(MANNAME).tex
 MANAUX = $(MANNAME).aux
 MANPDF = $(MANNAME).pdf
 
-CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \ 
+CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
              $(MANNAME).toc $(MANAUX) $(MANNAME).auxlock $(MANNAME).bbl \
              $(MANNAME).blg $(MANNAME).fdb_latexmk $(MANNAME).fls header.aux
 
