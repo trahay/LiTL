@@ -143,8 +143,8 @@ void litl_time_initialize() {
     }
   }
   return;
- not_available: __attribute__ ((__unused__)) fprintf(stderr,
-						     "Timing function '%s' not available on this system\n", time_str);
+  not_available: __attribute__ ((__unused__)) fprintf(stderr,
+      "Timing function '%s' not available on this system\n", time_str);
   abort();
 }
 
@@ -175,7 +175,7 @@ litl_time_t litl_get_time_monotonic_raw() {
   return __litl_get_time_generic(CLOCK_MONOTONIC_RAW);
 #else
   ERROR_TIMER_NOT_AVAILABLE()
-    ;
+  ;
   return -1;
 #endif
 }
@@ -188,7 +188,7 @@ litl_time_t litl_get_time_monotonic() {
   return __litl_get_time_generic(CLOCK_MONOTONIC);
 #else
   ERROR_TIMER_NOT_AVAILABLE()
-    ;
+  ;
   return -1;
 #endif
 }
@@ -201,7 +201,7 @@ litl_time_t litl_get_time_realtime() {
   return __litl_get_time_generic(CLOCK_REALTIME);
 #else
   ERROR_TIMER_NOT_AVAILABLE()
-    ;
+  ;
   return -1;
 #endif
 }
@@ -214,7 +214,7 @@ litl_time_t litl_get_time_process_cputime() {
   return __litl_get_time_generic(CLOCK_PROCESS_CPUTIME_ID);
 #else
   ERROR_TIMER_NOT_AVAILABLE()
-    ;
+  ;
   return -1;
 #endif
 }
@@ -227,7 +227,7 @@ litl_time_t litl_get_time_thread_cputime() {
   return __litl_get_time_generic(CLOCK_THREAD_CPUTIME_ID);
 #else
   ERROR_TIMER_NOT_AVAILABLE()
-    ;
+  ;
   return -1;
 #endif
 }

@@ -51,19 +51,20 @@ static void __litl_split_read_header() {
   __arch->nb_processes = __arch->trace_header->nb_processes;
 
   if (__arch->nb_processes == 1) {
-    printf("The given trace is not an archive. Therefore, there is nothing to split.\n");
+    printf(
+        "The given trace is not an archive. Therefore, there is nothing to split.\n");
     exit(EXIT_SUCCESS);
   }
 
   // Yes, we work with an archive of trace. So, we increase the header size
   //   and relocate the header buffer
   header_size += __arch->nb_processes * sizeof(litl_process_header_t);
-  __arch->header_buffer_ptr = (litl_buffer_t) realloc(__arch->header_buffer_ptr, header_size);
+  __arch->header_buffer_ptr = (litl_buffer_t) realloc(__arch->header_buffer_ptr,
+      header_size);
 
   // read headers of all processes
-  res = read(__arch->f_handle,
-	     __arch->header_buffer_ptr + general_header_size,
-	     header_size - general_header_size);
+  res = read(__arch->f_handle, __arch->header_buffer_ptr + general_header_size,
+      header_size - general_header_size);
   if (res == -1) {
     perror("Could not read the archive header!");
     exit(EXIT_FAILURE);
@@ -90,17 +91,16 @@ static void __litl_split_extract_traces(const char *dir) {
 
   while (__arch->nb_processes-- != 0) {
     // get a process header
-    __arch->process_header =
-      (litl_process_header_t *) __arch->header_buffer;
+    __arch->process_header = (litl_process_header_t *) __arch->header_buffer;
     __arch->header_buffer += process_header_size;
 
     res = asprintf(&trace_name, "%s/%s", dir,
-		   __arch->process_header->process_name);
+        __arch->process_header->process_name);
 
     // create and open a new trace file
     if ((trace_out = open(trace_name, O_WRONLY | O_CREAT, 0644)) < 0) {
       fprintf(stderr, "Cannot create and open %s\n",
-	      __arch->process_header->process_name);
+          __arch->process_header->process_name);
       exit(EXIT_FAILURE);
     }
 
@@ -109,8 +109,7 @@ static void __litl_split_extract_traces(const char *dir) {
 
     // write a process header
     buffer_size = __arch->process_header->offset;
-    __arch->process_header->offset = general_header_size
-      + process_header_size;
+    __arch->process_header->offset = general_header_size + process_header_size;
     res = write(trace_out, __arch->process_header, process_header_size);
 
     // set a file pointer to the position of the current process
@@ -119,8 +118,8 @@ static void __litl_split_extract_traces(const char *dir) {
     // read data and write to a separate trace
     while (__arch->process_header->trace_size) {
       buffer_size =
-	__arch->process_header->trace_size > __arch->buffer_size ? __arch->buffer_size :
-	__arch->process_header->trace_size;
+          __arch->process_header->trace_size > __arch->buffer_size ? __arch->buffer_size :
+              __arch->process_header->trace_size;
 
       res = read(__arch->f_handle, __arch->buffer, buffer_size);
 
