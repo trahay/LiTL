@@ -12,7 +12,12 @@ all-local: doxyfile.stamp
 clean-local:
 	rm -rf $(top_srcdir)/doc/man html latex doxyfile.stamp
 
-EXTRA_DIST = html
+EXTRA_DIST = html \
+             $(top_srcdir)/doc/tikz/event.recording.all.tex\
+             $(top_srcdir)/doc/tikz/event.storage.all.line.packed.tex\
+             $(top_srcdir)/doc/tikz/event.storage.trace.file.merge.tex\
+             $(top_srcdir)/doc/tikz/event.storage.trace.file.tex \
+             $(top_srcdir)/doc/references.bib
 
 install-data-local:
 	for f in `find $(builddir)/html` ; do \
