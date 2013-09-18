@@ -127,9 +127,9 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
 #define __LITL_READ_INIT_PTR(evt, _ptr_)                        \
   do {                                                          \
     if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)            \
-      _ptr_ = &LITL_REGULAR(evt)->param[0];                     \
+      _ptr_ = &LITL_READ_REGULAR(evt)->param[0];                \
     else                                                        \
-      _ptr_ = &LITL_PACKED(evt)->param[0];                      \
+      _ptr_ = &LITL_READ_PACKED(evt)->param[0];                 \
   } while(0)
 
 /*
