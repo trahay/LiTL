@@ -4,6 +4,7 @@
 AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src -L$(top_srcdir)/src
 
 AM_LDFLAGS = $(top_builddir)/src/liblitl.la
+#AM_LDADD = $(top_builddir)/src/liblitl.la
 #LITLDEPENDENCIES = $(AM_LDFLAGS)
 
 CTESTS = test_litl_write \
@@ -22,24 +23,32 @@ TESTS = $(CTESTS)
 test_litl_write_SOURCES = test_litl_write.c
 
 test_litl_write_concurent_SOURCES = test_litl_write_concurent.c
-test_litl_write_concurent_LDFLAGS = -lpthread -llitl
+test_litl_write_concurent_LDFLAGS = -lpthread
+test_litl_write_concurent_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_write_multiple_threads_SOURCES = test_litl_write_multiple_threads.c
-test_litl_write_multiple_threads_LDFLAGS = -lpthread -llitl
+test_litl_write_multiple_threads_LDFLAGS = -lpthread
+test_litl_write_multiple_threads_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_write_multiple_applications_SOURCES = test_litl_write_multiple_applications.c
-test_litl_write_multiple_applications_LDFLAGS = -lpthread -llitl
+test_litl_write_multiple_applications_LDFLAGS = -lpthread
+test_litl_write_multiple_applications_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_read_SOURCES = test_litl_read.c
+test_litl_read_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_pause_SOURCES = test_litl_pause.c
+test_litl_pause_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_buffer_SOURCES = test_litl_buffer_size.c
+test_litl_buffer_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_trace_size_SOURCES = test_litl_trace_size.c
+test_litl_trace_size_LDADD = $(top_builddir)/src/liblitl.la
 
 test_litl_mapping_to_fxt_SOURCES = test_litl_mapping_to_fxt.c
-test_litl_mapping_to_fxt_LDFLAGS = -lpthread -llitl 
+test_litl_mapping_to_fxt_LDFLAGS = -lpthread
+test_litl_mapping_to_fxt_LDADD = $(top_builddir)/src/liblitl.la
 
 clean-local:
 	rm -rf Makefile.in Makefile.bk
