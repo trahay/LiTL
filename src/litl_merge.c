@@ -25,7 +25,7 @@ static void __litl_merge_set_archive_name(const char* filename) {
   // check whether the file name was set. If no, set it by default trace name
   if (filename == NULL )
     res = asprintf(&__arch->filename, "/tmp/%s_%s", getenv("USER"),
-        "litl_archive_1");
+                   "litl_archive_1");
 
   if (asprintf(&__arch->filename, "%s", filename) == -1) {
     perror("Error: Cannot set the filename for recording events!\n");
@@ -59,7 +59,7 @@ static void __litl_merge_add_archive_header() {
 
     if ((trace_in = open(__arch->traces_names[trace_index], O_RDONLY)) < 0) {
       fprintf(stderr, "[litl_merge] Cannot open %s to read its header\n",
-          __arch->traces_names[trace_index]);
+              __arch->traces_names[trace_index]);
       exit(EXIT_FAILURE);
     }
 
@@ -74,9 +74,10 @@ static void __litl_merge_add_archive_header() {
     // add a general header
     if (trace_index == 0) {
       sprintf((char*) ((litl_general_header_t *) __arch->buffer)->litl_ver,
-          "%s", (char*) ((litl_general_header_t *) header_buffer)->litl_ver);
+              "%s",
+              (char*) ((litl_general_header_t *) header_buffer)->litl_ver);
       sprintf((char*) ((litl_general_header_t *) __arch->buffer)->sysinfo, "%s",
-          (char*) ((litl_general_header_t *) header_buffer)->sysinfo);
+              (char*) ((litl_general_header_t *) header_buffer)->sysinfo);
 
       global_header_size += general_header_size;
       __arch->buffer += general_header_size;
@@ -94,17 +95,17 @@ static void __litl_merge_add_archive_header() {
       }
 
       ((litl_process_header_t *) __arch->buffer)->trace_size =
-          (litl_trace_size_t) st.st_size - general_header_size
-              - process_header_size;
+        (litl_trace_size_t) st.st_size - general_header_size
+          - process_header_size;
     }
 
     for (process_index = 0; process_index < nb_processes; process_index++) {
       __triples[trace_index][process_index].nb_processes = nb_processes;
       __triples[trace_index][process_index].position = global_header_size
-          + (process_index + 1) * process_header_size - sizeof(litl_offset_t);
+        + (process_index + 1) * process_header_size - sizeof(litl_offset_t);
       __triples[trace_index][process_index].offset =
-          ((litl_process_header_t *) __arch->buffer)->offset
-              - general_header_size - nb_processes * process_header_size;
+        ((litl_process_header_t *) __arch->buffer)->offset - general_header_size
+          - nb_processes * process_header_size;
       __arch->buffer += process_header_size;
     }
 
@@ -117,7 +118,7 @@ static void __litl_merge_add_archive_header() {
 
   // update the number of processes
   ((litl_general_header_t *) __arch->buffer_ptr)->nb_processes =
-      total_nb_processes;
+    total_nb_processes;
 
   res = write(__arch->f_handle, __arch->buffer_ptr, global_header_size);
   __arch->general_offset += global_header_size;
@@ -129,7 +130,7 @@ static void __litl_merge_add_archive_header() {
  * Allocates memory for the buffer
  */
 static void __litl_merge_init_archive(const char* arch_name,
-    char** traces_names, const int nb_traces) {
+                                      char** traces_names, const int nb_traces) {
 
   __arch = (litl_trace_merge_t *) malloc(sizeof(litl_trace_merge_t));
 
@@ -146,7 +147,7 @@ static void __litl_merge_init_archive(const char* arch_name,
 
   // create an archive for trace files in rw-r-r- mode (0644)
   if ((__arch->f_handle = open(__arch->filename, O_WRONLY | O_CREAT, 0644))
-      < 0) {
+    < 0) {
     fprintf(stderr, "[litl_merge] Cannot open %s archive\n", __arch->filename);
     exit(EXIT_FAILURE);
   }
@@ -171,7 +172,7 @@ static void __litl_merge_create_archive() {
   for (trace_index = 0; trace_index < __arch->nb_traces; trace_index++) {
     if ((trace_in = open(__arch->traces_names[trace_index], O_RDONLY)) < 0) {
       fprintf(stderr, "[litl_merge] Cannot open %s\n",
-          __arch->traces_names[trace_index]);
+              __arch->traces_names[trace_index]);
       exit(EXIT_FAILURE);
     }
 
@@ -179,9 +180,9 @@ static void __litl_merge_create_archive() {
     nb_processes = __triples[trace_index][0].nb_processes;
     for (process_index = 0; process_index < nb_processes; process_index++) {
       lseek(__arch->f_handle, __triples[trace_index][process_index].position,
-          SEEK_SET);
+            SEEK_SET);
       offset = __triples[trace_index][process_index].offset
-          + __arch->general_offset;
+        + __arch->general_offset;
       res = write(__arch->f_handle, &offset, sizeof(litl_offset_t));
       lseek(__arch->f_handle, __arch->general_offset, SEEK_SET);
     }
@@ -237,7 +238,7 @@ static void __litl_merge_finalize_archive() {
 }
 
 void litl_merge_traces(const char* arch_name, char** traces_names,
-    const int nb_traces) {
+                       const int nb_traces) {
   __litl_merge_init_archive(arch_name, traces_names, nb_traces);
 
   __litl_merge_create_archive();

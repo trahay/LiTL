@@ -33,7 +33,7 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
   int i;
 
   litl_data_t val[] =
-      "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
+    "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
   for (i = 0; i < NBITER; i++) {
     litl_write_probe_reg_0(__trace, 0x100 * (i + 1) + 1);
     usleep(100);
@@ -50,16 +50,16 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
     litl_write_probe_reg_6(__trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
     usleep(100);
     litl_write_probe_reg_7(__trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13,
-        17);
+                           17);
     usleep(100);
     litl_write_probe_reg_8(__trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-        19);
+                           19);
     usleep(100);
     litl_write_probe_reg_9(__trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13,
-        17, 19, 23);
+                           17, 19, 23);
     usleep(100);
     litl_write_probe_reg_10(__trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13,
-        17, 19, 23, 29);
+                            17, 19, 23, 29);
     usleep(100);
     litl_write_probe_raw(__trace, 0x100 * (i + 1) + 12, sizeof(val), val);
     usleep(100);
@@ -90,7 +90,8 @@ void read_trace(char* filename) {
   litl_read_finalize_trace(trace);
 
   if (nb_events != NBEVENT * NBTHREAD) {
-    fprintf(stderr,
+    fprintf(
+        stderr,
         "Some events were NOT recorded!\n Expected nb_events = %d \t Recorded nb_events = %d\n",
         NBEVENT * NBTHREAD, nb_events);
     exit(EXIT_FAILURE);

@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
   nb_iter = 1000;
   for (i = 0; i < nb_iter; i++) {
     litl_write_probe_pack_6(trace, 0x100 * (i + 1) + 6, (int32_t ) 1,
-        (int32_t ) 3, (int32_t ) 5, (int32_t ) 7, (int32_t ) 11, (int32_t ) 13);
+                            (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
+                            (int32_t ) 11, (int32_t ) 13);
     usleep(100);
   }
 
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
   fclose(fp);
 
   printf("\nThe size of the trace file with %d packed event6 is %ld bytes \n",
-      nb_iter, size);
+         nb_iter, size);
 
   return EXIT_SUCCESS;
 }

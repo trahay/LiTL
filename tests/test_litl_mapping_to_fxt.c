@@ -41,13 +41,13 @@ int main() {
     FUT_DO_PROBE1(0x100 * (i + 1) + 1, (uint8_t ) 1);
     FUT_DO_PROBE2(0x100 * (i + 1) + 2, (uint8_t ) 1, (uint8_t ) 3);
     FUT_DO_PROBE3(0x100 * (i + 1) + 3, (uint8_t ) 1, (uint8_t ) 3,
-        (uint8_t ) 5);
+                  (uint8_t ) 5);
     FUT_DO_PROBE4(0x100 * (i + 1) + 4, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5,
-        (uint8_t ) 7);
+                  (uint8_t ) 7);
     FUT_DO_PROBE5(0x100 * (i + 1) + 5, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5,
-        (uint8_t ) 7, (uint8_t ) 11);
+                  (uint8_t ) 7, (uint8_t ) 11);
     FUT_DO_PROBE6(0x100 * (i + 1) + 6, (uint8_t ) 1, (uint8_t ) 3, (uint8_t ) 5,
-        (uint8_t ) 7, (uint8_t ) 11, (uint8_t ) 13);
+                  (uint8_t ) 7, (uint8_t ) 11, (uint8_t ) 13);
     usleep(10);
 
     // int events
@@ -57,9 +57,9 @@ int main() {
     FUT_DO_PROBE3(0x100 * (i + 1) + 10, (int ) 1, (int ) 3, (int ) 5);
     FUT_DO_PROBE4(0x100 * (i + 1) + 11, (int ) 1, (int ) 3, (int ) 5, (int ) 7);
     FUT_DO_PROBE5(0x100 * (i + 1) + 12, (int ) 1, (int ) 3, (int ) 5, (int ) 7,
-        (int ) 11);
+                  (int ) 11);
     FUT_DO_PROBE6(0x100 * (i + 1) + 13, (int ) 1, (int ) 3, (int ) 5, (int ) 7,
-        (int ) 11, (int ) 13);
+                  (int ) 11, (int ) 13);
     usleep(10);
 
     // double events
@@ -68,11 +68,11 @@ int main() {
     FUT_DO_PROBE2(0x100 * (i + 1) + 16, (double ) 1, (double ) 3);
     FUT_DO_PROBE3(0x100 * (i + 1) + 17, (double ) 1, (double ) 3, (double ) 5);
     FUT_DO_PROBE4(0x100 * (i + 1) + 18, (double ) 1, (double ) 3, (double ) 5,
-        (double ) 7);
+                  (double ) 7);
     FUT_DO_PROBE5(0x100 * (i + 1) + 19, (double ) 1, (double ) 3, (double ) 5,
-        (double ) 7, (double ) 11);
+                  (double ) 7, (double ) 11);
     FUT_DO_PROBE6(0x100 * (i + 1) + 20, (double ) 1, (double ) 3, (double ) 5,
-        (double ) 7, (double ) 11, (double ) 13);
+                  (double ) 7, (double ) 11, (double ) 13);
     usleep(10);
   }
 

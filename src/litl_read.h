@@ -45,7 +45,7 @@
  * \param filename A filename
  * \return A pointer to the trace object. NULL in case of failure
  */
-litl_read_trace_t *litl_read_open_trace(const char* filename);
+litl_read_trace_t* litl_read_open_trace(const char* filename);
 
 /**
  * \ingroup litl_read_init
@@ -78,7 +78,7 @@ litl_process_header_t* litl_read_get_process_header(
  * \param buf_size A buffer size (in Byte)
  */
 void litl_read_set_buffer_size(litl_read_trace_t* trace,
-    const litl_size_t buf_size);
+                               const litl_size_t buf_size);
 
 /**
  * \ingroup litl_read_init
@@ -102,7 +102,7 @@ void litl_read_reset_process(litl_read_process_t* process);
  * \param process A pointer to the process object
  */
 litl_read_event_t* litl_read_next_process_event(litl_read_trace_t* trace,
-    litl_read_process_t* process);
+                                                litl_read_process_t* process);
 
 /**
  * \ingroup litl_read_main

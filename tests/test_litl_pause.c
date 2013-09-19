@@ -29,7 +29,7 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
   litl_write_set_filename(trace, filename);
 
   litl_data_t val[] =
-      "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
+    "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
   for (i = 0; i < nb_iter; i++) {
     if (i == skipped_iter - 1) {
       printf("Loop %d: stop recording\n", i);
@@ -53,13 +53,13 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
     litl_write_probe_reg_7(trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
     usleep(100);
     litl_write_probe_reg_8(trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-        19);
+                           19);
     usleep(100);
     litl_write_probe_reg_9(trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17,
-        19, 23);
+                           19, 23);
     usleep(100);
     litl_write_probe_reg_10(trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17,
-        19, 23, 29);
+                            19, 23, 29);
     usleep(100);
     litl_write_probe_raw(trace, 0x100 * (i + 1) + 12, sizeof(val) - 1, val);
     usleep(100);
@@ -71,7 +71,7 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
   }
 
   printf("\nEvents with code between %x and %x were not recorded\n",
-      0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
+         0x100 * skipped_iter + 1, 0x100 * skipped_iter + 12);
 
   litl_write_finalize_trace(trace);
 }
@@ -103,7 +103,7 @@ void read_trace(char* filename, uint32_t left_bound, uint32_t right_bound) {
 
   if (nbevents > 0) {
     fprintf(stderr,
-        "Some events were recorded when they supposed to be skipped");
+            "Some events were recorded when they supposed to be skipped");
     exit(EXIT_FAILURE);
   }
 }

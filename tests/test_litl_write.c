@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
   nb_iter = 1000;
   litl_data_t val[] =
-      "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
+    "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
   for (i = 0; i < (nb_iter + 1) / 12; i++) {
     litl_write_probe_reg_0(trace, 0x100 * (i + 1) + 1);
     usleep(100);
@@ -55,13 +55,13 @@ int main(int argc, char **argv) {
     litl_write_probe_reg_7(trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17);
     usleep(100);
     litl_write_probe_reg_8(trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-        19);
+                           19);
     usleep(100);
     litl_write_probe_reg_9(trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13, 17,
-        19, 23);
+                           19, 23);
     usleep(100);
     litl_write_probe_reg_10(trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13, 17,
-        19, 23, 29);
+                            19, 23, 29);
     usleep(100);
     litl_write_probe_raw(trace, 0x100 * (i + 1) + 12, sizeof(val), val);
     usleep(100);

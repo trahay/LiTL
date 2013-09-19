@@ -73,10 +73,11 @@ int main(int argc, char **argv) {
   printf(" nb_processes \t %d\n", trace_header->nb_processes);
   if (trace_header->nb_processes == 1)
     printf(" nb_threads \t %d\n", process_header->nb_threads);
-  printf(" buffer_size \t %d\n",
+  printf(
+      " buffer_size \t %d\n",
       trace->processes[0]->header->buffer_size
-          - __litl_get_reg_event_size(LITL_MAX_PARAMS)
-          - __litl_get_reg_event_size(0));
+        - __litl_get_reg_event_size(LITL_MAX_PARAMS)
+        - __litl_get_reg_event_size(0));
 
   printf(
       "[Timestamp]\t[ThreadID]\t[EventType]\t[EventCode]\t[NbParam]\t[Parameters]\n");
@@ -89,8 +90,8 @@ int main(int argc, char **argv) {
     switch (LITL_READ_GET_TYPE(event)) {
     case LITL_TYPE_REGULAR: { // regular event
       printf("%"PRTIu64" \t%"PRTIu64" \t  Reg   %"PRTIx32" \t %"PRTIu32,
-          LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
-          LITL_READ_GET_CODE(event), LITL_READ_REGULAR(event)->nb_params);
+             LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+             LITL_READ_GET_CODE(event), LITL_READ_REGULAR(event)->nb_params);
 
       for (i = 0; i < LITL_READ_REGULAR(event)->nb_params; i++)
         printf("\t %"PRTIx64, LITL_READ_REGULAR(event)->param[i]);
@@ -98,15 +99,15 @@ int main(int argc, char **argv) {
     }
     case LITL_TYPE_RAW: { // raw event
       printf("%"PRTIu64"\t%"PRTIu64" \t  Raw   %"PRTIx32" \t %"PRTIu32,
-          LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
-          LITL_READ_GET_CODE(event), LITL_READ_RAW(event)->size);
+             LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+             LITL_READ_GET_CODE(event), LITL_READ_RAW(event)->size);
       printf("\t %s", (litl_data_t *) LITL_READ_RAW(event)->data);
       break;
     }
     case LITL_TYPE_PACKED: { // packed event
       printf("%"PRTIu64" \t%"PRTIu64" \t  Packed   %"PRTIx32" \t %"PRTIu32"\t",
-          LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
-          LITL_READ_GET_CODE(event), LITL_READ_PACKED(event)->size);
+             LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event),
+             LITL_READ_GET_CODE(event), LITL_READ_PACKED(event)->size);
       for (i = 0; i < LITL_READ_PACKED(event)->size; i++) {
         printf(" %x", LITL_READ_PACKED(event)->param[i]);
       }

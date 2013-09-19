@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   printf("Buffer size[KB] \t Time \n");
 
   litl_data_t val[] =
-      "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
+    "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
   buf_size = 1024; // 1KB
   while (buf_size <= MAX_BUFFER_SIZE) {
     trace = litl_write_init_trace(buf_size);
@@ -56,13 +56,13 @@ int main(int argc, char **argv) {
       litl_write_probe_reg_5(trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
       litl_write_probe_reg_6(trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
       litl_write_probe_reg_7(trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13,
-          17);
+                             17);
       litl_write_probe_reg_8(trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-          19);
+                             19);
       litl_write_probe_reg_9(trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13,
-          17, 19, 23);
+                             17, 19, 23);
       litl_write_probe_reg_10(trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13,
-          17, 19, 23, 29);
+                              17, 19, 23, 29);
       litl_write_probe_raw(trace, 0x100 * (i + 1) + 12, sizeof(val) - 1, val);
     }
     fin = litl_get_time();

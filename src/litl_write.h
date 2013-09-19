@@ -134,7 +134,7 @@ void litl_write_probe_reg_0(litl_write_trace_t* trace, litl_code_t code);
  * \param param1 1st parameter for this event
  */
 void litl_write_probe_reg_1(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1);
+                            litl_param_t param1);
 
 /**
  * \ingroup litl_write_reg
@@ -145,7 +145,7 @@ void litl_write_probe_reg_1(litl_write_trace_t* trace, litl_code_t code,
  * \param param2 2nd parameter for this event
  */
 void litl_write_probe_reg_2(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2);
+                            litl_param_t param1, litl_param_t param2);
 
 /**
  * \ingroup litl_write_reg
@@ -157,7 +157,8 @@ void litl_write_probe_reg_2(litl_write_trace_t* trace, litl_code_t code,
  * \param param3 3rd parameter for this event
  */
 void litl_write_probe_reg_3(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3);
 
 /**
  * \ingroup litl_write_reg
@@ -170,8 +171,8 @@ void litl_write_probe_reg_3(litl_write_trace_t* trace, litl_code_t code,
  * \param param4 4th parameter for this event
  */
 void litl_write_probe_reg_4(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4);
 
 /**
  * \ingroup litl_write_reg
@@ -185,8 +186,9 @@ void litl_write_probe_reg_4(litl_write_trace_t* trace, litl_code_t code,
  * \param param5 5th parameter for this event
  */
 void litl_write_probe_reg_5(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4,
+                            litl_param_t param5);
 
 /**
  * \ingroup litl_write_reg
@@ -201,8 +203,9 @@ void litl_write_probe_reg_5(litl_write_trace_t* trace, litl_code_t code,
  * \param param6 6th parameter for this event
  */
 void litl_write_probe_reg_6(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5, litl_param_t param6);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4,
+                            litl_param_t param5, litl_param_t param6);
 
 /**
  * \ingroup litl_write_reg
@@ -218,9 +221,10 @@ void litl_write_probe_reg_6(litl_write_trace_t* trace, litl_code_t code,
  * \param param7 7th parameter for this event
  */
 void litl_write_probe_reg_7(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5, litl_param_t param6,
-    litl_param_t param7);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4,
+                            litl_param_t param5, litl_param_t param6,
+                            litl_param_t param7);
 
 /**
  * \ingroup litl_write_reg
@@ -237,9 +241,10 @@ void litl_write_probe_reg_7(litl_write_trace_t* trace, litl_code_t code,
  * \param param8 8th parameter for this event
  */
 void litl_write_probe_reg_8(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5, litl_param_t param6,
-    litl_param_t param7, litl_param_t param8);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4,
+                            litl_param_t param5, litl_param_t param6,
+                            litl_param_t param7, litl_param_t param8);
 
 /**
  * \ingroup litl_write_reg
@@ -257,9 +262,11 @@ void litl_write_probe_reg_8(litl_write_trace_t* trace, litl_code_t code,
  * \param param9 9th parameter for this event
  */
 void litl_write_probe_reg_9(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5, litl_param_t param6,
-    litl_param_t param7, litl_param_t param8, litl_param_t param9);
+                            litl_param_t param1, litl_param_t param2,
+                            litl_param_t param3, litl_param_t param4,
+                            litl_param_t param5, litl_param_t param6,
+                            litl_param_t param7, litl_param_t param8,
+                            litl_param_t param9);
 
 /**
  * \ingroup litl_write_reg
@@ -278,10 +285,11 @@ void litl_write_probe_reg_9(litl_write_trace_t* trace, litl_code_t code,
  * \param param10 10th parameter for this event
  */
 void litl_write_probe_reg_10(litl_write_trace_t* trace, litl_code_t code,
-    litl_param_t param1, litl_param_t param2, litl_param_t param3,
-    litl_param_t param4, litl_param_t param5, litl_param_t param6,
-    litl_param_t param7, litl_param_t param8, litl_param_t param9,
-    litl_param_t param10);
+                             litl_param_t param1, litl_param_t param2,
+                             litl_param_t param3, litl_param_t param4,
+                             litl_param_t param5, litl_param_t param6,
+                             litl_param_t param7, litl_param_t param8,
+                             litl_param_t param9, litl_param_t param10);
 
 /*** Raw events ***/
 
@@ -294,7 +302,7 @@ void litl_write_probe_reg_10(litl_write_trace_t* trace, litl_code_t code,
  * \param data Data to store with this event
  */
 void litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
-    litl_size_t size, litl_data_t data[]);
+                          litl_size_t size, litl_data_t data[]);
 
 /*** Internal-use macros ***/
 
@@ -308,7 +316,7 @@ void litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
  * \return The allocated event or NULL in case of error
  */
 litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
-    litl_code_t code, int size);
+                               litl_code_t code, int size);
 
 /**
  * \ingroup litl_write_pack

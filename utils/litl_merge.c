@@ -30,8 +30,8 @@ static int __nb_traces;
 
 static void __usage(int argc __attribute__((unused)), char **argv) {
   fprintf(stderr,
-      "Usage: %s [-o archive_name] input_filename input_filename ... \n",
-      argv[0]);
+          "Usage: %s [-o archive_name] input_filename input_filename ... \n",
+          argv[0]);
   printf("       -?, -h:    Display this help and exit\n");
 }
 
