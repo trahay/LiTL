@@ -6,8 +6,11 @@ doxyfile.stamp:
 
 CLEANFILES = doxyfile.stamp
 
-all-local: doxyfile.stamp
+all-local: doxyfile.stamp latex/refman.pdf
+
+latex/refman.pdf:
 	$(MAKE) -C latex
+
 
 clean-local:
 	rm -rf $(top_srcdir)/doc/man html latex doxyfile.stamp
@@ -49,7 +52,6 @@ CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
 
 $(MANPDF): $(MANTEXSRC)
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -bibtex $<
-#	TEXINPUTS="$(srcdir):$(TEXINPUTS)" $(PDFLATEX) $<
 
 dist_doc_DATA = $(docfiles)
 
