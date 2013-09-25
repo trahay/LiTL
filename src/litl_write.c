@@ -87,6 +87,10 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
   litl_write_trace_t* trace;
 
   trace = (litl_write_trace_t*) malloc(sizeof(litl_write_trace_t));
+  if (!trace) {
+    perror("Could not allocate memory for the trace!");
+    exit(EXIT_FAILURE);
+  }
 
   // set variables
   trace->filename = NULL;
@@ -103,12 +107,20 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
 
   trace->is_buffer_full = 0;
   trace->nb_allocated_buffers = 256;
-  trace->buffers = realloc(
-      NULL, sizeof(litl_write_buffer_t*) * trace->nb_allocated_buffers);
+  trace->buffers = malloc(
+      sizeof(litl_write_buffer_t*) * trace->nb_allocated_buffers);
+  if (!trace->buffers) {
+    perror("Could not allocate memory for the threads!");
+    exit(EXIT_FAILURE);
+  }
 
   for (i = 0; i < trace->nb_allocated_buffers; i++) {
     // initialize the array already_flushed
     trace->buffers[i] = malloc(sizeof(litl_write_buffer_t));
+    if (!trace->buffers[i]) {
+      perror("Could not allocate memory for a thread\n");
+      exit(EXIT_FAILURE);
+    }
     trace->buffers[i]->already_flushed = 0;
 
     // initialize tids by zeros; this is needed for __is_tid and __find_slot
@@ -403,7 +415,7 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
             __litl_write_get_buffer_size(trace, index)) == -1) {
     perror(
         "Flushing the buffer. Could not write measured data to the trace file!");
-    abort();
+    exit(EXIT_FAILURE);
   }
 
   // update the general_offset
@@ -439,8 +451,8 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
         trace->buffers,
         trace->nb_allocated_buffers * 2 * sizeof(litl_write_buffer_t*));
     if (!ptr) {
-      fprintf(stderr, "LiTL failed to allocate memory. Aborting.\n");
-      abort();
+      perror("LiTL failed to reallocate memory for threads!\n");
+      exit(EXIT_FAILURE);
     }
 
     trace->buffers = ptr;
@@ -448,6 +460,10 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
     for (i = trace->nb_allocated_buffers; i < 2 * trace->nb_allocated_buffers;
         i++) {
       trace->buffers[i] = malloc(sizeof(litl_write_buffer_t));
+      if (!trace->buffers[i]) {
+        perror("Could not allocate memory for a thread\n!");
+        exit(EXIT_FAILURE);
+      }
       trace->buffers[i]->already_flushed = 0;
     }
     trace->nb_allocated_buffers *= 2;
@@ -462,7 +478,7 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
       trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS)
         + __litl_get_reg_event_size(1));
   if (!trace->buffers[*pos]->buffer_ptr) {
-    perror("Could not allocate memory for the buffer!");
+    perror("Could not allocate memory buffer for the thread\n!");
     exit(EXIT_FAILURE);
   }
 
@@ -479,7 +495,7 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
 litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
                                litl_code_t code, int size) {
 
-  if (trace->is_litl_initialized && !trace->is_recording_paused
+  if (trace && trace->is_litl_initialized && !trace->is_recording_paused
     && !trace->is_buffer_full) {
 
     // find the thread index
