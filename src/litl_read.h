@@ -149,7 +149,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
  * Returns the next parameter in a regular event
  */
 #define __LITL_READ_GET_ARG_REGULAR(_ptr_, arg) do {	\
-    arg = *(litl_param_t*)_ptr_;			\
+    arg = (typeof(arg)) *(litl_param_t*)_ptr_;		\
     (litl_param_t*)_ptr_++;				\
   } while(0)
 
