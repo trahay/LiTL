@@ -5,7 +5,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([litl], [0.1], [todo-litl@fusionforge.int-evry.fr])
+AC_INIT([litl], [0.1.1], [litl-devel@fusionforge.int-evry.fr])
 AM_INIT_AUTOMAKE([1.10 tar-pax color-tests])
 
 # Checks for programs.
