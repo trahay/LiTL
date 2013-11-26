@@ -133,24 +133,27 @@ environment variables:
  \item \texttt{LITL\_BUFFER\_SIZE} provides users with the alternative 
        possibility to set a buffer size. If the variable is not specified, then 
        the provided value inside the application is used;
-       
+
  \item \texttt{LITL\_BUFFER\_FLUSH} specifies the behavior of \litl{} when the 
-       event buffer is full. If it is set to ``on'', which is a default option, 
-       the buffer is flushed. This permits to record traces that are larger 
-       than the buffer size. Otherwise, if it is set to ``off'', any additional 
-       event will not be recorded. The trace is, thus, truncated and there is no 
-       impact on the application performance;
-      
+       event buffer is full. If it is set to ``0'', \litl{} stop recording
+       events. The trace is, thus, truncated and there is no impact on the
+       application performance. If it is set to ``1'' the buffer is written to
+       disk and additional events can be recorded. This permits to record traces
+       that are larger than the buffer size. Please note that the Flush policy
+       may have a significant impact on the application performance since it
+       requires to write a large amount of data to disk during the execution of
+       the application. The default value is \textbf{0}.
+
  \item \texttt{LITL\_TID\_RECORDING} provides users with an alternative 
-       possibility to enable or disable tid recording. If it is set to ``on'', 
-       which is a default value, the tid recording is enabled. Otherwise, when 
-       it is set to ``off'', the tid recording is disable;
+       possibility to enable or disable tid recording. If it is set to ``1'', 
+       the tid recording is enabled. Otherwise, when it is set to ``0'', the tid
+       recording is disable; The default value is \textbf{1}.
 
  \item \texttt{LITL\_THREAD\_SAFETY} specifies the behavior of \litl{} while
-       tracing multi-threaded applications. If it is set to ``on'', which is a 
-       default value, the thread safety is enabled. Otherwise, when it is set to
-       ``off'', the event recording is not thread safe;
- 
+       tracing multi-threaded applications. If it is set to ``1'', the thread
+       safety is enabled. Otherwise, when it is set to ``0'', the event
+       recording is not thread safe; The default value is \textbf{1}.
+
  \item \texttt{LITL\_TIMING\_METHOD} specifies the timing method that will be 
        used during the recording phase. The \litl{} timing methods can be 
        divided into two groups: those that measure time in clock ticks and 
@@ -159,13 +162,13 @@ environment variables:
        \begin{itemize}
         \item \texttt{ticks} that uses the CPU specific register, e.g. rdtsc 
         on X86 and X86\_64 architectures.
-       \end{itemize}     
+       \end{itemize}
        The second group comprises of the other five different methods:
        \begin{itemize}
         \item \texttt{monotonic} that corresponds to \texttt{CLOCK\_MONOTONIC};
         \item \texttt{monotonic\_raw}\dash{}\texttt{CLOCK\_MONOTONIC\_RAW};
         \item \texttt{realtime}\dash{}\texttt{CLOCK\_REALTIME};
-        \item \texttt{thread\_cputime}\dash{}\texttt{CLOCK\_THREAD\_CPUTIME\_ID};        
+        \item \texttt{thread\_cputime}\dash{}\texttt{CLOCK\_THREAD\_CPUTIME\_ID};
         \item \texttt{process\_cputime}\dash{}\texttt{CLOCK\_PROCESS\_CPUTIME\_ID}.
        \end{itemize}
        User can also define its own timing method and set the environment 

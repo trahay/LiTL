@@ -55,41 +55,41 @@ litl_write_trace_t* litl_write_init_trace(const uint32_t buf_size);
 
 /**
  * \ingroup litl_write_init
- * \brief Activates buffer flush
+ * \brief Enable buffer flush. By default, it is disabled
  * \param trace A pointer to the event recording object
  */
 void litl_write_buffer_flush_on(litl_write_trace_t* trace);
 
 /**
  * \ingroup litl_write_init
- * \brief Deactivates buffer flush. By default, it is activated
+ * \brief Disable buffer flush.
  * \param trace A pointer to the event recording object
  */
 void litl_write_buffer_flush_off(litl_write_trace_t* trace);
 
 /**
  * \ingroup litl_write_init
- * \brief Activates thread safety
+ * \brief Enable thread safety
  * \param trace A pointer to the event recording object
  */
 void litl_write_thread_safety_on(litl_write_trace_t* trace);
 
 /**
  * \ingroup litl_write_init
- * \brief Deactivates thread safety. By default, it is activated
+ * \brief Disable thread safety. By default, it is enabled
  * \param trace A pointer to the event recording object
  */
 void litl_write_thread_safety_off(litl_write_trace_t* trace);
 
 /**
  * \ingroup litl_write_init
- * \brief Activates recording tid
+ * \brief Enable recording tid
  */
 void litl_write_tid_recording_on(litl_write_trace_t* trace);
 
 /**
  * \ingroup litl_write_init
- * \brief Deactivates recording tid. By default, it is activated
+ * \brief Disable recording tid. By default, it is enabled
  * \param trace A pointer to the event recording object
  */
 void litl_write_tid_recording_off(litl_write_trace_t* trace);
