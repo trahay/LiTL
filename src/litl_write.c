@@ -140,20 +140,22 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
   pthread_once(&trace->index_once, __init);
 
   // set trace->allow_buffer_flush using the environment variable.
-  //   By default the buffer flushing is enabled
+  //   By default the buffer flushing is disabled
+  litl_write_buffer_flush_off(trace);
   str = getenv("LITL_BUFFER_FLUSH");
-  if (str && (strcmp(str, "off") == 0))
-    litl_write_buffer_flush_off(trace);
-  else
-    litl_write_buffer_flush_on(trace);
+  if (str) {
+    if(strcmp(str, "0") == 0)
+      litl_write_buffer_flush_off(trace);
+    else
+      litl_write_buffer_flush_on(trace);
+  }
 
   // set trace->allow_thread_safety using the environment variable.
   //   By default thread safety is enabled
+  litl_write_thread_safety_on(trace);
   str = getenv("LITL_THREAD_SAFETY");
-  if (str && (strcmp(str, "off") == 0))
+  if (str && (strcmp(str, "0") == 0))
     litl_write_thread_safety_off(trace);
-  else
-    litl_write_thread_safety_on(trace);
 
   if (trace->allow_thread_safety)
     pthread_mutex_init(&trace->lock_litl_flush, NULL );
@@ -161,11 +163,10 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
 
   // set trace->allow_tid_recording using the environment variable.
   //   By default tid recording is enabled
+  litl_write_tid_recording_on(trace);
   str = getenv("LITL_TID_RECORDING");
-  if (str && (strcmp(str, "off") == 0))
+  if (str && (strcmp(str, "0") == 0))
     litl_write_tid_recording_off(trace);
-  else
-    litl_write_tid_recording_on(trace);
 
   trace->is_recording_paused = 0;
   trace->is_litl_initialized = 1;
@@ -540,7 +541,6 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
       __litl_write_flush_buffer(trace, index);
       return __litl_write_get_event(trace, type, code, size);
     } else {
-
       // not enough space, but flushing is disabled so just stop recording
       trace->is_buffer_full = 1;
       return NULL ;
