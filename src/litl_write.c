@@ -136,7 +136,7 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
   void __init() {
     __litl_write_init_var(trace);
   }
-  trace->index_once = PTHREAD_ONCE_INIT;
+  trace->index_once = (pthread_once_t) PTHREAD_ONCE_INIT;
   pthread_once(&trace->index_once, __init);
 
   // set trace->allow_buffer_flush using the environment variable.
