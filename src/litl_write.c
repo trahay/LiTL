@@ -841,6 +841,8 @@ litl_t* litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
  */
 void litl_write_finalize_trace(litl_write_trace_t* trace) {
   litl_med_size_t i;
+  if(!trace)
+    return;
 
   for (i = 0; i < trace->nb_threads; i++)
     __litl_write_flush_buffer(trace, i);
