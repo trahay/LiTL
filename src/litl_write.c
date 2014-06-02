@@ -13,6 +13,8 @@
 #include <sys/utsname.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <assert.h>
 
 #include "litl_timer.h"
 #include "litl_tools.h"
@@ -290,6 +292,31 @@ static void __litl_write_probe_offset(litl_write_trace_t* trace,
   trace->buffers[index]->buffer += LITL_BASE_SIZE + sizeof(litl_param_t);
 }
 
+/* Open the trace file. If the file already exists, delete it first
+ */
+static void __litl_open_new_file(litl_write_trace_t* trace) {
+  /* if file exist. delete it first */
+  if ((trace->f_handle = open(trace->filename, O_WRONLY | O_CREAT | O_EXCL, 0644))
+      < 0) {
+
+    if(errno == EEXIST) {
+      /* file already exist. Delete it and open it */
+      if(unlink(trace->filename) < 0 ){
+	perror("Cannot delete trace file");
+	exit(EXIT_FAILURE);
+      }
+      if ((trace->f_handle = open(trace->filename, O_WRONLY | O_CREAT | O_EXCL, 0644))
+	  < 0) {
+	perror("Cannot open trace file");
+	exit(EXIT_FAILURE);
+      }
+    } else {
+      fprintf(stderr, "Cannot open %s\n", trace->filename);
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
 /*
  * Writes the recorded events from the buffer to the trace file
  */
@@ -305,12 +332,8 @@ static void __litl_write_flush_buffer(litl_write_trace_t* trace,
     pthread_mutex_lock(&trace->lock_litl_flush);
 
   if (!trace->is_header_flushed) {
-    // check whether the trace file can be opened
-    if ((trace->f_handle = open(trace->filename, O_WRONLY | O_CREAT, 0644))
-      < 0) {
-      fprintf(stderr, "Cannot open %s\n", trace->filename);
-      exit(EXIT_FAILURE);
-    }
+    // open the trace file
+    __litl_open_new_file(trace);
 
     // add a header to the trace file
     trace->header_size = sizeof(litl_general_header_t)
