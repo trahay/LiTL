@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 
 #include "litl_types.h"
 #include "litl_write.h"
@@ -37,9 +38,11 @@ int main(int argc, char **argv) {
 
   nb_iter = 1000;
   for (i = 0; i < nb_iter; i++) {
+    litl_t *retval;
     litl_write_probe_pack_6(trace, 0x100 * (i + 1) + 6, (int32_t ) 1,
                             (int32_t ) 3, (int32_t ) 5, (int32_t ) 7,
-                            (int32_t ) 11, (int32_t ) 13);
+                            (int32_t ) 11, (int32_t ) 13, retval);
+    assert(retval != NULL);
     usleep(100);
   }
 
