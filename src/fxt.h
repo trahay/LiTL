@@ -19,6 +19,7 @@
 #define FXT_H_
 
 #include <string.h>
+#include <assert.h>
 
 #include "litl_types.h"
 #include "litl_write.h"
@@ -65,14 +66,57 @@ static fxt_t __trace;
 /* END -- Recording functions */
 
 /* BEGIN -- Events */
-#define FUT_DO_PROBE0(code) litl_write_probe_pack_0(__trace, code)
-#define FUT_DO_PROBE1(code, arg1) litl_write_probe_pack_1(__trace, code, arg1)
-#define FUT_DO_PROBE2(code, arg1, arg2) litl_write_probe_pack_2(__trace, code, arg1, arg2)
-#define FUT_DO_PROBE3(code, arg1, arg2, arg3) litl_write_probe_pack_3(__trace, code, arg1, arg2, arg3)
-#define FUT_DO_PROBE4(code, arg1, arg2, arg3, arg4) litl_write_probe_pack_4(__trace, code, arg1, arg2, arg3, arg4)
-#define FUT_DO_PROBE5(code, arg1, arg2, arg3, arg4, arg5) litl_write_probe_pack_5(__trace, code, arg1, arg2, arg3, arg4, arg5)
-#define FUT_DO_PROBE6(code, arg1, arg2, arg3, arg4, arg5, arg6) litl_write_probe_pack_6(__trace, code, arg1, arg2, arg3, arg4, arg5, arg6)
-#define FUT_DO_PROBE(code, ...) litl_write_probe_pack_0(__trace, code)
+#define FUT_DO_PROBE0(code)				\
+  do {							\
+    litl_t*retval;					\
+    litl_write_probe_pack_0(__trace, code, retval);	\
+    assert(retval != NULL);				\
+  } while(0)
+
+#define FUT_DO_PROBE1(code, arg1)				\
+  do {								\
+    litl_t* retval;						\
+    litl_write_probe_pack_1(__trace, code, arg1, retval);	\
+    assert(retval != NULL);					\
+  }while(0)
+
+#define FUT_DO_PROBE2(code, arg1, arg2)				\
+  do {								\
+  litl_t *retval;						\
+  litl_write_probe_pack_2(__trace, code, arg1, arg2, retval);	\
+  assert(retval != NULL);					\
+}while(0)
+
+#define FUT_DO_PROBE3(code, arg1, arg2, arg3)				\
+  do {									\
+    litl_t *retval;							\
+    litl_write_probe_pack_3(__trace, code, arg1, arg2, arg3, retval);	\
+    assert(retval != NULL);						\
+  }while(0)
+
+#define FUT_DO_PROBE4(code, arg1, arg2, arg3, arg4)			\
+  do {									\
+    litl_t *retval;							\
+    litl_write_probe_pack_4(__trace, code, arg1, arg2, arg3, arg4, retval); \
+    assert(retval != NULL);						\
+  }while(0)
+
+#define FUT_DO_PROBE5(code, arg1, arg2, arg3, arg4, arg5)		\
+  do {									\
+    litl_t *retval;							\
+    litl_write_probe_pack_5(__trace, code, arg1, arg2, arg3, arg4, arg5, retval); \
+    assert(retval != NULL);						\
+  }while(0)
+
+#define FUT_DO_PROBE6(code, arg1, arg2, arg3, arg4, arg5, arg6)		\
+  do {									\
+    litl_t *retval;							\
+    litl_write_probe_pack_6(__trace, code, arg1, arg2, arg3, arg4, arg5, arg6, retval); \
+    assert(retval != NULL);						\
+  }while(0)
+
+#define FUT_DO_PROBE(code, ...) litl_write_probe_pack_0(__trace, code);
+
 #define FUT_DO_PROBESTR(code, str) litl_write_probe_raw(__trace, code, strlen(str), str)
 
 /* END -- Events */
