@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
 
   trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(trace, filename);
+  litl_write_buffer_flush_on(trace);
 
   nb_iter = 1000;
   for (i = 0; i < nb_iter; i++) {

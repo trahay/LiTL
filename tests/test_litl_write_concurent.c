@@ -111,6 +111,7 @@ int main() {
 
   __trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(__trace, filename);
+  litl_write_buffer_flush_on(__trace);
 
   for (i = 0; i < NBTHREAD; i++) {
     pthread_create(&tid[i], NULL, write_trace, &i);
