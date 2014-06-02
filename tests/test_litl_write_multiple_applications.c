@@ -40,13 +40,23 @@ void* write_trace(void* arg) {
   sem_post(&thread_ready);
 
   printf("Recording events on thread #%d\n", my_id);
+#ifdef LITL_TESTBUFFER_FLUSH
+  res = asprintf(&filename, "/tmp/test_litl_write_%d_flush.trace", my_id);
+#else
   res = asprintf(&filename, "/tmp/test_litl_write_%d.trace", my_id);
+#endif
 
   litl_write_trace_t* trace;
   const uint32_t buffer_size = 512 * 1024; // 512KB
 
   trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(trace, filename);
+#ifdef LITL_TESTBUFFER_FLUSH
+  litl_write_buffer_flush_on(trace);
+#else
+  litl_write_buffer_flush_off(trace);
+#endif
+
 
   int nb_iter = 1000;
   litl_data_t val[] =

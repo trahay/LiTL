@@ -27,7 +27,7 @@
 #define NBEVENT (NBITER * 12)
 
 litl_write_trace_t* __trace;
-
+int total_recorded_events = 0;
 /*
  * This test records several traces at the same time
  */
@@ -36,37 +36,65 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
 
   litl_data_t val[] =
     "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
+  int nb_recorded_events = 0;
+
+#define TEST_WRITE_CHECK_RETVAL(cmd)		\
+  do {						\
+    litl_t* retval = cmd;			\
+    if(retval) nb_recorded_events++;		\
+  }while(0)
+
   for (i = 0; i < NBITER; i++) {
-    litl_write_probe_reg_0(__trace, 0x100 * (i + 1) + 1);
+
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_0(__trace,
+						   0x100 * (i + 1) + 1));
     usleep(100);
-    litl_write_probe_reg_1(__trace, 0x100 * (i + 1) + 2, 1);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_1(__trace,
+						   0x100 * (i + 1) + 2, 1));
     usleep(100);
-    litl_write_probe_reg_2(__trace, 0x100 * (i + 1) + 3, 1, 3);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_2(__trace,
+						   0x100 * (i + 1) + 3, 1, 3));
     usleep(100);
-    litl_write_probe_reg_3(__trace, 0x100 * (i + 1) + 4, 1, 3, 5);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_3(__trace,
+						   0x100 * (i + 1) + 4, 1, 3,
+						   5));
     usleep(100);
-    litl_write_probe_reg_4(__trace, 0x100 * (i + 1) + 5, 1, 3, 5, 7);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_4(__trace,
+						   0x100 * (i + 1) + 5, 1, 3,
+						   5, 7));
     usleep(100);
-    litl_write_probe_reg_5(__trace, 0x100 * (i + 1) + 6, 1, 3, 5, 7, 11);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_5(__trace,
+						   0x100 * (i + 1) + 6, 1, 3,
+						   5, 7, 11));
     usleep(100);
-    litl_write_probe_reg_6(__trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_6(__trace,
+						   0x100 * (i + 1) + 7, 1, 3,
+						   5, 7, 11, 13));
     usleep(100);
-    litl_write_probe_reg_7(__trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13,
-                           17);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_7(__trace,
+						   0x100 * (i + 1) + 8, 1, 3,
+						   5, 7, 11, 13, 17));
     usleep(100);
-    litl_write_probe_reg_8(__trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,
-                           19);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_8(__trace,
+						   0x100 * (i + 1) + 9, 1, 3,
+						   5, 7, 11, 13, 17, 19));
     usleep(100);
-    litl_write_probe_reg_9(__trace, 0x100 * (i + 1) + 10, 1, 3, 5, 7, 11, 13,
-                           17, 19, 23);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_9(__trace,
+						   0x100 * (i + 1) + 10, 1, 3,
+						   5, 7, 11, 13, 17, 19, 23));
     usleep(100);
-    litl_write_probe_reg_10(__trace, 0x100 * (i + 1) + 11, 1, 3, 5, 7, 11, 13,
-                            17, 19, 23, 29);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_reg_10(__trace,
+						    0x100 * (i + 1) + 11, 1, 3,
+						    5, 7, 11, 13, 17, 19, 23,
+						    29));
     usleep(100);
-    litl_write_probe_raw(__trace, 0x100 * (i + 1) + 12, sizeof(val), val);
+    TEST_WRITE_CHECK_RETVAL(litl_write_probe_raw(__trace,
+						 0x100 * (i + 1) + 12,
+						 sizeof(val), val));
     usleep(100);
   }
 
+  total_recorded_events += nb_recorded_events;
   return NULL ;
 }
 
@@ -91,11 +119,11 @@ void read_trace(char* filename) {
 
   litl_read_finalize_trace(trace);
 
-  if (nb_events != NBEVENT * NBTHREAD) {
+  if (nb_events != total_recorded_events) {
     fprintf(
         stderr,
         "Some events were NOT recorded!\n Expected nb_events = %d \t Recorded nb_events = %d\n",
-        NBEVENT * NBTHREAD, nb_events);
+        total_recorded_events, nb_events);
     exit(EXIT_FAILURE);
   }
 }
@@ -107,11 +135,20 @@ int main() {
   const uint32_t buffer_size = 1024; // 1KB
 
   printf("Recording events by %d threads\n\n", NBTHREAD);
+
+#ifdef LITL_TESTBUFFER_FLUSH
+  res = asprintf(&filename, "/tmp/test_litl_write_concurent_flush.trace");
+#else
   res = asprintf(&filename, "/tmp/test_litl_write_concurent.trace");
+#endif
 
   __trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(__trace, filename);
+#ifdef LITL_TESTBUFFER_FLUSH
   litl_write_buffer_flush_on(__trace);
+#else
+  litl_write_buffer_flush_off(__trace);
+#endif
 
   for (i = 0; i < NBTHREAD; i++) {
     pthread_create(&tid[i], NULL, write_trace, &i);

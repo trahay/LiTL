@@ -28,7 +28,11 @@ int main(int argc, const char **argv) {
   if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
     filename = argv[2];
   else
+#ifdef LITL_TESTBUFFER_FLUSH
+    filename = "/tmp/test_litl_write_flush.trace";
+#else
     filename = "/tmp/test_litl_write.trace";
+#endif
 
   trace = litl_read_open_trace(filename);
   litl_read_init_processes(trace);

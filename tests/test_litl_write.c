@@ -17,6 +17,7 @@
 #include "litl_types.h"
 #include "litl_write.h"
 
+
 int main(int argc, char **argv) {
   int i, nb_iter;
 
@@ -27,13 +28,22 @@ int main(int argc, char **argv) {
   if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
     filename = argv[2];
   else
+#ifdef LITL_TESTBUFFER_FLUSH
+    filename = "/tmp/test_litl_write_flush.trace";
+#else
     filename = "/tmp/test_litl_write.trace";
+#endif
 
   printf("Recording events with various number of arguments\n\n");
 
   trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(trace, filename);
+
+#ifdef LITL_TESTBUFFER_FLUSH
   litl_write_buffer_flush_on(trace);
+#else
+  litl_write_buffer_flush_off(trace);
+#endif
 
   nb_iter = 1000;
   litl_data_t val[] =

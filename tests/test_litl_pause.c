@@ -28,6 +28,12 @@ void write_trace(char* filename, int nb_iter, int skipped_iter) {
   trace = litl_write_init_trace(buffer_size);
   litl_write_set_filename(trace, filename);
 
+#ifdef LITL_TESTBUFFER_FLUSH
+  litl_write_buffer_flush_on(trace);
+#else
+  litl_write_buffer_flush_off(trace);
+#endif
+
   litl_data_t val[] =
     "Well, that's Philosophy I've read, And Law and Medicine, and I fear Theology, too, from A to Z; Hard studies all, that have cost me dear. And so I sit, poor silly man No wiser now than when I began.";
   for (i = 0; i < nb_iter; i++) {
@@ -118,7 +124,11 @@ int main(int argc, char **argv) {
   if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
     filename = argv[2];
   else
+#ifdef LITL_TESTBUFFER_FLUSH
+    filename = "/tmp/test_litl_pause_flush.trace";
+#else
     filename = "/tmp/test_litl_pause.trace";
+#endif
 
   printf("Recording events with various number of arguments\n\n");
 
