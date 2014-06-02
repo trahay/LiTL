@@ -277,9 +277,9 @@ void litl_write_set_filename(litl_write_trace_t* trace, char* filename) {
  */
 static void __litl_write_probe_offset(litl_write_trace_t* trace,
                                       litl_med_size_t index) {
-  if (!trace->is_litl_initialized || trace->is_recording_paused
-    || trace->is_buffer_full)
+  if (!trace->is_litl_initialized || trace->is_recording_paused)
     return;
+
   // litl_t* cur_ptr = litl_cmpxchg((uint8_t**) &trace->buffer[index],
   //    LITL_BASE_SIZE + sizeof(litl_param_t));
   litl_t* cur_ptr = (litl_t *) trace->buffers[index]->buffer;
