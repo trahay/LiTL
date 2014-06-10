@@ -75,13 +75,6 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
 }
 
 /*
- * To create trace->buffer_ptr and trace->buffer
- */
-static void __litl_write_init_var(litl_write_trace_t* trace) {
-  pthread_key_create(&trace->index, NULL );
-}
-
-/*
  * Initializes the trace buffer
  */
 litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
@@ -133,13 +126,7 @@ litl_write_trace_t* litl_write_init_trace(const litl_size_t buf_size) {
   // initialize the timing mechanism
   litl_time_initialize();
 
-  // a jump function is needed 'cause it is not possible to pass args to
-  //   the calling function through pthread_once
-  void __init() {
-    __litl_write_init_var(trace);
-  }
-  trace->index_once = (pthread_once_t) PTHREAD_ONCE_INIT;
-  pthread_once(&trace->index_once, __init);
+  assert(pthread_key_create(&trace->index, NULL ) == 0);
 
   // set trace->allow_buffer_flush using the environment variable.
   //   By default the buffer flushing is disabled
