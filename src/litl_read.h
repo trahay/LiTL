@@ -132,6 +132,32 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
       _ptr_ = &LITL_READ_PACKED(evt)->param[0];		\
   } while(0)
 
+#if DEBUG
+#define __LITL_CHECK_EVENT_SIZE(evt, _ptr_)				\
+  do{									\
+    void* base_ptr;							\
+    __LITL_READ_INIT_PTR(evt, base_ptr);				\
+    int expected_size=0;						\
+    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR){			\
+      expected_size = LITL_READ_REGULAR(evt)->nb_params * sizeof(litl_param_t); \
+      int actual_size= ((char*)_ptr_)-((char*)base_ptr);		\
+      if(actual_size != expected_size){					\
+	fprintf(stderr, "[LiTL] Warning: parameters take %d bytes, but %d bytes were read!\n", expected_size, actual_size); \
+	abort();							\
+      }									\
+    } else {								\
+      expected_size = LITL_READ_PACKED(evt)->size;				\
+      int actual_size= ((char*)_ptr_)-((char*)base_ptr);			\
+      if(actual_size != expected_size){					\
+	fprintf(stderr, "[LiTL] Warning: parameters take %d bytes, but %d bytes were read!\n", expected_size, actual_size); \
+	abort();							\
+      }									\
+    }									\
+  }while(0)
+#else
+#define __LITL_CHECK_EVENT_SIZE(evt, _ptr_)	do { }while(0)
+#endif
+
 /*
  * For internal use only
  * Returns the next parameter in an event
@@ -242,6 +268,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     void* _ptr_;				\
     __LITL_READ_INIT_PTR(p_evt, _ptr_);		\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param1);	\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -259,6 +286,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_INIT_PTR(p_evt, _ptr_);		\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param1);	\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param2);	\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -279,6 +307,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param1);			\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param2);			\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param3);			\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -302,6 +331,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param2);			        \
     __LITL_READ_GET_ARG(p_evt, _ptr_, param3);			        \
     __LITL_READ_GET_ARG(p_evt, _ptr_, param4);			        \
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -328,6 +358,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param3);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param4);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param5);				\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -357,6 +388,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param4);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param5);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param6);				\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -389,6 +421,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param5);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param6);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param7);				\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -424,6 +457,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param6);	\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param7);	\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param8);	\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -462,6 +496,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param7);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param8);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param9);				\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 /**
@@ -503,6 +538,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param8);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param9);				\
     __LITL_READ_GET_ARG(p_evt, _ptr_, param10);				\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
   } while(0)
 
 #endif /* LITL_READ_H_ */
