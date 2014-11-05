@@ -6,7 +6,7 @@ AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src
 lib_LTLIBRARIES = liblitl.la
 
 liblitl_la_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS) -g
-liblitl_la_LDFLAGS = $(AM_LDFLAGS) -lm -g
+liblitl_la_LDFLAGS = $(AM_LDFLAGS) -lm -g -lpthread
 liblitl_la_SOURCES = litl_types.h litl_tools.h litl_tools.c \
 					 litl_timer.h litl_timer.c \
                      litl_write.h litl_write.c \
