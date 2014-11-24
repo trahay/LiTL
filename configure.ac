@@ -66,7 +66,6 @@ case "$host" in
         arm*-*)
         AC_MSG_WARN([ARCH: ARM])
                 arch_str="ARM"
-        CFLAGS="$CFLAGS -marm -march=armv7-a"
                 ;;
         *)
                 AC_MSG_WARN([unknown architecture: falling back to x86_64])
