@@ -804,10 +804,6 @@ litl_t* litl_write_probe_raw(litl_write_trace_t* trace, litl_code_t code,
     || trace->is_buffer_full)
     return NULL;
 
-  // specify explicitly the end of the string
-  data[size] = '\0';
-  size++;
-
   if (pthread_getspecific(trace->index) == NULL )
     __litl_write_allocate_buffer(trace);
 
