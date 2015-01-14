@@ -30,9 +30,11 @@ litl_med_size_t __litl_get_gen_event_size(litl_t *p_evt) {
     return p_evt->parameters.regular.nb_params * sizeof(litl_param_t)
       + LITL_BASE_SIZE ;
   case LITL_TYPE_RAW:
-    return p_evt->parameters.raw.size + LITL_BASE_SIZE + 7;
+    return p_evt->parameters.raw.size + LITL_BASE_SIZE;
   case LITL_TYPE_PACKED:
     return p_evt->parameters.packed.size + LITL_BASE_SIZE ;
+  case LITL_TYPE_OFFSET:
+    return p_evt->parameters.offset.nb_params + LITL_BASE_SIZE ;
   default:
     fprintf(stderr, "Unknown event type %d!\n", p_evt->type);
     abort();

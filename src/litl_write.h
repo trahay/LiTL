@@ -353,7 +353,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 #define litl_write_probe_pack_0(trace,					\
 				code,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE;					\
+    int total_size = 0;							\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
 					   code, total_size);		\
@@ -375,7 +375,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param1,					\
 				retval)					\
   do {									\
-    int total_size = LITL_BASE_SIZE + sizeof(param1);			\
+    int total_size =  sizeof(param1);					\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
 					   code,			\
@@ -402,7 +402,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param2,					\
 				retval)					\
   do {									\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2);	\
+    int total_size =  sizeof(param1) + sizeof(param2);			\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
 					   code,			\
@@ -431,7 +431,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param2,					\
 				param3,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) +	\
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3);							\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
@@ -464,7 +464,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param3,					\
 				param4,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4);					\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
@@ -500,7 +500,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param4,					\
 				param5,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4) +sizeof(param5);			\
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
@@ -539,7 +539,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param5,					\
 				param6,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size = sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4) + sizeof(param5) + sizeof(param6); \
     litl_t* p_evt = __litl_write_get_event(trace,			\
 					   LITL_TYPE_PACKED,		\
@@ -581,7 +581,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param6,					\
 				param7,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size = sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4) + sizeof(param5) + sizeof(param6) \
       + sizeof(param7);							\
     litl_t* p_evt = __litl_write_get_event(trace,			\
@@ -627,7 +627,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param7,					\
 				param8,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4) + sizeof(param5) + sizeof(param6) \
       + sizeof(param7) + sizeof(param8);				\
     litl_t* p_evt = __litl_write_get_event(trace,			\
@@ -676,7 +676,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				param8,					\
 				param9,					\
 				retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4)  + sizeof(param5) + sizeof(param6) \
       + sizeof(param7) + sizeof(param8) + sizeof(param9);		\
     litl_t* p_evt = __litl_write_get_event(trace,			\
@@ -728,7 +728,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 				 param9,				\
 				 param10,				\
 				 retval) do {				\
-    int total_size = LITL_BASE_SIZE + sizeof(param1) + sizeof(param2) + \
+    int total_size =  sizeof(param1) + sizeof(param2) +			\
       sizeof(param3) + sizeof(param4) + sizeof(param5) + sizeof(param6) + \
       sizeof(param7) + sizeof(param8) + sizeof(param9) + sizeof(param10); \
     litl_t* p_evt = __litl_write_get_event(trace,			\
