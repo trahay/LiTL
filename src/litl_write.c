@@ -295,7 +295,7 @@ static void __litl_open_new_file(litl_write_trace_t* trace) {
 	perror("Cannot open trace file");
 	exit(EXIT_FAILURE);
       }
-    } else {
+     } else {
       fprintf(stderr, "Cannot open %s\n", trace->filename);
       exit(EXIT_FAILURE);
     }
@@ -307,7 +307,7 @@ static void __litl_open_new_file(litl_write_trace_t* trace) {
  */
 static void __litl_write_update_header(litl_write_trace_t* trace) {
   // write the trace header to the trace file
-  assert(trace->f_handle);
+  assert(trace->f_handle >= 0);
   lseek(trace->f_handle, 0, SEEK_SET);
 
   if (write(trace->f_handle, trace->header_ptr,
@@ -322,6 +322,7 @@ static void __litl_write_update_header(litl_write_trace_t* trace) {
  * Update the header and flush it to disk
  */
 static void __litl_write_flush_header(litl_write_trace_t* trace) {
+
   if (!trace->is_header_flushed) {
     // open the trace file
     __litl_open_new_file(trace);
