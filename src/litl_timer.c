@@ -193,6 +193,7 @@ int litl_set_timing_method(litl_timing_method_t callback) {
   return 0;
 }
 
+#ifdef CLOCK_GETTIME_AVAIL
 static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
   litl_time_t time;
   struct timespec tp;
@@ -200,6 +201,7 @@ static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
   time = 1000000000 * tp.tv_sec + tp.tv_nsec;
   return time;
 }
+#endif
 
 /*
  * Uses clock_gettime(CLOCK_MONOTONIC_RAW)
