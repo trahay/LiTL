@@ -78,33 +78,49 @@ if test "x$enable_32bit" = xyes || test "x$arch_str" = xARM; then
   AC_DEFINE([HAVE_32BIT], [1], [Building 32-bit library])
 fi
 
-# Check for presence of pdfLaTeX
-AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
-if test -z "$PDFLATEX"; then
-  AC_MSG_WARN([Unable to create PDF version of the user manual -- pdflatex is missing!])
+with_doc=no
+AC_ARG_WITH(doc, [AS_HELP_STRING([--with-doc], [Generate documentation])],
+                 [if test x$withval != xno ; then
+                    with_doc=yes
+                 fi],
+                 [with_doc=no])
+
+if test "x$with_doc" = "xyes" ; then
+  AC_MSG_RESULT(Documentation will be generated)
+  # Check for presence of pdfLaTeX
+  AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
+  if test -z "$PDFLATEX"; then
+    AC_MSG_WARN([Unable to create PDF version of the user manual -- pdflatex is missing!])
+  fi
+
+  # Check for presence of latexmk
+  AC_CHECK_PROG(LATEXMK, latexmk, latexmk)
+  if test -z "$LATEXMK"; then
+    AC_MSG_WARN([Unable to create PDF version of the user manual -- latemk is missing!])
+  fi
+
+  # Check for presence of doxygen
+  AC_CHECK_PROGS([DOXYGEN], [doxygen])
+  if test -z "$DOXYGEN";
+     then AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+  fi
+
+else
+  AC_MSG_RESULT(Documentation will not be generated)
 fi
+
+AM_CONDITIONAL([WITHDOC], [test "$with_doc" = "yes"])
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
-
-# Check for presence of latexmk
-AC_CHECK_PROG(LATEXMK, latexmk, latexmk)
-if test -z "$LATEXMK"; then
-  AC_MSG_WARN([Unable to create PDF version of the user manual -- latemk is missing!])
-fi
 AM_CONDITIONAL([HAVE_LATEXMK], test -n "$LATEXMK")
-
-# Check for presence of doxygen
-AC_CHECK_PROGS([DOXYGEN], [doxygen])
-if test -z "$DOXYGEN";
-   then AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
-fi
 AM_CONDITIONAL([HAVE_DOXYGEN],
-[test -n "$DOXYGEN"])AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([doc/Doxyfile])])
-
+	[test -n "$DOXYGEN"])AM_COND_IF([HAVE_DOXYGEN],
+	[AC_CONFIG_FILES([doc/Doxyfile])])
 
 AC_SUBST(libdir)
 AC_SUBST(exec_prefix)
 AC_SUBST(prefix)
 AC_SUBST(includedir)
+
 
 AC_OUTPUT([Makefile litl.pc \
            src/Makefile \

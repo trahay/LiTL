@@ -1,3 +1,5 @@
+if WITHDOC
+
 if HAVE_DOXYGEN
 
 doxyfile.stamp:
@@ -53,6 +55,8 @@ CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
 $(MANPDF): $(MANTEXSRC)
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -bibtex $<
 
-dist_doc_DATA = $(docfiles)
+#dist_doc_DATA = $(docfiles)
 
 endif
+
+endif #WITHDOC
