@@ -91,6 +91,40 @@ static void __litl_time_benchmark() {
 #if defined(__x86_64__) || defined(__i386)
   RUN_BENCHMARK(litl_get_time_ticks);
 #endif
+
+  printf("[LiTL] selected timing method:");
+#ifdef CLOCK_GETTIME_AVAIL
+#ifdef CLOCK_MONOTONIC_RAW
+  if(litl_get_time == litl_get_time_monotonic_raw)
+    printf("monotonic_raw\n");
+#endif
+
+#ifdef CLOCK_MONOTONIC
+  if(litl_get_time == litl_get_time_monotonic)
+    printf("monotonic\n");
+#endif
+
+#ifdef CLOCK_REALTIME
+  if(litl_get_time == litl_get_time_realtime)
+    printf("realtime\n");
+#endif
+
+#ifdef CLOCK_PROCESS_CPUTIME_ID
+  if(litl_get_time == litl_get_time_process_cputime)
+    printf("process_cputime\n");
+#endif
+
+#ifdef CLOCK_THREAD_CPUTIME_ID
+  if(litl_get_time == litl_get_time_thread_cputime)
+    printf("thread_cputime\n");
+#endif
+
+#endif	/* CLOCK_GETTIME_AVAIL */
+
+#if defined(__x86_64__) || defined(__i386)
+  if(litl_get_time == litl_get_time_ticks)
+    printf("ticks\n");
+#endif
 }
 
 /*
