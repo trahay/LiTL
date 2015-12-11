@@ -78,14 +78,14 @@ if test "x$enable_32bit" = xyes || test "x$arch_str" = xARM; then
   AC_DEFINE([HAVE_32BIT], [1], [Building 32-bit library])
 fi
 
-with_doc=no
+build_doc=no
 AC_ARG_WITH(doc, [AS_HELP_STRING([--with-doc], [Generate documentation])],
                  [if test x$withval != xno ; then
-                    with_doc=yes
+                    build_doc=yes
                  fi],
-                 [with_doc=no])
+                 [build_doc=no])
 
-if test "x$with_doc" = "xyes" ; then
+if test "x$build_doc" = "xyes" ; then
   AC_MSG_RESULT(Documentation will be generated)
   # Check for presence of pdfLaTeX
   AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
