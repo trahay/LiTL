@@ -217,7 +217,7 @@ typedef struct {
      * \brief A packed event
      */
     struct {
-      litl_data_t size; /**< A size of data (in Bytes) */
+      litl_size_t size; /**< A size of data (in Bytes) */
       litl_data_t param[LITL_MAX_DATA]; /**< A data */
     }__attribute__((packed)) packed;
     /**
@@ -454,6 +454,6 @@ typedef struct {
  * For internal use only.
  * Computes the offset of the first parameter in an event
  */
-#define LITL_BASE_SIZE __litl_offset_of(litl_t, parameters.regular.param)
+#define LITL_BASE_SIZE __litl_offset_of(litl_t, parameters)
 
 #endif /* LITL_TYPES_H_ */

@@ -554,7 +554,7 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
 			       litl_code_t code, int param_size) {
   litl_med_size_t index = 0;
   litl_t*retval = NULL;
-  litl_size_t event_size = LITL_BASE_SIZE + param_size;
+  litl_size_t event_size = __litl_get_event_size(type, param_size);
 
   if (trace && trace->is_litl_initialized && !trace->is_recording_paused
     && !trace->is_buffer_full) {
@@ -604,7 +604,6 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
       retval = cur_ptr;
       goto out;
     } else if (trace->allow_buffer_flush) {
-
       // not enough space. flush the buffer and retry
       __litl_write_flush_buffer(trace, index);
       retval =  __litl_write_get_event(trace, type, code, param_size);
