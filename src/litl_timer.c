@@ -12,6 +12,8 @@
 
 #include "litl_timer.h"
 
+litl_time_t litl_get_time_none();
+
 #define ERROR_TIMER_NOT_AVAILABLE() do {				\
     fprintf(stderr, "Trying to use timer function %s, but it is not available on this platform\n",__FUNCTION__); \
     abort();								\
@@ -169,6 +171,8 @@ void litl_time_initialize() {
 #else
       goto not_available;
 #endif
+    } else if (strcmp(time_str, "none") == 0) {
+      litl_set_timing_method(litl_get_time_none);
     } else if (strcmp(time_str, "best") == 0) {
       __litl_time_benchmark();
     } else {
@@ -266,6 +270,10 @@ litl_time_t litl_get_time_thread_cputime() {
   ;
   return -1;
 #endif
+}
+
+litl_time_t litl_get_time_none() {
+  return 0;
 }
 
 /*
