@@ -1,3 +1,7 @@
+EXTRA_DIST =
+
+if WITHDOC
+
 if HAVE_DOXYGEN
 
 doxyfile.stamp:
@@ -15,13 +19,6 @@ latex/refman.pdf:
 clean-local:
 	rm -rf $(top_srcdir)/doc/man html latex doxyfile.stamp
 
-EXTRA_DIST = html \
-             $(top_srcdir)/doc/tikz/event.recording.all.tex\
-             $(top_srcdir)/doc/tikz/event.storage.all.line.packed.tex\
-             $(top_srcdir)/doc/tikz/event.storage.trace.file.merge.tex\
-             $(top_srcdir)/doc/tikz/event.storage.trace.file.tex \
-             $(top_srcdir)/doc/references.bib
-
 install-data-local:
 	for f in `find $(builddir)/html` ; do \
 	$(INSTALL_DATA) -D $$f \
@@ -35,6 +32,7 @@ uninstall-local:
 
 endif
 
+EXTRA_DIST += html
 
 if HAVE_LATEXMK
 doc_DATA = user_manual.pdf
@@ -53,6 +51,14 @@ CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
 $(MANPDF): $(MANTEXSRC)
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -bibtex $<
 
-dist_doc_DATA = $(docfiles)
+#dist_doc_DATA = $(docfiles)
 
 endif
+
+endif #WITHDOC
+
+EXTRA_DIST += $(top_srcdir)/doc/tikz/event.recording.all.tex\
+              $(top_srcdir)/doc/tikz/event.storage.all.line.packed.tex\
+              $(top_srcdir)/doc/tikz/event.storage.trace.file.merge.tex\
+              $(top_srcdir)/doc/tikz/event.storage.trace.file.tex \
+              $(top_srcdir)/doc/references.bib

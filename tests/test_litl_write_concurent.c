@@ -28,6 +28,8 @@
 
 litl_write_trace_t* __trace;
 int total_recorded_events = 0;
+pthread_mutex_t mutex;
+
 /*
  * This test records several traces at the same time
  */
@@ -41,7 +43,9 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
 #define TEST_WRITE_CHECK_RETVAL(cmd)		\
   do {						\
     litl_t* retval = cmd;			\
-    if(retval) nb_recorded_events++;		\
+    if(retval) {				\
+      nb_recorded_events++;			\
+    }						\
   }while(0)
 
   for (i = 0; i < NBITER; i++) {
@@ -94,7 +98,9 @@ void* write_trace(void *arg __attribute__ ((__unused__))) {
     usleep(100);
   }
 
+  pthread_mutex_lock(&mutex);
   total_recorded_events += nb_recorded_events;
+  pthread_mutex_unlock(&mutex);
   return NULL ;
 }
 
@@ -133,6 +139,8 @@ int main() {
   char* filename;
   pthread_t tid[NBTHREAD];
   const uint32_t buffer_size = 1024; // 1KB
+
+  pthread_mutex_init(&mutex, NULL);
 
   printf("Recording events by %d threads\n\n", NBTHREAD);
 

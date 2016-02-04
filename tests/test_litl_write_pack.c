@@ -16,7 +16,14 @@
 
 #include "litl_types.h"
 #include "litl_write.h"
+#include "litl_tools.h"
 
+
+const uint32_t buffer_size = 32 * 1024; // 32KB
+
+#ifdef LITL_TESTBUFFER_FLUSH
+
+/* since buffer flush is enabled, retval should always be not NULL */
 #define CHECK_RETVAL(cmd, retval) do {				\
     cmd;							\
     if(!retval){						\
@@ -24,13 +31,26 @@
       abort();							\
     }								\
   } while(0)
+#else
+size_t total_size=0;
+
+#define CHECK_RETVAL(cmd, retval) do {				\
+    cmd;							\
+    if(!retval && total_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) < buffer_size){ \
+      fprintf(stderr, "test failed at line %d\n", __LINE__);	\
+      abort();							\
+    }								\
+    if(retval) {						\
+      total_size += __litl_get_gen_event_size(retval);		\
+    }								\
+  } while(0)
+#endif
 
 int main(int argc, char **argv) {
   int i, nb_iter;
 
   litl_write_trace_t* trace;
   char* filename = "trace";
-  const uint32_t buffer_size = 32 * 1024; // 32KB
 
   if ((argc == 3) && (strcmp(argv[1], "-f") == 0))
     filename = argv[2];
@@ -70,6 +90,9 @@ int main(int argc, char **argv) {
     usleep(100);
     CHECK_RETVAL(litl_write_probe_pack_6(trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13, retval), retval);
     usleep(100);
+
+    CHECK_RETVAL(litl_write_probe_pack_6(trace, 0x100 * (i + 1) + 7, 1, 3, 5, 7, 11, 13, retval), retval);
+
     CHECK_RETVAL(litl_write_probe_pack_7(trace, 0x100 * (i + 1) + 8, 1, 3, 5, 7, 11, 13, 17, retval), retval);
     usleep(100);
     CHECK_RETVAL(litl_write_probe_pack_8(trace, 0x100 * (i + 1) + 9, 1, 3, 5, 7, 11, 13, 17,

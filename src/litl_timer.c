@@ -12,6 +12,8 @@
 
 #include "litl_timer.h"
 
+litl_time_t litl_get_time_none();
+
 #define ERROR_TIMER_NOT_AVAILABLE() do {				\
     fprintf(stderr, "Trying to use timer function %s, but it is not available on this platform\n",__FUNCTION__); \
     abort();								\
@@ -91,6 +93,40 @@ static void __litl_time_benchmark() {
 #if defined(__x86_64__) || defined(__i386)
   RUN_BENCHMARK(litl_get_time_ticks);
 #endif
+
+  printf("[LiTL] selected timing method:");
+#ifdef CLOCK_GETTIME_AVAIL
+#ifdef CLOCK_MONOTONIC_RAW
+  if(litl_get_time == litl_get_time_monotonic_raw)
+    printf("monotonic_raw\n");
+#endif
+
+#ifdef CLOCK_MONOTONIC
+  if(litl_get_time == litl_get_time_monotonic)
+    printf("monotonic\n");
+#endif
+
+#ifdef CLOCK_REALTIME
+  if(litl_get_time == litl_get_time_realtime)
+    printf("realtime\n");
+#endif
+
+#ifdef CLOCK_PROCESS_CPUTIME_ID
+  if(litl_get_time == litl_get_time_process_cputime)
+    printf("process_cputime\n");
+#endif
+
+#ifdef CLOCK_THREAD_CPUTIME_ID
+  if(litl_get_time == litl_get_time_thread_cputime)
+    printf("thread_cputime\n");
+#endif
+
+#endif	/* CLOCK_GETTIME_AVAIL */
+
+#if defined(__x86_64__) || defined(__i386)
+  if(litl_get_time == litl_get_time_ticks)
+    printf("ticks\n");
+#endif
 }
 
 /*
@@ -135,6 +171,8 @@ void litl_time_initialize() {
 #else
       goto not_available;
 #endif
+    } else if (strcmp(time_str, "none") == 0) {
+      litl_set_timing_method(litl_get_time_none);
     } else if (strcmp(time_str, "best") == 0) {
       __litl_time_benchmark();
     } else {
@@ -159,6 +197,7 @@ int litl_set_timing_method(litl_timing_method_t callback) {
   return 0;
 }
 
+#ifdef CLOCK_GETTIME_AVAIL
 static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
   litl_time_t time;
   struct timespec tp;
@@ -166,6 +205,7 @@ static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
   time = 1000000000 * tp.tv_sec + tp.tv_nsec;
   return time;
 }
+#endif
 
 /*
  * Uses clock_gettime(CLOCK_MONOTONIC_RAW)
@@ -230,6 +270,10 @@ litl_time_t litl_get_time_thread_cputime() {
   ;
   return -1;
 #endif
+}
+
+litl_time_t litl_get_time_none() {
+  return 0;
 }
 
 /*

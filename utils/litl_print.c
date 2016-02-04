@@ -114,9 +114,7 @@ int main(int argc, char **argv) {
       break;
     }
     case LITL_TYPE_OFFSET: { // offset event
-      printf("%"PRTIu64" \t%"PRTIu64" \t  Offset (%d)\t",
-             LITL_READ_GET_TIME(event), LITL_READ_GET_TID(event), LITL_TYPE_OFFSET);
-      break;
+      continue;
     }
     default: {
       fprintf(stderr, "Unknown event type %d\n", LITL_READ_GET_TYPE(event));
