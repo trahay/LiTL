@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
+#include <sys/mman.h>
 
 #include "litl_timer.h"
 #include "litl_tools.h"
@@ -531,9 +532,31 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
 
   pthread_mutex_unlock(&trace->lock_buffer_init);
 
-  trace->buffers[*pos]->buffer_ptr = malloc(
-      trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS)
-      + __litl_get_reg_event_size(1));
+  /* use mmap instead of malloc so that we can use the MAP_POPULATE option
+     that makes sure the page table is populated. This way, the page faults
+     caused by litl are sensibly reduced.
+  */
+#define USE_MMAP
+#ifdef USE_MMAP
+  size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
+  
+  trace->buffers[*pos]->buffer_ptr = mmap(NULL, 
+					  length,
+					  PROT_READ|PROT_WRITE,
+					  MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
+					  -1,
+					  0);
+  if(trace->buffers[*pos]->buffer_ptr == MAP_FAILED) {
+    perror("mmap");
+  }
+  /* touch the first pages */
+  if(length> 1024*1024)
+    length=1024*1024;
+  memset(trace->buffers[*pos]->buffer_ptr, 0, length);
+#else
+  size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
+  trace->buffers[*pos]->buffer_ptr = malloc(length);
+#endif
 
   if (!trace->buffers[*pos]->buffer_ptr) {
     perror("Could not allocate memory buffer for the thread\n!");
@@ -864,7 +887,13 @@ void litl_write_finalize_trace(litl_write_trace_t* trace) {
 
   for (i = 0; i < trace->nb_allocated_buffers; i++) {
     if (trace->buffers[i]->tid != 0) {
+      size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
+#ifdef USE_MMAP
+      int ret = munmap(trace->buffers[i]->buffer_ptr, length);
+      assert(ret==0);
+#else
       free(trace->buffers[i]->buffer_ptr);
+#endif
       trace->buffers[i]->buffer_ptr = NULL;
     } else {
       break;

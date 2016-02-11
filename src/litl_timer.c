@@ -14,6 +14,8 @@
 
 litl_time_t litl_get_time_none();
 
+static void __litl_time_ticks_initialize();
+
 #define ERROR_TIMER_NOT_AVAILABLE() do {				\
     fprintf(stderr, "Trying to use timer function %s, but it is not available on this platform\n",__FUNCTION__); \
     abort();								\
@@ -91,6 +93,7 @@ static void __litl_time_benchmark() {
 #endif	/* CLOCK_GETTIME_AVAIL */
 
 #if defined(__x86_64__) || defined(__i386)
+  __litl_time_ticks_initialize();
   RUN_BENCHMARK(litl_get_time_ticks);
 #endif
 
@@ -168,6 +171,8 @@ void litl_time_initialize() {
     } else if (strcmp(time_str, "ticks") == 0) {
 #if defined(__x86_64__) || defined(__i386)
       litl_set_timing_method(litl_get_time_ticks);
+      /* dry run to make sure that the initialization process is done */
+      litl_get_time_ticks();
 #else
       goto not_available;
 #endif
@@ -194,6 +199,11 @@ int litl_set_timing_method(litl_timing_method_t callback) {
     return -1;
 
   litl_get_time = callback;
+
+  if(callback == litl_get_time_ticks) {
+    __litl_time_ticks_initialize();
+  }
+
   return 0;
 }
 
@@ -276,6 +286,9 @@ litl_time_t litl_get_time_none() {
   return 0;
 }
 
+static int ticks_initialized = 0;
+static litl_time_t __ticks_per_sec = 0;
+
 /*
  * Uses CPU specific register (for instance, rdtsc for X86* processors)
  */
@@ -298,10 +311,21 @@ litl_time_t litl_get_time_ticks() {
 #define ticks(val) (val) = -1
 #endif
 
-  static int ticks_initialized = 0;
-  static litl_time_t __ticks_per_sec = -1;
+
+  litl_time_t time;
+  ticks(time);
+
+  return time * 1e9 / __ticks_per_sec;
+}
+
+/* initialize the ticks timer */
+static void __litl_time_ticks_initialize() {
   if (!ticks_initialized) {
+    /* since ticks return a timestamp measured in clock cycles,
+     * we need to be able to convert it to ns
+     */
     litl_time_t init_start, init_end;
+    /* how many cycles in 1 second ? */
     ticks(init_start);
     usleep(1000000);
     ticks(init_end);
@@ -309,9 +333,4 @@ litl_time_t litl_get_time_ticks() {
     __ticks_per_sec = init_end - init_start;
     ticks_initialized = 1;
   }
-
-  litl_time_t time;
-  ticks(time);
-
-  return time * 1e9 / __ticks_per_sec;
 }
