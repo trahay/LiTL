@@ -44,14 +44,16 @@ fi
 
 # On many multicore CPUs, clock cycles are not synchronized. Therefore, we 
 # prefer to use clock_gettime() instead of time stamp counter (clock cycles).
-AC_MSG_CHECKING([for clock_gettime(CLOCK_MONOTONIC_RAW)])
+have_clock_gettime=no
+AC_MSG_CHECKING([for clock_gettime(CLOCK_REALTIME)])
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([[
     #include <time.h>
     struct timespec tp;
     ]],
-    [[ clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
+    [[ clock_gettime(CLOCK_REALTIME, &tp);
     ]])],
+    have_clock_gettime=yes
   AC_DEFINE(CLOCK_GETTIME_AVAIL, [1], [Use clock_gettime])
   AC_MSG_RESULT([yes]),
   AC_MSG_RESULT([no])
