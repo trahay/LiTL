@@ -347,6 +347,14 @@ static litl_read_event_t* __litl_read_next_thread_event(
       to_be_loaded = 1;
   }
 
+  // fetch the next block of data from the trace
+  if (to_be_loaded) {
+    __litl_read_next_buffer(trace, process, thread_index);
+    buffer = process->threads[thread_index]->buffer;
+    event = (litl_t *) buffer;
+  }
+  to_be_loaded = 0;
+
   // event that stores tid and offset
   if (event->code == LITL_OFFSET_CODE) {
     if (event->parameters.offset.offset != 0) {

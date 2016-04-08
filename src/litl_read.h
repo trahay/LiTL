@@ -124,12 +124,12 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
  * For internal use only
  * Initializes a pointer for browsing the parameters of an event
  */
-#define __LITL_READ_INIT_PTR(evt, _ptr_)		\
-  do {							\
-    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)	\
-      _ptr_ = &LITL_READ_REGULAR(evt)->param[0];	\
-    else						\
-      _ptr_ = &LITL_READ_PACKED(evt)->param[0];		\
+#define __LITL_READ_INIT_PTR(evt, _ptr_)			\
+  do {								\
+    if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_REGULAR)		\
+      _ptr_ = &LITL_READ_REGULAR(evt)->param[0];		\
+    else if(LITL_READ_GET_TYPE(evt) == LITL_TYPE_PACKED)	\
+      _ptr_ = &(LITL_READ_PACKED(evt))->param[0];	\
   } while(0)
 
 #if DEBUG
@@ -146,8 +146,8 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
 	abort();							\
       }									\
     } else {								\
-      expected_size = LITL_READ_PACKED(evt)->size;				\
-      int actual_size= ((char*)_ptr_)-((char*)base_ptr);			\
+      expected_size = LITL_READ_PACKED(evt)->size;			\
+      int actual_size= ((char*)_ptr_)-((char*)base_ptr);		\
       if(actual_size != expected_size){					\
 	fprintf(stderr, "[LiTL] Warning: parameters take %d bytes, but %d bytes were read!\n", expected_size, actual_size); \
 	abort();							\
@@ -331,7 +331,7 @@ void litl_read_finalize_trace(litl_read_trace_t* trace);
     __LITL_READ_GET_ARG(p_evt, _ptr_, param2);			        \
     __LITL_READ_GET_ARG(p_evt, _ptr_, param3);			        \
     __LITL_READ_GET_ARG(p_evt, _ptr_, param4);			        \
-    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);	\
+    __LITL_CHECK_EVENT_SIZE(p_evt, _ptr_);				\
   } while(0)
 
 /**

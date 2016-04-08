@@ -31,7 +31,18 @@
  * \param nb_params A number of event's parameters
  * \return A size of a regular event
  */
-litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params);
+litl_size_t __litl_get_reg_event_size(litl_data_t nb_params);
+
+/**
+ * \ingroup litl_tools
+ * \brief Returns the size of an event (in Bytes) depending on the number or size
+ * of its parameters
+ * \param type The type of event
+ * \param nb_params The number or size of parameters
+ * \return A size of a regular event
+ */
+litl_size_t __litl_get_event_size(litl_type_t type, int param_size);
+
 
 /**
  * \ingroup litl_tools
@@ -40,6 +51,6 @@ litl_med_size_t __litl_get_reg_event_size(litl_data_t nb_params);
  * \param p_evt A pointer to an event
  * \return A size of a given event
  */
-litl_med_size_t __litl_get_gen_event_size(litl_t *p_evt);
+litl_size_t __litl_get_gen_event_size(litl_t *p_evt);
 
 #endif /* LITL_TOOLS_H_ */

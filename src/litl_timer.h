@@ -106,4 +106,11 @@ litl_time_t litl_get_time_thread_cputime();
  */
 litl_time_t litl_get_time_ticks();
 
+/**
+ * \ingroup litl_timer_measure
+ * \brief Ultra-fast measurement function
+ * \return Always returns 0
+ */
+litl_time_t litl_get_time_none();
+
 #endif /* LITL_TIMER_H_ */
