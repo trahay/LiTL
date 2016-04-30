@@ -77,7 +77,9 @@ esac
 # Check whether 32-bit library will be built
 AC_ARG_ENABLE([32bit], AC_HELP_STRING([--enable-32bit], [build 32-bit library]))
 if test "x$enable_32bit" = xyes || test "x$arch_str" = xARM; then
-  AC_DEFINE([HAVE_32BIT], [1], [Building 32-bit library])
+  AC_SUBST(HAVE_32BIT, 1)
+else
+  AC_SUBST(HAVE_32BIT, 0)
 fi
 
 build_doc=no
@@ -126,6 +128,7 @@ AC_SUBST(includedir)
 
 AC_OUTPUT([Makefile litl.pc \
            src/Makefile \
+	   src/litl_config.h \
            utils/Makefile \
            tests/Makefile \
            doc/Makefile \

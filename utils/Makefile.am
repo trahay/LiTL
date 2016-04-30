@@ -1,7 +1,7 @@
 # Copyright © Télécom SudParis.
 # See COPYING in top-level directory.
 
-AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src
+AM_CFLAGS = -W -Wall -Wextra -I$(top_srcdir)/src -I$(top_builddir)/src
 AM_LDFLAGS = -L$(top_builddir)/src -llitl -lpthread
 
 bin_PROGRAMS = litl_print litl_merge litl_split

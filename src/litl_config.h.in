@@ -1,0 +1,7 @@
+#ifndef LITL_CONFIG_H
+#define LITL_CONFIG_H
+
+
+#define HAVE_32BIT @HAVE_32BIT@
+
+#endif	/* LITL_CONFIG_H */

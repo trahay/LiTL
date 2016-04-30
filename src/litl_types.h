@@ -18,6 +18,8 @@
 #ifndef LITL_TYPES_H_
 #define LITL_TYPES_H_
 
+#include "litl_config.h"
+
 /**
  * \defgroup litl_types LiTL Data Types and Defined Variables
  */
