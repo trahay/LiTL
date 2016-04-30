@@ -39,12 +39,16 @@ AC_ARG_ENABLE([gettid],
         [Use syscall(SYS_gettid) to get the thread ID instead of pthread_self().
           This however costs a system call for each trace entry]))
 if test "x$enable_gettid" = xyes; then
-  AC_DEFINE([USE_GETTID], [1], [Use gettid])
+  use_gettid=yes
+fi
+if test "x$use_gettid" = xyes ; then
+AC_SUBST(USE_GETTID, 1)
+else
+AC_SUBST(USE_GETTID, 0)
 fi
 
 # On many multicore CPUs, clock cycles are not synchronized. Therefore, we 
 # prefer to use clock_gettime() instead of time stamp counter (clock cycles).
-have_clock_gettime=no
 AC_MSG_CHECKING([for clock_gettime(CLOCK_REALTIME)])
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([[
@@ -58,6 +62,11 @@ AC_COMPILE_IFELSE(
   AC_MSG_RESULT([yes]),
   AC_MSG_RESULT([no])
 )
+if test "x$have_clock_gettime" = xyes ; then
+  AC_SUBST(CLOCK_GETTIME_AVAIL, 1)
+else
+  AC_SUBST(CLOCK_GETTIME_AVAIL, 0)
+fi
 
 # Check the architecture type
 case "$host" in

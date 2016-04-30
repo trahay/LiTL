@@ -2,6 +2,10 @@
 #define LITL_CONFIG_H
 
 
+#define USE_GETTID @USE_GETTID@
+
 #define HAVE_32BIT @HAVE_32BIT@
+
+#define CLOCK_GETTIME_AVAIL @CLOCK_GETTIME_AVAIL@
 
 #endif	/* LITL_CONFIG_H */

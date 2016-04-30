@@ -22,7 +22,7 @@ static void __litl_time_ticks_initialize();
   } while(0)
 
 // Choose the default timing method
-#ifdef CLOCK_GETTIME_AVAIL
+#if CLOCK_GETTIME_AVAIL
 #ifdef CLOCK_MONOTONIC_RAW
 #define TIMER_DEFAULT litl_get_time_monotonic_raw
 #else
@@ -68,7 +68,7 @@ static void __litl_time_benchmark() {
     }							\
   }while(0)
 
-#ifdef CLOCK_GETTIME_AVAIL
+#if CLOCK_GETTIME_AVAIL
 
 #ifdef CLOCK_MONOTONIC_RAW
   RUN_BENCHMARK(litl_get_time_monotonic_raw);
@@ -98,7 +98,7 @@ static void __litl_time_benchmark() {
 #endif
 
   printf("[LiTL] selected timing method:");
-#ifdef CLOCK_GETTIME_AVAIL
+#if CLOCK_GETTIME_AVAIL
 #ifdef CLOCK_MONOTONIC_RAW
   if(litl_get_time == litl_get_time_monotonic_raw)
     printf("monotonic_raw\n");
@@ -207,7 +207,7 @@ int litl_set_timing_method(litl_timing_method_t callback) {
   return 0;
 }
 
-#ifdef CLOCK_GETTIME_AVAIL
+#if CLOCK_GETTIME_AVAIL
 static inline litl_time_t __litl_get_time_generic(clockid_t clk_id) {
   litl_time_t time;
   struct timespec tp;
@@ -234,7 +234,7 @@ litl_time_t litl_get_time_monotonic_raw() {
  * Uses clock_gettime(CLOCK_MONOTONIC)
  */
 litl_time_t litl_get_time_monotonic() {
-#ifdef CLOCK_GETTIME_AVAIL
+#if CLOCK_GETTIME_AVAIL
   return __litl_get_time_generic(CLOCK_MONOTONIC);
 #else
   ERROR_TIMER_NOT_AVAILABLE()

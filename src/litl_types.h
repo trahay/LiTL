@@ -52,7 +52,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#ifdef USE_GETTID
+#if USE_GETTID
 #include <unistd.h>
 #include <sys/syscall.h>  // For SYS_xxx definitions
 #else
@@ -60,7 +60,7 @@
 #endif
 
 // current thread id
-#ifdef USE_GETTID
+#if USE_GETTID
 /**
  * \ingroup litl_types_general
  * \brief A current thread ID
@@ -74,7 +74,7 @@
 #define CUR_TID pthread_self()
 #endif
 
-#ifdef HAVE_32BIT
+#if HAVE_32BIT
 /**
  * \ingroup litl_types_general
  * \brief A data type for storing thread IDs
@@ -436,7 +436,7 @@ typedef struct {
 #define PRTIu32 "u"
 #define PRTIx32 "x"
 
-#ifdef HAVE_32BIT
+#if HAVE_32BIT
 #define PRTIu64 "u"
 #define PRTIx64 "x"
 
