@@ -8,7 +8,6 @@ AM_LDADD = $(top_builddir)/src/liblitl.la
 #LITLDEPENDENCIES = $(AM_LDFLAGS)
 
 CTESTS = test_litl_write \
-         test_litl_write_pack \
          test_litl_read \
          test_litl_write_concurent \
          test_litl_write_multiple_threads \
@@ -28,8 +27,6 @@ check_PROGRAMS = $(CTESTS)
 TESTS = $(CTESTS)
 
 test_litl_write_SOURCES = test_litl_write.c
-
-test_litl_write_pack_SOURCES = test_litl_write_pack.c
 
 test_litl_write_concurent_SOURCES = test_litl_write_concurent.c
 test_litl_write_concurent_LDFLAGS = -lpthread $(AM_LDFLAGS)
