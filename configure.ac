@@ -31,6 +31,20 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 
+AC_DEFUN([wrp_CHECK_SIZEOF_AND_SUBST], [
+    AC_REQUIRE([AC_PROG_AWK])
+    AC_CHECK_SIZEOF([$1])
+    m4_pushdef([name],SIZEOF_[]m4_toupper(m4_translit($1,[ *],[_p])))
+    name=$($AWK '/name/{print $[]3}' confdefs.h)
+    AC_SUBST(name)
+    m4_popdef([name])
+])
+
+wrp_CHECK_SIZEOF_AND_SUBST([size_t])
+
+#AC_MSG_ERROR(sizeof size_t: $sizeof_size_t / $SIZEOF_SIZE_T)
+#AC_SUBST(SIZEOF_SIZE_T)
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 
@@ -78,6 +92,10 @@ case "$host" in
         AC_MSG_WARN([ARCH: ARM])
                 arch_str="ARM"
                 ;;
+        i686*-*)
+        AC_MSG_WARN([ARCH: i686])
+                arch_str="i686"
+                ;;
         *)
                 AC_MSG_WARN([unknown architecture: falling back to x86_64])
                 ;;
@@ -85,10 +103,10 @@ esac
 
 # Check whether 32-bit library will be built
 AC_ARG_ENABLE([32bit], AC_HELP_STRING([--enable-32bit], [build 32-bit library]))
-if test "x$enable_32bit" = xyes || test "x$arch_str" = xARM; then
-  AC_SUBST(HAVE_32BIT, 1)
+if test "x$enable_32bit" = xyes; then
+  AC_SUBST(FORCE_32BIT, 1)
 else
-  AC_SUBST(HAVE_32BIT, 0)
+  AC_SUBST(FORCE_32BIT, 0)
 fi
 
 build_doc=no

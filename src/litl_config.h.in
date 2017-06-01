@@ -4,7 +4,29 @@
 
 #define USE_GETTID @USE_GETTID@
 
-#define HAVE_32BIT @HAVE_32BIT@
+
+#define FORCE_32BIT @FORCE_32BIT@
+
+#if FORCE_32_BIT
+/* compile for 32bit architecture */
+#define HAVE_32BIT 1
+
+#else  /* FORCE_32_BIT */
+/* detect 32/64 bit architecture */
+
+#ifndef SIZEOF_SIZE_T
+#define SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+#endif
+
+#if (SIZEOF_SIZE_T == 4)
+/* 32bit arch */
+#define HAVE_32BIT 1
+#else
+/* 64bit arch */
+#define HAVE_32BIT 0
+#endif
+
+#endif
 
 #define CLOCK_GETTIME_AVAIL @CLOCK_GETTIME_AVAIL@
 
