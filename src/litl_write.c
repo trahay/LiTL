@@ -500,6 +500,7 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
 
   pos = malloc(sizeof(litl_med_size_t));
   *pos = trace->nb_threads;
+  int thread_id = *pos;
   pthread_setspecific(trace->index, pos);
   trace->nb_threads++;
 
@@ -523,12 +524,13 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
 	exit(EXIT_FAILURE);
       }
       trace->buffers[i]->already_flushed = 0;
+      trace->buffers[i]->initialized = 0;
     }
     trace->nb_allocated_buffers *= 2;
   }
 
-  trace->buffers[*pos]->tid = CUR_TID;
-  trace->buffers[*pos]->already_flushed = 0;
+  trace->buffers[thread_id]->tid = CUR_TID;
+  trace->buffers[thread_id]->already_flushed = 0;
 
   pthread_mutex_unlock(&trace->lock_buffer_init);
 
@@ -540,33 +542,35 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
 #ifdef USE_MMAP
   size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
   
-  trace->buffers[*pos]->buffer_ptr = mmap(NULL, 
+  trace->buffers[thread_id]->buffer_ptr = mmap(NULL, 
 					  length,
 					  PROT_READ|PROT_WRITE,
 					  MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
 					  -1,
 					  0);
-  if(trace->buffers[*pos]->buffer_ptr == MAP_FAILED) {
+  if(trace->buffers[thread_id]->buffer_ptr == MAP_FAILED) {
     perror("mmap");
   }
   /* touch the first pages */
   if(length> 1024*1024)
     length=1024*1024;
-  memset(trace->buffers[*pos]->buffer_ptr, 0, length);
+  memset(trace->buffers[thread_id]->buffer_ptr, 0, length);
 #else
   size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
-  trace->buffers[*pos]->buffer_ptr = malloc(length);
+  trace->buffers[thread_id]->buffer_ptr = malloc(length);
 #endif
 
-  if (!trace->buffers[*pos]->buffer_ptr) {
+  if (!trace->buffers[thread_id]->buffer_ptr) {
     perror("Could not allocate memory buffer for the thread\n!");
     exit(EXIT_FAILURE);
   }
 
   // touch the memory so that it is allocated for real (otherwise, this may
   //    cause performance issues on NUMA machines)
-  memset(trace->buffers[*pos]->buffer_ptr, 1, 1);
-  trace->buffers[*pos]->buffer = trace->buffers[*pos]->buffer_ptr;
+  memset(trace->buffers[thread_id]->buffer_ptr, 1, 1);
+  trace->buffers[thread_id]->buffer = trace->buffers[thread_id]->buffer_ptr;
+
+  trace->buffers[thread_id]->initialized = 1;
 }
 
 /*
@@ -587,8 +591,13 @@ litl_t* __litl_write_get_event(litl_write_trace_t* trace, litl_type_t type,
     if (!p_index) {
       __litl_write_allocate_buffer(trace);
       p_index = pthread_getspecific(trace->index);
+      if(!p_index)
+	return NULL;
     }
     index = *(litl_med_size_t *) p_index;
+
+    if(trace->buffers[index]->initialized == 0)
+      return NULL;
 
     litl_write_buffer_t *p_buffer = trace->buffers[index];
 

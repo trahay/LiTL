@@ -297,6 +297,7 @@ typedef struct {
   litl_offset_t offset; /**< An offset to the next buffer in the trace file */
 
   litl_data_t already_flushed; /**< Handles the situation when some threads start after the header was flushed, i.e. their tids and offsets were not included into the header*/
+  int initialized;
 } litl_write_buffer_t;
 
 /**
