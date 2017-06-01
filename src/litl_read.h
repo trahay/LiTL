@@ -104,6 +104,17 @@ void litl_read_reset_process(litl_read_process_t* process);
 litl_read_event_t* litl_read_next_process_event(litl_read_trace_t* trace,
                                                 litl_read_process_t* process);
 
+
+/**
+ * \ingroup litl_read_main
+ * \brief Reads the next event from a trace
+ * \param trace A pointer to the trace object
+ * \param process A pointer to the process object
+ * \param thread A pointer to the thread object
+ */
+litl_read_event_t* litl_read_next_thread_event(litl_read_trace_t* trace,
+					       litl_read_process_t* process,
+					       litl_read_thread_t* thread);
 /**
  * \ingroup litl_read_main
  * \brief Reads the next event from a trace file
