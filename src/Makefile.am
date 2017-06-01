@@ -16,7 +16,7 @@ liblitl_la_SOURCES = litl_types.h litl_tools.h litl_tools.c \
 
 include_HEADERS = litl_types.h litl_tools.h litl_timer.h \
                   litl_write.h litl_read.h \
-                  litl_merge.h litl_split.h \
+                  litl_merge.h litl_split.h litl_config.h \
                   fxt.h fut.h
 
 clean-local:
