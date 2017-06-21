@@ -17,27 +17,28 @@
 \usepackage{pdflscape}
 \usepackage[T1]{fontenc}
 \usepackage[small,bf]{caption}
+\usepackage{fullpage}
 
 % for plotting 
 \usepackage{subfigure}
 \usepackage{graphicx}
 \usepackage{color}  
-\usepackage{xcolor}
-    \definecolor{ListingsKeywordColor}{rgb}{0,0,0.4}
-    \definecolor{ListingsIdentifierColor}{rgb}{0,0.5,0}
-    \definecolor{ListingsCommentColor}{rgb}{0.4,0.4,0.4}
-    \definecolor{ListingsStringColor}{rgb}{0.6000,0.3333,0.7333}%{0.8,0,0}
-    \definecolor{ListingsRuleSepColor}{rgb}{0,0,0}
-    \definecolor{ListingsEmphColor}{rgb}{0,0.6667,0.6667}
-    \definecolor{ListingsBreakSymbolColor}{rgb}{0.780,0.082,0.522}
-    \definecolor{LinkColor}{rgb}{0,0,0.5}
-    \definecolor{UnitColor}{rgb}{0,0,0}
-    \definecolor{MathsVectorColor}{rgb}{0,0,0}
-    \definecolor{MathsMatrixColor}{rgb}{0,0,0}
-    \definecolor{MyGreen}{HTML}{228B22}
-    \definecolor{MyBlue}{HTML}{0000FF}
-    \colorlet{MatrixElementsLight}{gray!20!white}
-    \colorlet{MatrixElementsDark}{gray!40}
+%\usepackage{xcolor}
+%    \definecolor{ListingsKeywordColor}{rgb}{0,0,0.4}
+%    \definecolor{ListingsIdentifierColor}{rgb}{0,0.5,0}
+%    \definecolor{ListingsCommentColor}{rgb}{0.4,0.4,0.4}
+%    \definecolor{ListingsStringColor}{rgb}{0.6000,0.3333,0.7333}%{0.8,0,0}
+%    \definecolor{ListingsRuleSepColor}{rgb}{0,0,0}
+%    \definecolor{ListingsEmphColor}{rgb}{0,0.6667,0.6667}
+%    \definecolor{ListingsBreakSymbolColor}{rgb}{0.780,0.082,0.522}
+%    \definecolor{LinkColor}{rgb}{0,0,0.5}
+%    \definecolor{UnitColor}{rgb}{0,0,0}
+%    \definecolor{MathsVectorColor}{rgb}{0,0,0}
+%    \definecolor{MathsMatrixColor}{rgb}{0,0,0}
+%    \definecolor{MyGreen}{HTML}{228B22}
+%    \definecolor{MyBlue}{HTML}{0000FF}
+%    \colorlet{MatrixElementsLight}{gray!20!white}
+%    \colorlet{MatrixElementsDark}{gray!40}
 
 \usepackage{tikz}
 \usepackage{pgfplots}
@@ -99,13 +100,7 @@ ytick scale label code/.code={$\times 10^{#1}$}
     showspaces=false,
     showstringspaces=false,
     tab=\rightarrowfill,
-    keywordstyle=\color{ListingsKeywordColor},
-    identifierstyle=\color{ListingsIdentifierColor},
-    commentstyle=\color{ListingsCommentColor},
-    stringstyle=\color{ListingsStringColor},
-    emphstyle=\color{ListingsEmphColor}\bfseries\underbar,
     frame=none,
-    rulesepcolor=\color{ListingsRuleSepColor},
     numbers=left,
     numberstyle=\tiny,
     numbersep=5pt,
@@ -126,11 +121,6 @@ ytick scale label code/.code={$\times 10^{#1}$}
 \hypersetup{
    % Farben fuer die Links
    colorlinks=false,         % Links erhalten Farben statt Kaeten
-   urlcolor=LinkColor,    % \href{...}{...} external (URL)
-   filecolor=LinkColor,  % \href{...} local file
-   linkcolor=LinkColor,  %\ref{...} and \pageref{...}
-   menucolor=LinkColor,
-   citecolor=LinkColor,
    % Links
    raiselinks=true,       % calculate real height of the link
    breaklinks,              % Links berstehen Zeilenumbruch

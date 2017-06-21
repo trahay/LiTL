@@ -13,7 +13,7 @@
     \foreach \x in {99.7,99.1,...,97.}
         \draw [line width=.24mm, decorate,decoration={snake,post length=1mm}] (\x,99.9) -- (\x,98.9);        
     % buffer
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+    \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (100.5,98.) rectangle (96.5,96.4);
     \node at (98.5, 97.2) {B    U    F    F    E    R};
     % 0
@@ -59,13 +59,13 @@
         \draw [line width=.24mm, decorate,decoration={snake,post length=1mm}] (\x,99.9) -- (\x,98.9);        
     % buffers
     % 0
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+    \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (101.,98.) rectangle (100.3,96.4);
     \node at (100.55, 98.) (buffer0up) {};
     \node at (99.66, 98.96) (thread0) {}
         edge[pil] (buffer0up.north);
     % 1
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+    \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (100.,98.) rectangle (99.3,96.4);
     \node at (99.6, 98.) (buffer1up) {};
     \node at (99.06, 98.96) (thread1) {}
@@ -73,19 +73,19 @@
     % dots
     \node at (98.9,97.2) {$\dots$};
     % 2
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+    \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (98.5,98.) rectangle (97.8,96.4);
     \node at (98.13, 98.) (buffer2up) {};
     \node at (98.53, 98.96) (thread2) {}
         edge[pil] (buffer2up.north);    
     % 3
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+        \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (97.5,98.) rectangle (96.8,96.4);
     \node at (97.15, 98.) (buffer3up) {};
     \node at (97.95, 98.96) (thread3) {}
         edge[pil] (buffer3up.north);    
     % 4
-    \draw [blue, fill=MatrixElementsDark, line width=.3mm, rounded corners]
+    \draw [blue, fill=blue, line width=.3mm, rounded corners]
         (96.5,98.) rectangle (95.8,96.4);
     \node at (96.15, 98.) (buffer4up) {};
     \node at (97.33, 98.95) (thread4) {}
