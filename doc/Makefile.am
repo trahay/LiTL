@@ -17,22 +17,16 @@ latex/refman.pdf:
 
 
 clean-local:
-	rm -rf $(top_srcdir)/doc/man html latex doxyfile.stamp
+	rm -rf $(top_srcdir)/doc/man latex doxyfile.stamp
 
 install-data-local:
-	for f in `find $(builddir)/html` ; do \
-	$(INSTALL_DATA) -D $$f \
-		$(DESTDIR)$(datadir)/doc/$(PACKAGE)/$$f ; done
 	$(INSTALL_DATA) -D $(builddir)/latex/refman.pdf  \
 		$(DESTDIR)$(datadir)/doc/$(PACKAGE)/
 
 uninstall-local:
-	rm -rf $(DESTDIR)$(datadir)/doc/$(PACKAGE)/html \
-		$(DESTDIR)$(datadir)/doc/$(PACKAGE)/refman.pdf
+	rm -rf	$(DESTDIR)$(datadir)/doc/$(PACKAGE)/refman.pdf
 
 endif
-
-EXTRA_DIST += html
 
 if HAVE_LATEXMK
 doc_DATA = user_manual.pdf
