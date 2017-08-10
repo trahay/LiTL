@@ -20,6 +20,7 @@ clean-local:
 	rm -rf $(top_srcdir)/doc/man latex doxyfile.stamp
 
 install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(datadir)/doc/$(PACKAGE)/
 	$(INSTALL_DATA) -D $(builddir)/latex/refman.pdf  \
 		$(DESTDIR)$(datadir)/doc/$(PACKAGE)/
 
