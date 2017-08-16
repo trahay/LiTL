@@ -538,11 +538,15 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
      that makes sure the page table is populated. This way, the page faults
      caused by litl are sensibly reduced.
   */
+#ifdef __linux__
+  /* some mmap options (eg. MAP_POPULATE) are linux specific. Use malloc on the other platforms */
 #define USE_MMAP
+#endif
+
 #ifdef USE_MMAP
   size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
-  
-  trace->buffers[thread_id]->buffer_ptr = mmap(NULL, 
+
+  trace->buffers[thread_id]->buffer_ptr = mmap(NULL,
 					  length,
 					  PROT_READ|PROT_WRITE,
 					  MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
