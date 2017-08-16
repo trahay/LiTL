@@ -553,7 +553,7 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
   trace->buffers[thread_id]->buffer_ptr = mmap(NULL,
 					       length,
 					       PROT_READ|PROT_WRITE,
-					       flags,
+					       mmap_flags,
 					       -1,
 					       0);
   if(trace->buffers[thread_id]->buffer_ptr == MAP_FAILED) {
