@@ -538,31 +538,39 @@ static void __litl_write_allocate_buffer(litl_write_trace_t* trace) {
      that makes sure the page table is populated. This way, the page faults
      caused by litl are sensibly reduced.
   */
-#ifdef __linux__
-  /* some mmap options (eg. MAP_POPULATE) are linux specific. Use malloc on the other platforms */
 #define USE_MMAP
-#endif
 
 #ifdef USE_MMAP
   size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
 
+  int mmap_flags = MAP_SHARED|MAP_ANONYMOUS;
+
+#ifdef MAP_POPULATE
+  /* make sure the pages are in the page table. This should reduce page faults when recording events  */
+  mmap_flags |= MAP_POPULATE;
+#endif
+
   trace->buffers[thread_id]->buffer_ptr = mmap(NULL,
-					  length,
-					  PROT_READ|PROT_WRITE,
-					  MAP_SHARED|MAP_ANONYMOUS|MAP_POPULATE,
-					  -1,
-					  0);
+					       length,
+					       PROT_READ|PROT_WRITE,
+					       flags,
+					       -1,
+					       0);
   if(trace->buffers[thread_id]->buffer_ptr == MAP_FAILED) {
     perror("mmap");
   }
+
+#ifdef MAP_POPULATE
   /* touch the first pages */
   if(length> 1024*1024)
     length=1024*1024;
+#endif	/* if MAP_POPULATE is not available, touch the whole buffer to avoid future page faults */
   memset(trace->buffers[thread_id]->buffer_ptr, 0, length);
-#else
+
+#else  /* USE_MMAP */
   size_t length = trace->buffer_size + __litl_get_reg_event_size(LITL_MAX_PARAMS) + __litl_get_reg_event_size(1);
   trace->buffers[thread_id]->buffer_ptr = malloc(length);
-#endif
+#endif	/* USE_MMAP */
 
   if (!trace->buffers[thread_id]->buffer_ptr) {
     perror("Could not allocate memory buffer for the thread\n!");
