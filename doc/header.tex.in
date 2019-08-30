@@ -174,3 +174,5 @@ ytick scale label code/.code={$\times 10^{#1}$}
 \newcommand{\openmp}{OpenMP}
 \newcommand{\mpi}{MPI}
 \newcommand{\dash}{ -- }
+
+\date{}
