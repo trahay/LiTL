@@ -25,7 +25,7 @@
 #define NBEVENT (NBITER * 12)
 
 static litl_write_trace_t* __trace;
-int total_recorded_events = 0;
+_Atomic int total_recorded_events = 0;
 
 /*
  * Records several traces at the same time
