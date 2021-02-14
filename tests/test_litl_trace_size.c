@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
   printf("Events are recorded and written in the %s file\n", filename);
 
-  litl_param_t size;
+  long size;
   FILE* fp = fopen(filename, "r");
   fseek(fp, 0L, SEEK_END);
   size = ftell(fp);
