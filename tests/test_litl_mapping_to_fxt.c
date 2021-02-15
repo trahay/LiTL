@@ -79,7 +79,7 @@ int main() {
   fut_endup(filename);
   fut_done();
 
-  uint64_t size;
+  long size;
   FILE* fp = fopen(filename, "r");
   fseek(fp, 0L, SEEK_END);
   size = ftell(fp);
