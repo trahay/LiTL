@@ -32,6 +32,20 @@ target_include_directories(litl
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+SET(LITL_HEADERS
+  ${CMAKE_CURRENT_BINARY_DIR}/litl_config.h
+  litl_types.h
+  litl_tools.h
+  litl_timer.h
+  litl_write.h
+  litl_read.h
+  litl_merge.h
+  litl_split.h
+  )
+
+set_target_properties(litl PROPERTIES PUBLIC_HEADER "${LITL_HEADERS}")
+
+
 install(
     TARGETS litl
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
