@@ -2,10 +2,9 @@
 #define LITL_CONFIG_H
 
 
-#define USE_GETTID @USE_GETTID@
+#cmakedefine USE_GETTID 1
 
-
-#define FORCE_32BIT @FORCE_32BIT@
+#cmakedefine FORCE_32BIT 1
 
 #if FORCE_32_BIT
 /* compile for 32bit architecture */
@@ -14,11 +13,11 @@
 #else  /* FORCE_32_BIT */
 /* detect 32/64 bit architecture */
 
-#ifndef SIZEOF_SIZE_T
-#define SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+#ifndef SIZEOF_POINTER
+#define SIZEOF_POINTER @CMAKE_SIZEOF_VOID_P@
 #endif
 
-#if (SIZEOF_SIZE_T == 4)
+#if (SIZEOF_POINTER == 4)
 /* 32bit arch */
 #define HAVE_32BIT 1
 #else
@@ -28,6 +27,8 @@
 
 #endif
 
-#define CLOCK_GETTIME_AVAIL @CLOCK_GETTIME_AVAIL@
+#define CLOCK_GETTIME_AVAIL 1
+
+#define VERSION "@PROJECT_VERSION@"
 
 #endif	/* LITL_CONFIG_H */

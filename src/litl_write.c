@@ -20,6 +20,7 @@
 #include "litl_timer.h"
 #include "litl_tools.h"
 #include "litl_write.h"
+#include "litl_config.h"
 
 /*
  * Adds a header to the trace file with the information regarding:
