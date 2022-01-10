@@ -6,7 +6,8 @@ add_executable(litl_split litl_split.c  )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_BINARY_DIR}/include>
+  ${CMAKE_CURRENT_BINARY_DIR}/include
+  ${CMAKE_SOURCE_DIR}/src
   )
 
 target_link_libraries( litl_print  PRIVATE   litl  )
