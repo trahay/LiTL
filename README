@@ -7,24 +7,10 @@ memory, and the disk space) as the alternative tools, e.g. FxT that gather
 events on both user and kernel levels. As a result, LiTL is well-suited for 
 recording events on embedded systems like ARM architectures.
 
-Requirements
-=============================================
-In order to use LiTL, the following software is needed:
-    * autoconf 2.63;
-
-Getting LiTL
-=============================================
-Current development version of LiTL is available via Git
-    git clone git+ssh://fusionforge.int-evry.fr//var/lib/gforge/chroot/
-    scmrepos/git/litl/litl.git
-
-After getting the latest development version (from Git), './bootstrap' should 
-be run in the root directory and only then the tool can be built.
-
 Installing LiTL
 =============================================
 At first, to configure LiTL the following script should be invoked:
-    $ ./configure --prefix=<LITL_INSTALL_DIR>
+    $ cmake . -DCMAKE_INSTALL_PREFIX=<LITL_INSTALL_DIR>
 
 The configuration script contains many different options that can be set. 
 However, we recommend to use the default settings.
@@ -32,10 +18,6 @@ However, we recommend to use the default settings.
 Once LiTL is configured, the next two commands should be executed:
     $ make
     $ make install
-
-In order to check whether LiTL was installed correctly, a set of tests can be 
-run as
-    $ make check
 
 Using LiTL
 =============================================
