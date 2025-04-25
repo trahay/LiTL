@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.18)
 
 add_executable(litl_print litl_print.c  )
 add_executable(litl_merge litl_merge.c  )
