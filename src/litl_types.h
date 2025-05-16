@@ -264,7 +264,7 @@ typedef struct {
   litl_size_t buffer_size; /**< A size of buffer */
   litl_trace_size_t trace_size; /**< A trace size */
   litl_offset_t offset; /**< An offset to the process-specific threads pairs and their events */
-}__attribute__((packed)) litl_process_header_t;
+} litl_process_header_t;
 
 /**
  * \ingroup litl_types_general
