@@ -33,6 +33,7 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
 
   // allocate memory for the trace header
   trace->header_ptr = (litl_buffer_t) malloc(trace->header_size);
+  printf("header_ptr=%p\n", trace->header_ptr);
   if (!trace->header_ptr) {
     perror("Could not allocate memory for the trace header!");
     exit(EXIT_FAILURE);
@@ -54,6 +55,7 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
   ((litl_general_header_t *) trace->header)->nb_processes = 1;
   // move pointer
   trace->header += sizeof(litl_general_header_t);
+  printf("adding %d bytes -> %p\n", sizeof(litl_general_header_t), trace->header);
 
   // add a process-specific header
   // by default one trace file contains events only of one process
@@ -74,6 +76,8 @@ static void __litl_write_add_trace_header(litl_write_trace_t* trace) {
     + 256 * sizeof(litl_data_t);
   // move pointer
   trace->header += sizeof(litl_process_header_t);
+
+  printf("adding %d bytes -> %p\n", sizeof(litl_process_header_t), trace->header);
 }
 
 /*
@@ -338,6 +342,7 @@ static void __litl_write_flush_header(litl_write_trace_t* trace) {
     // add information about each working thread: (tid, offset)
     litl_med_size_t i;
     for (i = 0; i < trace->nb_threads; i++) {
+      printf("trace->header: %p\n", trace->header);
       ((litl_thread_pair_t *) trace->header)->tid = trace->buffers[i]->tid;
       ((litl_thread_pair_t *) trace->header)->offset = 0;
 
@@ -355,7 +360,10 @@ static void __litl_write_flush_header(litl_write_trace_t* trace) {
 
     // specify the last slot of pairs (offset == 0)
     litl_thread_pair_t *thread_pair = (litl_thread_pair_t *) trace->header;
+    printf("trace->header: %p\n", trace->header);
     trace->header += sizeof(litl_thread_pair_t);
+    printf("trace->header: %p\n", trace->header);
+
     thread_pair->tid = 0;
     thread_pair->offset = 0;
 

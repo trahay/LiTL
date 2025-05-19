@@ -273,7 +273,7 @@ typedef struct {
 typedef struct {
   litl_tid_t tid; /**< A thread ID */
   litl_offset_t offset; /**< An offset to the chunk of events */
-} litl_thread_pair_t;
+} __attribute__((aligned(8))) litl_thread_pair_t;
 
 /**
  * \ingroup litl_types_general
