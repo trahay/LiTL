@@ -250,7 +250,7 @@ typedef struct {
   litl_data_t litl_ver[8]; /**< Information regarding the version of LiTL */
   litl_data_t sysinfo[128]; /**< Information regarding OS, Hardware, etc. */
   litl_med_size_t nb_processes; /**< A number of processes in the trace file */
-}__attribute__((packed)) litl_general_header_t;
+}__attribute__((packed)) __attribute__((aligned(8))) litl_general_header_t;
 
 /**
  * \ingroup litl_types_general
@@ -264,7 +264,7 @@ typedef struct {
   litl_size_t buffer_size; /**< A size of buffer */
   litl_trace_size_t trace_size; /**< A trace size */
   litl_offset_t offset; /**< An offset to the process-specific threads pairs and their events */
-} litl_process_header_t;
+} __attribute__((packed))  __attribute__((aligned(8))) litl_process_header_t;
 
 /**
  * \ingroup litl_types_general
